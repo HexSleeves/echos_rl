@@ -93,7 +93,7 @@ bevy_ecs_tilemap = "0.16"
 bevy_asset_loader = { version = "0.23.0" }
 bevy_kira_audio = { version = "0.23.0", features = ["android_shared_stdcxx"] }
 
-rand = { version = "0.8.3" }
+rand = { version = "0.9" }
 # Compile low-severity logs out of native builds for performance.
 log = { version = "0.4", features = [
     "max_level_debug",

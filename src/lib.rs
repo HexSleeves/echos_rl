@@ -3,6 +3,7 @@
 
 #[cfg(feature = "dev")]
 mod dev_tools;
+mod gameplay;
 mod screens;
 mod theme;
 
@@ -36,8 +37,12 @@ impl Plugin for GamePlugin {
             dev_tools::plugin,
             screens::plugin,
             theme::plugin,
+            gameplay::plugin,
         ));
     }
 }
 
-fn spawn_camera(mut commands: Commands) { commands.spawn((Name::new("Main Camera"), Camera2d, Msaa::Off)); }
+fn spawn_camera(mut commands: Commands) {
+    println!("Spawning camera");
+    commands.spawn((Name::new("Main Camera"), Camera2d));
+}
