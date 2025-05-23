@@ -1,10 +1,10 @@
 [package]
-name    = "echos_in_the_dark"
-authors = ["Jacob L <lecoqjacob@gmail.com>"]
+publish = false
 version = "0.1.0"
 edition = "2024"
+name    = "echos_in_the_dark"
+authors = ["Jacob L <lecoqjacob@gmail.com>"]
 exclude = ["dist", "build", "assets", "credits"]
-publish = false
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]
@@ -91,11 +91,19 @@ bevy = { version = "0.16", default-features = false, features = [
 bevy_ecs_tilemap = "0.16"
 bevy_asset_loader = { version = "0.23.0" }
 bevy_kira_audio = { version = "0.23.0", features = ["android_shared_stdcxx"] }
-
 brtk = { path = "./brtk" }
-rand = { version = "0.9" }
+
+# Error handling
+anyhow = { version = "1" }
+# 'Small vector' optimization: store up to a small number of items on the stack
+bitvec = { version = "1" }
+# A fast random number generator
+fastrand = { version = "2" }
+rand     = { version = "0.9" }
 # A generic serialization/deserialization framework
 serde = { version = "1", features = ["derive", "rc", "alloc"] }
+# Error handling
+thiserror = { version = "2" }
 # A native Rust encoder and decoder of TOML-formatted files and streams
 toml = "0.8.22"
 

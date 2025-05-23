@@ -1,0 +1,30 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# General AI Coding Guidelines
+
+## Code Quality & Style
+- **Clarity and Simplicity:** Prioritize writing code that is easy to read, understand, and maintain. Avoid overly complex or clever solutions unless necessary.
+- **DRY (Don't Repeat Yourself):** Strive to minimize code duplication. Use functions, classes, or modules to encapsulate reusable logic.
+- **Single Responsibility Principle (SRP):** Functions and classes should ideally have one primary responsibility.
+- **Consistency:** Maintain consistency with the existing codebase's style, patterns, and conventions. If no clear style exists, adhere to widely accepted standards for the language (e.g., PEP 8 for Python, Google Style Guide for Java/C++).
+- **Meaningful Naming:** Use descriptive names for variables, functions, classes, and files. Avoid abbreviations unless they are standard and widely understood.
+- **Error Handling:** Implement robust error handling. Use try-catch blocks appropriately, provide informative error messages, and handle edge cases gracefully.
+- **Avoid Magic Numbers/Strings:** Use named constants or configuration variables instead of hardcoding values directly in the code.
+
+## Comments & Documentation
+- **Explain the "Why", Not the "What":** Write comments to explain complex logic, assumptions, or the reasoning behind a particular implementation, not just to restate what the code does.
+- **Docstrings/JSDoc:** For functions, classes, and modules, use standard documentation formats (like JSDoc, Python docstrings, JavaDoc) to describe their purpose, parameters, return values, and any exceptions raised.
+- **Keep Comments Up-to-Date:** Ensure comments are updated or removed when the code changes.
+
+## Commit Messages
+- **Conventional Commits:** Follow the Conventional Commits specification (https://www.conventionalcommits.org/) for commit messages. Format: `<type>[optional scope]: <description>`. Example: `feat(api): add user authentication endpoint`.
+- **Clear Description:** The commit message description should be concise but clearly explain the change made.
+- **Imperative Mood:** Write the subject line in the imperative mood (e.g., "Add feature" not "Added feature" or "Adds feature").
+
+## Interaction Style
+- **Conciseness:** Provide concise responses and code suggestions. Avoid unnecessary verbosity.
+- **Explain Changes:** When providing code edits or suggestions, briefly explain the changes made and the reasoning behind them.
+- **Ask Clarifying Questions:** If the request is ambiguous or lacks detail, ask clarifying questions before proceeding.

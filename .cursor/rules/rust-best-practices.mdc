@@ -1,0 +1,54 @@
+---
+description:
+globs: *.rs
+alwaysApply: false
+---
+# Rust Best Practices (Performance & AI/ML Focus)
+
+## General Principles
+- **Prefer idiomatic Rust:** Use ownership, borrowing, and lifetimes to ensure safety and performance.
+- **Zero-cost abstractions:** Use iterators, traits, and generics to write efficient, reusable code.
+- **Minimize unsafe:** Only use `unsafe` when absolutely necessary, and always document why.
+- **Error handling:** Use `Result` and `Option` types. Avoid panics in library code.
+- **Explicitness:** Be explicit with types and lifetimes when clarity or performance is at stake.
+
+## Performance
+- **Avoid unnecessary allocations:** Use stack allocation and slices where possible. Prefer `Vec` over `Box<[T]>` unless heap allocation is required.
+- **Minimize copies:** Use references and slices instead of cloning data. Use `.iter()` and `.as_ref()`.
+- **Leverage concurrency:** Use `rayon`, `tokio`, or native threads for parallelism when appropriate.
+- **SIMD & BLAS:** For numerics/AI, prefer crates like `ndarray`, `nalgebra`, or direct BLAS bindings for heavy math.
+- **Profile first:** Use `cargo bench`, `criterion`, and `perf` to find real bottlenecks before optimizing.
+- **Cache locality:** Prefer SoA (structure of arrays) for large numeric data, and minimize pointer chasing.
+- **Avoid dynamic dispatch:** Use generics and monomorphization for hot code paths.
+- **Release mode:** Always benchmark and test performance in `--release` mode.
+
+## AI/ML Specific
+- **Use established crates:** Prefer `ndarray`, `nalgebra`, `tch`, `tract`, or `burn` for tensor and ML workloads.
+- **Parallelize workloads:** Use `rayon` for data parallelism, especially in data preprocessing and batch operations.
+- **FFI:** For heavy lifting, consider FFI to C/C++/CUDA (e.g., via `tch` or `tract`), but wrap safely.
+- **Numerical stability:** Use f64 for critical math unless memory is a bottleneck. Document precision trade-offs.
+- **Batch operations:** Always prefer batch over per-item processing for ML/data pipelines.
+
+## Code Style & Documentation
+- **Clippy:** Run `cargo clippy` and fix all warnings.
+- **Rustfmt:** Use `cargo fmt` for consistent style.
+- **Doc comments:** Use `///` for public APIs, document parameters, return values, and panics.
+- **Meaningful names:** Use descriptive, conventional names for types, functions, and variables.
+- **Module organization:** Group related code into modules. Keep files <300 lines when possible.
+
+## Testing & Benchmarking
+- **Unit tests:** Write tests for all critical logic. Use `#[cfg(test)]` and `mod tests`.
+- **Property-based tests:** Use `proptest` or `quickcheck` for complex invariants.
+- **Benchmarks:** Use `criterion` for microbenchmarks. Document benchmark results.
+- **No breakage:** All code must pass `cargo test` before merging.
+
+## Safety & Review
+- **Review unsafe:** All `unsafe` blocks must be reviewed and justified in comments.
+- **Audit dependencies:** Use `cargo audit` to check for vulnerable crates.
+- **Minimal dependencies:** Only add crates if they are well-maintained and necessary.
+
+## Commit & PRs
+- **Conventional commits:** Use the conventional commit format for all messages.
+- **Small PRs:** Keep pull requests focused and <500 lines when possible.
+
+# End of Rust Best Practices

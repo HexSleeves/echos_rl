@@ -1,11 +1,10 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
-use super::gamemap::GameMap;
+use crate::model::resources::GameMap;
 
 /// Fill a tilemap with tiles based on a level
 pub fn fill_tilemap(
-    _texture_index: TileTextureIndex,
     map_size: TilemapSize,
     tilemap_id: TilemapId,
     commands: &mut Commands,

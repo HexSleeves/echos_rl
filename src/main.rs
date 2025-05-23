@@ -10,16 +10,17 @@ use bevy::{
 };
 use brtk::prelude::BrtkPlugin;
 
-use crate::{ui::UiPlugin, view::ViewPlugin};
+use crate::{controller::ControllerPlugin, model::ModelPlugin, ui::UiPlugin, view::ViewPlugin};
 
+pub mod controller;
 #[cfg(feature = "dev")]
 pub mod dev;
+pub mod model;
 pub mod ui;
 pub mod view;
 
 mod app_constants;
 pub use self::app_constants::*;
-
 mod app_settings;
 pub use self::app_settings::*;
 
@@ -47,8 +48,8 @@ pub enum AppState {
     // Title,
     // Credits,
     // Settings,
+    // Loading,
     #[default]
-    Loading,
     Gameplay,
 }
 
@@ -110,7 +111,7 @@ fn main() {
     app.add_plugins(crate::dev::DevPlugin);
 
     // Assign plugins
-    app.add_plugins((brt_plugin, UiPlugin, ViewPlugin));
+    app.add_plugins((brt_plugin, UiPlugin, ViewPlugin, ControllerPlugin, ModelPlugin));
 
     app.run();
 }
