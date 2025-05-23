@@ -6,15 +6,15 @@ use bevy::{
     ui::UiDebugOptions,
 };
 
-use crate::screens::ScreenState;
+use crate::AppState;
 
 pub struct DevPlugin;
 impl Plugin for DevPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((FrameTimeDiagnosticsPlugin::default(), LogDiagnosticsPlugin::default()));
 
-        // Log `ScreenState` state transitions.
-        app.add_systems(Update, log_transitions::<ScreenState>);
+        // Log `AppState` state transitions.
+        app.add_systems(Update, log_transitions::<AppState>);
 
         // Toggle the debug overlay for UI.
         app.add_systems(Update, toggle_debug_ui.run_if(input_just_pressed(TOGGLE_KEY)));

@@ -10,12 +10,12 @@ use bevy::{
 };
 use brtk::prelude::BrtkPlugin;
 
-use crate::ui::UiPlugin;
+use crate::{ui::UiPlugin, view::ViewPlugin};
 
 #[cfg(feature = "dev")]
 pub mod dev;
-pub mod screens;
 pub mod ui;
+pub mod view;
 
 mod app_constants;
 pub use self::app_constants::*;
@@ -37,6 +37,19 @@ enum AppSystems {
     RecordInput,
     /// Do everything else (consider splitting this into further variants).
     Update,
+}
+
+/// The game's main screen states.
+#[derive(States, Debug, Hash, PartialEq, Eq, Clone, Default)]
+#[states(scoped_entities)]
+pub enum AppState {
+    // Splash,
+    // Title,
+    // Credits,
+    // Settings,
+    #[default]
+    Loading,
+    Gameplay,
 }
 
 fn main() {
@@ -86,6 +99,8 @@ fn main() {
     );
 
     app
+        // Initialize the app state
+        .init_state::<AppState>()
         // Order new `AppSystems` variants by adding them here:
         .configure_sets(Update, (AppSystems::TickTimers, AppSystems::RecordInput, AppSystems::Update).chain())
         // Insert resources
@@ -95,7 +110,7 @@ fn main() {
     app.add_plugins(crate::dev::DevPlugin);
 
     // Assign plugins
-    app.add_plugins((brt_plugin, screens::plugin, UiPlugin));
+    app.add_plugins((brt_plugin, UiPlugin, ViewPlugin));
 
     app.run();
 }
