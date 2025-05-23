@@ -1,0 +1,6 @@
+fullscreen = false
+tile_size = 16
+view_size = [
+    60,
+    40,
+]
