@@ -88,10 +88,15 @@ bevy = { version = "0.16", default-features = false, features = [
     "webgl2",
     "x11",
 ] }
-bevy_ecs_tilemap = "0.16"
-bevy_asset_loader = { version = "0.23.0" }
+bevy_ecs_tilemap = { version = "0.16", features = ["atlas"] }
+bevy_asset_loader = { version = "0.23.0", features = [
+    "2d",
+    "standard_dynamic_assets",
+    "progress_tracking",
+] }
 bevy_kira_audio = { version = "0.23.0", features = ["android_shared_stdcxx"] }
 brtk = { path = "./brtk" }
+iyes_progress = { version = "0.14.0" }
 
 # Error handling
 anyhow = { version = "1" }

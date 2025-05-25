@@ -1,13 +1,22 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
-use crate::model::{
-    ModelConstants,
-    components::TerrainType,
-    resources::{CurrentMap, GameMap},
+use crate::{
+    model::{
+        ModelConstants,
+        components::TerrainType,
+        resources::{CurrentMap, GameMap},
+        utils,
+    },
+    view::resources::TextureAssets,
 };
 
-pub fn spawn_map(mut commands: Commands, mut current_map: ResMut<CurrentMap>, asset_server: Res<AssetServer>) {
+pub fn spawn_map(
+    mut commands: Commands,
+    mut current_map: ResMut<CurrentMap>,
+    texture_assets: Res<TextureAssets>,
+    mut texture_atlases: ResMut<Assets<TextureAtlasLayout>>,
+) {
     // let mut rng = fastrand::Rng::new();
     // let mut generator = GenConfig::new(1, ModelConstants::MAP_WIDTH, ModelConstants::MAP_HEIGHT);
 
@@ -20,7 +29,7 @@ pub fn spawn_map(mut commands: Commands, mut current_map: ResMut<CurrentMap>, as
     // // Update the current map
     // current_map.terrain = terrain_entities;
 
-    let texture_handle: Handle<Image> = asset_server.load("tiles.png");
+    let texture_handle: Handle<Image> = texture_assets.urizen_tileset.clone();
     let map_size = TilemapSize { x: ModelConstants::MAP_WIDTH as u32, y: ModelConstants::MAP_HEIGHT as u32 };
 
     // Create a tilemap entity a little early.
@@ -31,29 +40,29 @@ pub fn spawn_map(mut commands: Commands, mut current_map: ResMut<CurrentMap>, as
 
     // Create a level
     let mut rng = fastrand::Rng::new();
-    let mut level = GameMap::new(map_size.x as i32, map_size.y as i32, 0, None);
+    let mut gamemap = GameMap::new(map_size.x as i32, map_size.y as i32, 0, None);
 
     // Generate a surface level for now
-    for y in 0..level.height {
-        for x in 0..level.width {
-            if x == 0 || x == level.width - 1 || y == 0 || y == level.height - 1 {
-                level.set_tile(x, y, TerrainType::Wall);
+    for y in 0..gamemap.height {
+        for x in 0..gamemap.width {
+            if x == 0 || x == gamemap.width - 1 || y == 0 || y == gamemap.height - 1 {
+                gamemap.set_tile(x, y, TerrainType::Wall);
             } else {
-                level.set_tile(x, y, TerrainType::Floor);
+                gamemap.set_tile(x, y, TerrainType::Floor);
             }
         }
     }
 
     // Add a staircase down to an underground level
-    let stairs_x = rng.i32(5..level.width - 5);
-    let stairs_y = rng.i32(5..level.height - 5);
-    level.set_tile(stairs_x, stairs_y, TerrainType::StairsDown);
+    let stairs_x = rng.i32(5..gamemap.width - 5);
+    let stairs_y = rng.i32(5..gamemap.height - 5);
+    gamemap.set_tile(stairs_x, stairs_y, TerrainType::StairsDown);
 
     // Spawn the elements of the tilemap.
-    crate::model::utils::fill_tilemap(map_size, TilemapId(tilemap_entity), &mut commands, &mut tile_storage, &level);
+    utils::fill_tilemap(map_size, TilemapId(tilemap_entity), &mut commands, &mut tile_storage, &gamemap);
 
     let map_type = TilemapType::default();
-    let tile_size = TilemapTileSize { x: 16.0, y: 16.0 };
+    let tile_size = TilemapTileSize { x: 12.0, y: 12.0 };
     let grid_size = tile_size.into();
 
     commands.entity(tilemap_entity).insert((
@@ -67,6 +76,6 @@ pub fn spawn_map(mut commands: Commands, mut current_map: ResMut<CurrentMap>, as
             anchor: TilemapAnchor::Center,
             ..Default::default()
         },
-        level,
+        gamemap,
     ));
 }

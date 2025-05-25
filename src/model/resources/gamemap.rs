@@ -19,6 +19,7 @@ impl GameMap {
     }
 
     pub fn in_bounds(&self, x: i32, y: i32) -> bool { x >= 0 && x < self.width && y >= 0 && y < self.height }
+
     pub fn get_index(&self, x: i32, y: i32) -> usize { (y * self.width + x) as usize }
 
     pub fn get_tile(&self, x: i32, y: i32) -> TerrainType {

@@ -1,4 +1,5 @@
+use bevy::prelude::*;
+
 pub mod systems;
 
-mod controller_plugin;
-pub use self::controller_plugin::*;
+pub(super) fn plugin(app: &mut App) {}

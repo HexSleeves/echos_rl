@@ -10,8 +10,6 @@ use bevy::{
 };
 use brtk::prelude::BrtkPlugin;
 
-use crate::{controller::ControllerPlugin, model::ModelPlugin, ui::UiPlugin, view::ViewPlugin};
-
 pub mod controller;
 #[cfg(feature = "dev")]
 pub mod dev;
@@ -24,9 +22,6 @@ pub use self::app_constants::*;
 mod app_settings;
 pub use self::app_settings::*;
 
-pub const WINDOW_WIDTH: f32 = 800.0;
-pub const WINDOW_HEIGHT: f32 = 600.0;
-
 /// High-level groupings of systems for the app in the `Update` schedule.
 /// When adding a new variant, make sure to order it in the `configure_sets`
 /// call above.
@@ -38,19 +33,6 @@ enum AppSystems {
     RecordInput,
     /// Do everything else (consider splitting this into further variants).
     Update,
-}
-
-/// The game's main screen states.
-#[derive(States, Debug, Hash, PartialEq, Eq, Clone, Default)]
-#[states(scoped_entities)]
-pub enum AppState {
-    // Splash,
-    // Title,
-    // Credits,
-    // Settings,
-    // Loading,
-    #[default]
-    Gameplay,
 }
 
 fn main() {
@@ -68,12 +50,7 @@ fn main() {
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     title: AppConstants::APP_NAME.to_string(),
-                    resolution: WindowResolution::new(
-                        // app_settings.window_width(),
-                        // app_settings.window_height(),
-                        WINDOW_WIDTH,
-                        WINDOW_HEIGHT,
-                    ),
+                    resolution: WindowResolution::new(app_settings.window_width(), app_settings.window_height()),
                     mode: if app_settings.fullscreen() {
                         WindowMode::BorderlessFullscreen(MonitorSelection::Current)
                     } else {
@@ -100,18 +77,16 @@ fn main() {
     );
 
     app
-        // Initialize the app state
-        .init_state::<AppState>()
         // Order new `AppSystems` variants by adding them here:
         .configure_sets(Update, (AppSystems::TickTimers, AppSystems::RecordInput, AppSystems::Update).chain())
         // Insert resources
         .insert_resource(app_settings);
 
     #[cfg(feature = "dev")]
-    app.add_plugins(crate::dev::DevPlugin);
+    app.add_plugins(dev::plugin);
 
     // Assign plugins
-    app.add_plugins((brt_plugin, UiPlugin, ViewPlugin, ControllerPlugin, ModelPlugin));
+    app.add_plugins((brt_plugin, ui::plugin, view::plugin, controller::plugin, model::plugin));
 
     app.run();
 }

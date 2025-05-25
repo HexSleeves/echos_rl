@@ -12,4 +12,10 @@ impl AppConstants {
 
     /// Name of the app
     pub const APP_NAME: &str = "Echos in the Dark";
+
+    /// Width of the window
+    pub const WINDOW_WIDTH: f32 = 800.0;
+
+    /// Height of the window
+    pub const WINDOW_HEIGHT: f32 = 600.0;
 }

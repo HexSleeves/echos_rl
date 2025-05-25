@@ -1,36 +1,42 @@
-//! A loading screen during which game assets are loaded.
-//! This reduces stuttering, especially for audio on WASM.
-
-use crate::{screens::ScreenState, theme::prelude::*};
-use bevy::prelude::*;
+use bevy::{
+    diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
+    prelude::*,
+};
 use bevy_asset_loader::prelude::*;
+use iyes_progress::{ProgressPlugin, ProgressTracker};
+
+use crate::view::{resources::TextureAssets, screens::ScreenState};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(ScreenState::Loading), spawn_loading_screen);
-
-    app.add_loading_state(
+    app.add_plugins((
+        ProgressPlugin::<ScreenState>::new().with_state_transition(ScreenState::Loading, ScreenState::Gameplay),
+    ))
+    .add_loading_state(
         LoadingState::new(ScreenState::Loading)
-            .continue_to_state(ScreenState::Gameplay)
-            .load_collection::<AudioAssets>()
+            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("textures.ron")
             .load_collection::<TextureAssets>(),
+    )
+    .add_systems(
+        Update,
+        print_progress.run_if(in_state(ScreenState::Loading)).after(LoadingStateSet(ScreenState::Loading)),
     );
 }
 
-fn spawn_loading_screen(mut commands: Commands) {
-    commands.spawn((
-        widget::ui_root("Loading Screen"),
-        StateScoped(ScreenState::Loading),
-        children![widget::label("Loading...")],
-    ));
-}
-
-#[derive(AssetCollection, Resource)]
-pub struct AudioAssets {}
-
-#[derive(AssetCollection, Resource)]
-pub struct TextureAssets {
-    #[asset(path = "textures/curses_vector_24x36.png")]
-    pub curses_24x36: Handle<Image>,
-    #[asset(path = "textures/terminal_32x32.png")]
-    pub terminal_32x32: Handle<Image>,
+fn print_progress(
+    progress: Res<ProgressTracker<ScreenState>>,
+    diagnostics: Res<DiagnosticsStore>,
+    mut last_done: Local<u32>,
+) {
+    let progress = progress.get_global_progress();
+    if progress.done > *last_done {
+        *last_done = progress.done;
+        info!(
+            "[Frame {}] Changed progress: {:?}",
+            diagnostics
+                .get(&FrameTimeDiagnosticsPlugin::FRAME_COUNT)
+                .map(|diagnostic| diagnostic.value().unwrap_or(0.))
+                .unwrap_or(0.),
+            progress
+        );
+    }
 }

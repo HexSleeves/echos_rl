@@ -75,15 +75,18 @@ impl AppSettings {
     #[must_use]
     pub const fn fullscreen(&self) -> bool { self.fullscreen }
 
-    // #[must_use]
-    // pub const fn window_width(&self) -> f32 {
-    //     (self.tile_size * self.view_size.0 + UiConstants::STATS_WIDTH) as f32
-    // }
+    #[must_use]
+    pub const fn window_width(&self) -> f32 {
+        crate::AppConstants::WINDOW_WIDTH
+        // (self.tile_size * self.view_size.0 + UiConstants::STATS_WIDTH) as f32
+    }
 
-    // #[must_use]
-    // pub const fn window_height(&self) -> f32 {
-    //     (self.tile_size * self.view_size.1 + UiConstants::LOG_HEIGHT) as f32
-    // }
+    #[must_use]
+    pub const fn window_height(&self) -> f32 {
+        crate::AppConstants::WINDOW_HEIGHT
+
+        // (self.tile_size * self.view_size.1 + UiConstants::LOG_HEIGHT) as f32
+    }
 }
 
 impl AppSettings {

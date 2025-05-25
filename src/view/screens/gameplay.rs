@@ -2,9 +2,11 @@
 
 use bevy::prelude::*;
 
-use crate::{gameplay::map, screens::ScreenState, utils};
+use super::ScreenState;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(ScreenState::Gameplay), map::generate_map)
-        .add_systems(Update, utils::camera::camera_movement);
+    app.add_plugins(bevy_ecs_tilemap::TilemapPlugin);
+
+    app.add_systems(OnEnter(ScreenState::Gameplay), crate::model::systems::spawn_map);
+    app.add_systems(Update, crate::model::systems::camera_movement.run_if(in_state(ScreenState::Gameplay)));
 }
