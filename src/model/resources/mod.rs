@@ -4,9 +4,6 @@ pub use self::current_map::*;
 mod map;
 pub use self::map::*;
 
-mod gamemap;
-pub use self::gamemap::*;
-
 // mod turn_queue;
 // pub use self::turn_queue::*;
 

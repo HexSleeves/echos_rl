@@ -1,9 +1,10 @@
 use bevy::prelude::*;
+use bevy_ecs_tilemap::prelude::*;
 use brtk::grid::Grid;
 
 use crate::model::{
     ModelConstants,
-    components::{Description, Position, TerrainType, UndergroundType},
+    components::{Description, TerrainType, UndergroundType},
 };
 
 use super::Room;
@@ -118,9 +119,6 @@ impl GenConfig {
             }
         }
 
-        // Add doors between rooms and corridors
-        // self.place_doors(&mut grid, rng);
-
         // Place stairs
         if !self.rooms.is_empty() {
             self.place_stairs(&mut grid, rng);
@@ -215,84 +213,6 @@ impl GenConfig {
         }
     }
 
-    /// Place doors at suitable locations between rooms and corridors
-    fn place_doors(&self, grid: &mut Grid<TerrainType>, rng: &mut fastrand::Rng) {
-        let mut door_candidates = Vec::new();
-
-        // Check each room's border for potential entryways
-        for room in &self.rooms {
-            // Get all border positions of the room
-            for border_pos in room.border_positions() {
-                // Skip if not a floor (only floors can be doors)
-                if !grid.in_bounds(border_pos) || grid[border_pos] != TerrainType::Floor {
-                    continue;
-                }
-
-                // Check each direction for adjacent floor tiles outside the room
-                let directions = [(-1, 0), (1, 0), (0, -1), (0, 1)];
-                let mut floor_connections_outside = 0;
-                let mut floor_connections_inside = 0;
-
-                for &(dx, dy) in &directions {
-                    let adjacent_pos = (border_pos.0 + dx, border_pos.1 + dy);
-
-                    if grid.in_bounds(adjacent_pos) && grid[adjacent_pos] == TerrainType::Floor {
-                        if room.contains(adjacent_pos) {
-                            floor_connections_inside += 1;
-                        } else {
-                            floor_connections_outside += 1;
-                        }
-                    }
-                }
-
-                // A good doorway should have connections both inside and outside the room
-                if floor_connections_outside > 0 && floor_connections_inside > 0 {
-                    // Calculate door quality score - we prefer doors that connect well
-                    let score = floor_connections_inside + floor_connections_outside;
-                    door_candidates.push((border_pos.0, border_pos.1, score));
-                }
-            }
-        }
-
-        log::info!("Found {} door candidates", door_candidates.len());
-
-        // Sort candidates by score (higher is better)
-        door_candidates.sort_by(|a, b| b.2.cmp(&a.2));
-
-        // Determine how many doors to place - roughly one per room, with some randomness
-        let base_door_count = self.rooms.len();
-        let additional_doors = (base_door_count / 2).min(door_candidates.len() / 4);
-        let door_count =
-            if additional_doors > 0 { base_door_count + rng.usize(0..=additional_doors) } else { base_door_count };
-
-        // Apply a minimum distance between doors to avoid clustered doors
-        let min_door_distance: i32 = 3; // Minimum tiles between doors
-        let mut placed_doors = Vec::new();
-
-        // Start with the best candidates
-        for &(x, y, _) in &door_candidates {
-            // Skip if we've placed enough doors
-            if placed_doors.len() >= door_count {
-                break;
-            }
-
-            // Check if this door is too close to another door
-            let too_close = placed_doors.iter().any(|&(door_x, door_y)| {
-                let x_diff: i32 = door_x - x;
-                let y_diff: i32 = door_y - y;
-                let manhattan_distance: i32 = x_diff.abs() + y_diff.abs();
-                manhattan_distance < min_door_distance
-            });
-
-            if !too_close {
-                grid[(x, y)] = TerrainType::Door;
-                placed_doors.push((x, y));
-            }
-        }
-
-        log::info!("Placed {} doors", placed_doors.len());
-    }
-
     /// Place up and down stairs in different rooms, away from walls
     fn place_stairs(&self, grid: &mut Grid<TerrainType>, rng: &mut fastrand::Rng) {
         if self.rooms.len() < 2 {
@@ -371,20 +291,33 @@ impl GenConfig {
     }
 
     /// Convert the terrain grid into actual game entities
-    ///
-    /// This method creates Bevy entities for each cell in the terrain grid, applying:
-    /// - The appropriate TerrainType component
-    /// - A descriptive name as a Description component
-    /// - A Position component based on the grid coordinates
-    ///
-    /// Returns a Grid<Entity> with the entity IDs corresponding to each position,
-    /// which can be used to reference these entities later.
-    pub fn generate_entities(&self, commands: &mut Commands, terrain_grid: &Grid<TerrainType>) -> Grid<Entity> {
-        Grid::new_fn((self.width, self.height), |_index, (x, y)| {
-            // Convert to i32 for grid indexing
-            let terrain_type = terrain_grid[(x as i32, y as i32)].clone();
-            let description = Description::new(terrain_type.description());
-            commands.spawn((terrain_type, description, Position::new(x as i32, y as i32))).id()
-        })
+    pub fn generate_tile_storage(
+        &self,
+        commands: &mut Commands,
+        tilemap_id: TilemapId,
+        terrain_grid: &Grid<TerrainType>,
+    ) -> TileStorage {
+        let mut tile_storage = TileStorage::empty(TilemapSize::new(self.width as u32, self.height as u32));
+
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let tile_pos = TilePos { x: x as u32, y: y as u32 };
+
+                let terrain_type = terrain_grid[(x as i32, y as i32)].clone();
+                let description = Description::new(terrain_type.description());
+                let texture_index = TileTextureIndex(terrain_type.texture_index());
+
+                let tile_entity = commands
+                    .spawn((
+                        description,
+                        terrain_type,
+                        TileBundle { tilemap_id, position: tile_pos, texture_index, ..Default::default() },
+                    ))
+                    .id();
+                tile_storage.set(&tile_pos, tile_entity);
+            }
+        }
+
+        tile_storage
     }
 }

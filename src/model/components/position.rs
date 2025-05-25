@@ -1,6 +1,7 @@
 use std::ops::{Add, AddAssign};
 
 use bevy::prelude::*;
+use bevy_ecs_tilemap::tiles::TilePos;
 
 #[derive(Component, Reflect, Default, Debug, Clone, Copy, PartialEq, Eq, Hash, Deref, DerefMut)]
 #[reflect(Component)]
@@ -20,6 +21,10 @@ impl From<IVec2> for Position {
 
 impl From<Position> for (i32, i32) {
     fn from(value: Position) -> Self { (value.0.x, value.0.y) }
+}
+
+impl From<TilePos> for Position {
+    fn from(tile_pos: TilePos) -> Self { Self(IVec2::new(tile_pos.x as i32, tile_pos.y as i32)) }
 }
 
 impl Add<Position> for Position {

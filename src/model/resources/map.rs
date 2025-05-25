@@ -1,49 +1,41 @@
 use bevy::{platform::collections::HashMap, prelude::*};
+use bevy_ecs_tilemap::prelude::*;
 use brtk::prelude::*;
 
 use crate::model::{
     ModelConstants,
-    components::{Description, Position, TerrainType},
+    components::{Position, TerrainType},
 };
 
-#[derive(Reflect, Clone)]
+#[derive(Reflect, Clone, Resource)]
 pub struct Map {
     pub size: (usize, usize),
-    pub terrain: Grid<Entity>,
+    pub terrain: Grid<TerrainType>,
+    pub tile_storage: TileStorage,
     pub actors: HashMap<Position, Entity>,
 }
 
 impl FromWorld for Map {
-    fn from_world(world: &mut World) -> Self {
+    fn from_world(_world: &mut World) -> Self {
         let size = (ModelConstants::MAP_WIDTH, ModelConstants::MAP_HEIGHT);
-
         Self {
             size,
             actors: HashMap::new(),
-            terrain: Grid::new_fn(size, |_index, (x, y)| {
-                let (tile_type, tile_description) = if x == 0 || y == 0 || x == size.0 - 1 || y == size.1 - 1 {
-                    (TerrainType::Wall, Description::new("Wall"))
-                } else {
-                    (TerrainType::Floor, Description::new("Floor"))
-                };
-                world.spawn((tile_type, tile_description, Position::new(x as i32, y as i32))).id()
-            }),
+            terrain: Grid::new_fill(size, TerrainType::Wall),
+            tile_storage: TileStorage::empty(TilemapSize::new(size.0 as u32, size.1 as u32)),
         }
     }
 }
 
 impl Map {
-    pub fn new(commands: &mut Commands, size: (usize, usize)) -> Self {
-        let terrain = Grid::new_fn(size, |_index, (x, y)| {
-            let (tile_type, tile_description) = if x == 0 || y == 0 || x == size.0 - 1 || y == size.1 - 1 {
-                (TerrainType::Wall, Description::new("Wall"))
-            } else {
-                (TerrainType::Floor, Description::new("Floor"))
-            };
-            commands.spawn((tile_type, tile_description, Position::new(x as i32, y as i32))).id()
-        });
-
-        Self { size, terrain, actors: HashMap::new() }
+    pub fn new(size: (usize, usize)) -> Self {
+        let terrain = Grid::new_fill(size, TerrainType::Wall);
+        Self {
+            size,
+            terrain,
+            actors: HashMap::new(),
+            tile_storage: TileStorage::empty(TilemapSize::new(size.0 as u32, size.1 as u32)),
+        }
     }
 
     pub fn pos_to_idx(&self, position: Position) -> usize { self.terrain.position_to_index_unchecked(position.into()) }
@@ -55,10 +47,13 @@ impl Map {
         x >= 0 && y >= 0 && x < self.size.0 as i32 && y < self.size.1 as i32
     }
 
-    pub fn get_terrain(&self, position: Position) -> Option<Entity> { self.terrain.get(position.into()).copied() }
-    pub fn get_mut_terrain(&mut self, position: Position) -> Option<&mut Entity> {
-        self.terrain.get_mut(position.into())
+    pub fn get_terrain(&self, position: Position) -> Option<TerrainType> { self.terrain.get(position.into()).copied() }
+    pub fn get_terrain_entity(&self, position: Position) -> Option<Entity> {
+        self.tile_storage.get(&TilePos::new(position.x() as u32, position.y() as u32))
     }
+    // pub fn get_mut_terrain(&mut self, position: Position) -> Option<&mut TerrainType> {
+    //     self.terrain.get_mut(position.into())
+    // }
 
     pub fn get_actor(&self, position: Position) -> Option<Entity> { self.actors.get(&position).copied() }
     pub fn get_actor_mut(&mut self, position: Position) -> Option<&mut Entity> { self.actors.get_mut(&position) }
