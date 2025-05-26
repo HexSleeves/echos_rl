@@ -51,8 +51,8 @@ pub fn spawn_player(
         .id();
 
     // Set the player and actor on the map
-    current_map.set_actor(player_position, Some(player_id));
-    current_map.set_actor(actor_position, Some(actor_id));
+    current_map.place_actor(player_position, player_id);
+    current_map.place_actor(actor_position, actor_id);
 
     // Schedule the player and actor to take turns
     // let current_time = turn_system.current_time();

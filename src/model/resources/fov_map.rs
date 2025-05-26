@@ -174,7 +174,7 @@ impl FovMap {
     /// # Performance Notes
     /// This method uses caching to avoid repeated ECS queries for the same terrain tiles.
     /// The cache is cleared at the start of each computation to ensure fresh data.
-    pub fn compute_fov(&mut self, q_terrain: &Query<&TerrainType>, map: &Map, origin: Position, radius: i32) {
+    pub fn compute_fov(&mut self, map: &Map, origin: Position, radius: i32) {
         // Input validation
         if radius <= 0 {
             self.clear_visibility();
@@ -195,7 +195,7 @@ impl FovMap {
 
         // Process all 8 octants using shadowcasting
         for octant in Octant::ALL {
-            self.cast_light(q_terrain, map, origin, radius, 1, 0.0, 1.0, octant);
+            self.cast_light(map, origin, radius, 1, 0.0, 1.0, octant);
         }
     }
 
@@ -235,7 +235,6 @@ impl FovMap {
     /// before the blocker and narrows the cone for the area after.
     fn cast_light(
         &mut self,
-        q_terrain: &Query<&TerrainType>,
         map: &Map,
         origin: Position,
         radius: i32,
@@ -290,8 +289,8 @@ impl FovMap {
 
             // Determine if this tile blocks vision using cache
             let is_blocking = *self.terrain_cache.entry(pos).or_insert_with(|| {
-                map.get_terrain_entity(pos)
-                    .and_then(|entity| q_terrain.get(entity).ok())
+                map.get_terrain(pos)
+                    // .and_then(|entity| q_terrain.get(entity).ok())
                     .map(|terrain| terrain.blocks_vision())
                     .unwrap_or(false)
             });
@@ -312,7 +311,7 @@ impl FovMap {
                     let new_end_slope = (col as f64 + 0.5) / row as f64;
 
                     // Recursively scan up to this wall
-                    self.cast_light(q_terrain, map, origin, radius, row + 1, start_slope, new_end_slope, octant);
+                    self.cast_light(map, origin, radius, row + 1, start_slope, new_end_slope, octant);
 
                     // Mark that we're now blocked
                     was_blocked = true;
@@ -322,7 +321,7 @@ impl FovMap {
 
         // If we reach the end without being blocked, continue to the next row
         if !was_blocked {
-            self.cast_light(q_terrain, map, origin, radius, row + 1, start_slope, end_slope, octant);
+            self.cast_light(map, origin, radius, row + 1, start_slope, end_slope, octant);
         }
     }
 

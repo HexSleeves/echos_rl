@@ -17,7 +17,6 @@ use bevy::prelude::*;
 pub fn compute_fov_system(
     map: Res<Map>,
     mut fov_map: ResMut<FovMap>,
-    q_terrain: Query<&TerrainType>,
     q_viewers: Query<(&Position, &ViewShed), Or<(Changed<Position>, Changed<ViewShed>)>>,
 ) {
     // If no viewers have changed, skip computation
@@ -30,7 +29,7 @@ pub fn compute_fov_system(
 
     // Compute FOV for each viewer
     for (position, view_shed) in q_viewers.iter() {
-        fov_map.compute_fov(&q_terrain, &map, *position, view_shed.radius);
+        fov_map.compute_fov(&map, *position, view_shed.radius);
     }
 }
 
@@ -40,13 +39,12 @@ pub fn compute_fov_system(
 /// FOV matters for rendering decisions.
 pub fn compute_player_fov_system(
     mut fov_map: ResMut<FovMap>,
-    q_terrain: Query<&TerrainType>,
     map: Res<Map>,
     q_player: Query<(&Position, &ViewShed), (With<PlayerTag>, Or<(Changed<Position>, Changed<ViewShed>)>)>,
 ) {
     // Only compute if player has moved or ViewShed changed
     if let Ok((position, view_shed)) = q_player.single() {
-        fov_map.compute_fov(&q_terrain, &map, *position, view_shed.radius);
+        fov_map.compute_fov(&map, *position, view_shed.radius);
     }
 }
 
@@ -80,7 +78,6 @@ pub enum FovSystemSet {
 
 /// Plugin that adds FOV systems to the app
 pub struct FovPlugin;
-
 impl Plugin for FovPlugin {
     fn build(&self, app: &mut App) {
         app.configure_sets(Update, (FovSystemSet::Compute, FovSystemSet::React).chain()).add_systems(

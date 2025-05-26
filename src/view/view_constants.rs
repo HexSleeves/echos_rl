@@ -1,5 +1,3 @@
-use bevy::log::tracing_subscriber::filter::combinator;
-
 pub struct ViewConstants;
 
 impl ViewConstants {
