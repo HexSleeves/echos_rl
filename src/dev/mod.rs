@@ -1,21 +1,29 @@
 use bevy::{
-    dev_tools::states::log_transitions,
-    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    input::common_conditions::input_just_pressed,
-    prelude::*,
-    ui::UiDebugOptions,
+    dev_tools::states::log_transitions, diagnostic::FrameTimeDiagnosticsPlugin,
+    input::common_conditions::input_just_pressed, prelude::*, ui::UiDebugOptions,
 };
 
-use crate::view::screens::ScreenState;
+use crate::{model::GameState, view::screens::ScreenState};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_plugins((FrameTimeDiagnosticsPlugin::default(), LogDiagnosticsPlugin::default()));
+    app.add_plugins(FrameTimeDiagnosticsPlugin::default());
 
-    // Log `AppState` state transitions.
-    app.add_systems(Update, log_transitions::<ScreenState>);
+    #[cfg(feature = "dev_log")]
+    {
+        app.add_plugins((LogDiagnosticsPlugin::default()));
+    }
 
-    // Toggle the debug overlay for UI.
-    app.add_systems(Update, toggle_debug_ui.run_if(input_just_pressed(TOGGLE_KEY)));
+    app.add_systems(
+        Update,
+        (
+            // Log `ScreenState` state transitions.
+            log_transitions::<ScreenState>,
+            // Log `GameState` state transitions.
+            log_transitions::<GameState>,
+            // Toggle the debug overlay for UI.
+            toggle_debug_ui.run_if(input_just_pressed(TOGGLE_KEY)),
+        ),
+    );
 }
 
 const TOGGLE_KEY: KeyCode = KeyCode::Backquote;

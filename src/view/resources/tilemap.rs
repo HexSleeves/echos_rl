@@ -47,14 +47,19 @@ impl TileMap {
     }
 
     /// Get the sprite index for a given terrain type
-    pub fn get_sprite_index_for_terrain(&self, terrain_type: &crate::model::components::TerrainType) -> u32 {
+    pub fn get_sprite_index_for_terrain(
+        &self,
+        terrain_type: &crate::model::components::TerrainType,
+    ) -> u32 {
         terrain_type.texture_index()
     }
 
     pub fn get_player_sprite_coords(&self) -> (u32, u32) { (0, 16) }
 
     /// Get the sprite coordinates for the player
-    pub fn get_player_sprite_index(&self) -> u32 { self.coords_to_index(self.get_player_sprite_coords()) as u32 }
+    pub fn get_player_sprite_index(&self) -> u32 {
+        self.coords_to_index(self.get_player_sprite_coords()) as u32
+    }
 
     /// Generate a sprite for a terrain type using its index in the texture atlas
     ///

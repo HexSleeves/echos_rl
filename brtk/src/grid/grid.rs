@@ -41,8 +41,8 @@ impl<T> Grid<T> {
         Self::new_clone(size, value)
     }
 
-    /// Create a new `Grid` from a `(width, height)` obtaining a value from a `Fn(index, position) -> T`.
-    /// Uses row-major order (iterates over rows first, then columns).
+    /// Create a new `Grid` from a `(width, height)` obtaining a value from a `Fn(index, position)
+    /// -> T`. Uses row-major order (iterates over rows first, then columns).
     pub fn new_fn(size: (usize, usize), mut f: impl FnMut(usize, (usize, usize)) -> T) -> Self {
         let capacity = size.0 * size.1;
         let mut data = Vec::with_capacity(capacity);
@@ -79,7 +79,10 @@ impl<T> Grid<T> {
     /// `Grid` but provides a valid index.
     #[inline]
     pub const fn in_bounds(&self, position: (i32, i32)) -> bool {
-        position.0 >= 0 && position.0 < self.width() as i32 && position.1 >= 0 && position.1 < self.height() as i32
+        position.0 >= 0
+            && position.0 < self.width() as i32
+            && position.1 >= 0
+            && position.1 < self.height() as i32
     }
 
     /// Determine if an index is valid in this `Grid`
@@ -95,7 +98,11 @@ impl<T> Grid<T> {
 impl<T> Grid<T> {
     /// Converts a position into an index
     pub const fn position_to_index(&self, position: (i32, i32)) -> Option<usize> {
-        if self.in_bounds(position) { Some(self.position_to_index_unchecked(position)) } else { None }
+        if self.in_bounds(position) {
+            Some(self.position_to_index_unchecked(position))
+        } else {
+            None
+        }
     }
 
     /// Converts a position into an index
@@ -107,7 +114,11 @@ impl<T> Grid<T> {
     /// Converts an index into a position
     pub const fn index_to_position(&self, index: usize) -> Option<(i32, i32)> {
         let position = self.index_to_position_unchecked(index);
-        if self.in_bounds(position) { Some(position) } else { None }
+        if self.in_bounds(position) {
+            Some(position)
+        } else {
+            None
+        }
     }
 
     /// Converts an index into a position
@@ -137,12 +148,20 @@ impl<T> Grid<T> {
 
     /// Borrow a value at a position
     pub fn get(&self, position: (i32, i32)) -> Option<&T> {
-        if self.in_bounds(position) { self.get_index(self.position_to_index_unchecked(position)) } else { None }
+        if self.in_bounds(position) {
+            self.get_index(self.position_to_index_unchecked(position))
+        } else {
+            None
+        }
     }
 
     /// Mutably borrow a value at a position
     pub fn get_mut(&mut self, position: (i32, i32)) -> Option<&mut T> {
-        if self.in_bounds(position) { self.get_mut_index(self.position_to_index_unchecked(position)) } else { None }
+        if self.in_bounds(position) {
+            self.get_mut_index(self.position_to_index_unchecked(position))
+        } else {
+            None
+        }
     }
 }
 
@@ -169,7 +188,9 @@ impl<T> Index<(i32, i32)> for Grid<T> {
     type Output = T;
 
     #[inline]
-    fn index(&self, index: (i32, i32)) -> &Self::Output { self.get(index).expect("Invalid index position") }
+    fn index(&self, index: (i32, i32)) -> &Self::Output {
+        self.get(index).expect("Invalid index position")
+    }
 }
 
 impl<T> IndexMut<(i32, i32)> for Grid<T> {

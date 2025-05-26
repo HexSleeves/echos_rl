@@ -104,7 +104,9 @@ impl AppSettings {
     pub fn load(folders: &Folders, local: bool) -> Self {
         let file_path = Self::file_path();
 
-        if let Ok(settings) = if local { folders.read_base(&file_path) } else { folders.read_config(&file_path) } {
+        if let Ok(settings) =
+            if local { folders.read_base(&file_path) } else { folders.read_config(&file_path) }
+        {
             toml::from_str(&settings).unwrap_or_default()
         } else {
             let settings = AppSettings::default();

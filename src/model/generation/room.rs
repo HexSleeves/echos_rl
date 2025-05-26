@@ -13,7 +13,12 @@ pub struct Room {
 impl Room {
     pub fn new(x: i32, y: i32, width: i32, height: i32) -> Self { Self { x, y, width, height } }
 
-    pub fn random(rng: &mut fastrand::Rng, min_size: i32, max_size: i32, bounds: (i32, i32)) -> Self {
+    pub fn random(
+        rng: &mut fastrand::Rng,
+        min_size: i32,
+        max_size: i32,
+        bounds: (i32, i32),
+    ) -> Self {
         let width = rng.i32(min_size..=max_size);
         let height = rng.i32(min_size..=max_size);
         let x = rng.i32(1..(bounds.0 - width - 1));
@@ -33,7 +38,8 @@ impl Room {
     }
 
     pub fn positions(&self) -> impl Iterator<Item = (i32, i32)> + '_ {
-        (self.x..self.x + self.width).flat_map(move |x| (self.y..self.y + self.height).map(move |y| (x, y)))
+        (self.x..self.x + self.width)
+            .flat_map(move |x| (self.y..self.y + self.height).map(move |y| (x, y)))
     }
 
     pub fn border_positions(&self) -> impl Iterator<Item = (i32, i32)> + '_ {
@@ -67,6 +73,9 @@ impl Room {
 
     /// Checks if a given position is inside the room
     pub fn contains(&self, pos: (i32, i32)) -> bool {
-        pos.0 >= self.x && pos.0 < self.x + self.width && pos.1 >= self.y && pos.1 < self.y + self.height
+        pos.0 >= self.x
+            && pos.0 < self.x + self.width
+            && pos.1 >= self.y
+            && pos.1 < self.y + self.height
     }
 }

@@ -53,6 +53,8 @@ dev_native = [
     "bevy/embedded_watcher",
 ]
 
+dev_log = ["dev"]
+
 [dependencies]
 bevy = { version = "0.16", default-features = false, features = [
     "animation",
@@ -103,8 +105,9 @@ anyhow = { version = "1" }
 # 'Small vector' optimization: store up to a small number of items on the stack
 bitvec = { version = "1" }
 # A fast random number generator
-fastrand = { version = "2" }
-rand     = { version = "0.9" }
+fastrand  = { version = "2" }
+once_cell = { version = "1" }
+rand      = { version = "0.9" }
 # A generic serialization/deserialization framework
 serde = { version = "1", features = ["derive", "rc", "alloc"] }
 # Error handling

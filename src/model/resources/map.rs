@@ -19,7 +19,13 @@ pub struct Tile {
 
 impl Default for Tile {
     fn default() -> Self {
-        Self { terrain: TerrainType::Wall, tile_entity: None, actor: None, visible: false, explored: false }
+        Self {
+            terrain: TerrainType::Wall,
+            tile_entity: None,
+            actor: None,
+            visible: false,
+            explored: false,
+        }
     }
 }
 
@@ -53,7 +59,9 @@ impl Map {
     }
 
     // Position utilities
-    pub fn pos_to_idx(&self, position: Position) -> usize { self.tiles.position_to_index_unchecked(position.into()) }
+    pub fn pos_to_idx(&self, position: Position) -> usize {
+        self.tiles.position_to_index_unchecked(position.into())
+    }
 
     pub fn idx_to_pos(&self, idx: usize) -> Option<Position> {
         self.tiles.index_to_position(idx).map(|(x, y)| Position::new(x, y))
@@ -84,7 +92,9 @@ impl Map {
         self.tiles.get(position.into()).and_then(|tile| tile.actor)
     }
 
-    pub fn get_actor_position(&self, entity: Entity) -> Option<Position> { self.actor_positions.get(&entity).copied() }
+    pub fn get_actor_position(&self, entity: Entity) -> Option<Position> {
+        self.actor_positions.get(&entity).copied()
+    }
 
     pub fn place_actor(&mut self, position: Position, actor: Entity) -> Result<(), String> {
         if !self.in_bounds(position) {
@@ -126,7 +136,11 @@ impl Map {
         }
     }
 
-    pub fn move_actor(&mut self, actor: Entity, new_position: Position) -> Result<Position, String> {
+    pub fn move_actor(
+        &mut self,
+        actor: Entity,
+        new_position: Position,
+    ) -> Result<Position, String> {
         let old_position = self.get_actor_position(actor).ok_or("Actor not found on map")?;
 
         self.remove_actor(actor);

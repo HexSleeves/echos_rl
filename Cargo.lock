@@ -1538,6 +1538,9 @@ dependencies = [
  "bevy",
  "directories",
  "image",
+ "rand 0.9.1",
+ "rand_pcg",
+ "regex",
  "serde",
  "thiserror 2.0.12",
  "winit",
@@ -2082,6 +2085,7 @@ dependencies = [
  "image",
  "iyes_progress",
  "log",
+ "once_cell",
  "rand 0.9.1",
  "serde",
  "thiserror 2.0.12",
@@ -3889,6 +3893,16 @@ checksum = "32cb0b9bc82b0a0876c2dd994a7e7a2683d3e7390ca40e6886785ef0c7e3ee31"
 dependencies = [
  "num-traits",
  "rand 0.8.5",
+]
+
+[[package]]
+name = "rand_pcg"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b48ac3f7ffaab7fac4d2376632268aa5f89abdb55f7ebf8f4d11fffccb2320f7"
+dependencies = [
+ "rand_core 0.9.3",
+ "serde",
 ]
 
 [[package]]

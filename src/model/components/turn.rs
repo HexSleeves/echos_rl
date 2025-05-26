@@ -13,7 +13,9 @@ pub struct TurnActor {
 }
 
 impl TurnActor {
-    pub fn new(speed: u64) -> Self { Self { speed, alive: true, next_turn_time: 0, actions: VecDeque::new() } }
+    pub fn new(speed: u64) -> Self {
+        Self { speed, alive: true, next_turn_time: 0, actions: VecDeque::new() }
+    }
 
     // Add this method
     pub fn queue_action(&mut self, action: impl GameAction) -> &mut Self {
@@ -21,11 +23,15 @@ impl TurnActor {
         self
     }
 
-    pub fn add_action(&mut self, action: impl GameAction) { self.actions.push_back(Box::new(action)); }
+    pub fn add_action(&mut self, action: impl GameAction) {
+        self.actions.push_back(Box::new(action));
+    }
 
     pub fn next_action(&mut self) -> Option<Box<dyn GameAction>> { self.actions.pop_front() }
 
-    pub fn peak_next_action(&self) -> Option<&dyn GameAction> { self.actions.front().map(Box::as_ref) }
+    pub fn peak_next_action(&self) -> Option<&dyn GameAction> {
+        self.actions.front().map(Box::as_ref)
+    }
 
     pub fn is_alive(&self) -> bool { self.alive }
 }

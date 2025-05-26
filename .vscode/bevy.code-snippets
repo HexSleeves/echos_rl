@@ -64,5 +64,75 @@
             "\t$0",
             "}"
         ]
-    }
+    },
+    "BevyAsset": {
+		"scope": "rust",
+		"prefix": ["snippet asset"],
+		"body": [
+            "use bevy::prelude::*;",
+            "use serde::{Deserialize, Serialize};",
+			"",
+			"#[derive(Serialize, Deserialize, Asset, TypePath)]",
+            "pub struct ${1:MyAsset};",
+		],
+		"description": "Template for a Bevy Asset"
+	},
+	"BevyComponent": {
+		"scope": "rust",
+		"prefix": ["snippet component"],
+		"body": [
+            "use bevy::prelude::*;",
+            "",
+            "#[derive(Component, Reflect, Default)]",
+            "#[reflect(Component)]",
+            "pub struct ${1:MyComponent};",
+		],
+		"description": "Template for a Bevy Component"
+	},
+	"BevyResource": {
+		"scope": "rust",
+		"prefix": ["snippet resource"],
+		"body": [
+            "use bevy::prelude::*;",
+            "",
+            "#[derive(Resource, Reflect, Default)]",
+            "#[reflect(Resource)]",
+            "pub struct ${1:MyResource} {",
+            "    $2",
+            "}",
+		],
+		"description": "Template for a Bevy Resource"
+	},
+	"BevyPlugin": {
+		"scope": "rust",
+		"prefix": ["snippet plugin"],
+		"body": [
+            "use bevy::prelude::*;",
+            "",
+            "pub struct ${1:MyPlugin};",
+            "impl Plugin for ${1:MyPlugin} {",
+            "    fn build(&self, app: &mut App) {",
+            "       $2",
+            "    }",
+            "}",
+		],
+		"description": "Template for a Bevy Plugin"
+	},
+	"BevyAction": {
+		"scope": "rust",
+		"prefix": ["snippet action"],
+		"body": [
+			"use bevy::prelude::*;",
+			"",
+			"use crate::game::actions::Action;",
+			"",
+			"pub struct ${1:MyAction};",
+			"impl Action for ${1:MyAction} {",
+			"    fn execute(&mut self, world: &mut World, entity: Entity) -> Result<u64, Option<Box<dyn Action>>> {",
+			"        Ok(1000)",
+			"    }",
+			"}",
+		],
+		"description": "Template for an Action"
+	},
 }

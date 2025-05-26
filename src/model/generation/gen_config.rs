@@ -57,13 +57,19 @@ impl GenConfig {
         };
 
         // Adjust generation parameters based on depth
-        let (room_count, room_size, ore_density, hazard_density, special_feature_chance, echo_chamber_chance) =
-            match depth {
-                d if d <= 3 => ((3, 6), (4, 8), 0.3, 0.1, 0.05, 0.1), // Easy start
-                d if d <= 7 => ((5, 8), (3, 7), 0.5, 0.2, 0.1, 0.2),  // Getting harder
-                d if d <= 12 => ((7, 10), (3, 6), 0.6, 0.3, 0.15, 0.3),
-                _ => ((8, 12), (3, 5), 0.7, 0.4, 0.2, 0.4), // Very deep = more dangerous
-            };
+        let (
+            room_count,
+            room_size,
+            ore_density,
+            hazard_density,
+            special_feature_chance,
+            echo_chamber_chance,
+        ) = match depth {
+            d if d <= 3 => ((3, 6), (4, 8), 0.3, 0.1, 0.05, 0.1), // Easy start
+            d if d <= 7 => ((5, 8), (3, 7), 0.5, 0.2, 0.1, 0.2),  // Getting harder
+            d if d <= 12 => ((7, 10), (3, 6), 0.6, 0.3, 0.15, 0.3),
+            _ => ((8, 12), (3, 5), 0.7, 0.4, 0.2, 0.4), // Very deep = more dangerous
+        };
 
         Self {
             width,
@@ -141,8 +147,12 @@ impl GenConfig {
         let (min_room_size, max_room_size) = self.room_size;
 
         while self.rooms.len() < max_rooms && attempts < max_attempts {
-            let room =
-                Room::random(rng, min_room_size as i32, max_room_size as i32, (self.width as i32, self.height as i32));
+            let room = Room::random(
+                rng,
+                min_room_size as i32,
+                max_room_size as i32,
+                (self.width as i32, self.height as i32),
+            );
 
             // Check if room overlaps with existing rooms
             let is_valid = !self.rooms.iter().any(|r| r.intersects(&room));
@@ -238,14 +248,15 @@ impl GenConfig {
         for (x, y) in first_room.inner_positions() {
             if grid.in_bounds((x, y)) && grid[(x, y)] == TerrainType::Floor {
                 // Check if position is away from walls (has mostly floor neighbors)
-                let floor_neighbors = [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
-                    .iter()
-                    .filter(|&(dx, dy)| {
-                        let nx = x + dx;
-                        let ny = y + dy;
-                        grid.in_bounds((nx, ny)) && grid[(nx, ny)] == TerrainType::Floor
-                    })
-                    .count();
+                let floor_neighbors =
+                    [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
+                        .iter()
+                        .filter(|&(dx, dy)| {
+                            let nx = x + dx;
+                            let ny = y + dy;
+                            grid.in_bounds((nx, ny)) && grid[(nx, ny)] == TerrainType::Floor
+                        })
+                        .count();
 
                 // If position has at least 6 floor neighbors, it's good for stairs
                 if floor_neighbors >= 6 {
@@ -260,14 +271,15 @@ impl GenConfig {
         for (x, y) in last_room.inner_positions() {
             if grid.in_bounds((x, y)) && grid[(x, y)] == TerrainType::Floor {
                 // Check if position is away from walls (has mostly floor neighbors)
-                let floor_neighbors = [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
-                    .iter()
-                    .filter(|&(dx, dy)| {
-                        let nx = x + dx;
-                        let ny = y + dy;
-                        grid.in_bounds((nx, ny)) && grid[(nx, ny)] == TerrainType::Floor
-                    })
-                    .count();
+                let floor_neighbors =
+                    [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
+                        .iter()
+                        .filter(|&(dx, dy)| {
+                            let nx = x + dx;
+                            let ny = y + dy;
+                            grid.in_bounds((nx, ny)) && grid[(nx, ny)] == TerrainType::Floor
+                        })
+                        .count();
 
                 // If position has at least 6 floor neighbors, it's good for stairs
                 if floor_neighbors >= 6 {
@@ -297,7 +309,8 @@ impl GenConfig {
         tilemap_id: TilemapId,
         terrain_grid: &Grid<TerrainType>,
     ) -> TileStorage {
-        let mut tile_storage = TileStorage::empty(TilemapSize::new(self.width as u32, self.height as u32));
+        let mut tile_storage =
+            TileStorage::empty(TilemapSize::new(self.width as u32, self.height as u32));
 
         for y in 0..self.height {
             for x in 0..self.width {
@@ -311,7 +324,12 @@ impl GenConfig {
                     .spawn((
                         description,
                         terrain_type,
-                        TileBundle { tilemap_id, position: tile_pos, texture_index, ..Default::default() },
+                        TileBundle {
+                            tilemap_id,
+                            position: tile_pos,
+                            texture_index,
+                            ..Default::default()
+                        },
                     ))
                     .id();
                 tile_storage.set(&tile_pos, tile_entity);

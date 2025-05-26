@@ -31,12 +31,22 @@ pub fn ui_root(name: impl Into<Cow<'static, str>>) -> impl Bundle {
 
 /// A simple header label. Bigger than [`label`].
 pub fn header(text: impl Into<String>) -> impl Bundle {
-    (Name::new("Header"), Text(text.into()), TextFont::from_font_size(40.0), TextColor(Palette::HEADER_TEXT))
+    (
+        Name::new("Header"),
+        Text(text.into()),
+        TextFont::from_font_size(40.0),
+        TextColor(Palette::HEADER_TEXT),
+    )
 }
 
 /// A simple text label.
 pub fn label(text: impl Into<String>) -> impl Bundle {
-    (Name::new("Label"), Text(text.into()), TextFont::from_font_size(24.0), TextColor(Palette::LABEL_TEXT))
+    (
+        Name::new("Label"),
+        Text(text.into()),
+        TextFont::from_font_size(24.0),
+        TextColor(Palette::LABEL_TEXT),
+    )
 }
 
 /// A large rounded button with text and an action defined as an [`Observer`].
@@ -82,9 +92,13 @@ where
     )
 }
 
-/// A simple button with text and an action defined as an [`Observer`]. The button's layout is provided by
-/// `button_bundle`.
-fn button_base<E, B, M, I>(text: impl Into<String>, action: I, button_bundle: impl Bundle) -> impl Bundle
+/// A simple button with text and an action defined as an [`Observer`]. The button's layout is
+/// provided by `button_bundle`.
+fn button_base<E, B, M, I>(
+    text: impl Into<String>,
+    action: I,
+    button_bundle: impl Bundle,
+) -> impl Bundle
 where
     E: Event,
     B: Bundle,

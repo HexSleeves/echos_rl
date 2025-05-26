@@ -42,8 +42,14 @@ pub fn fill_tilemap_default(
     for y in 0..map_size.y {
         for x in 0..map_size.x {
             let tile_pos = TilePos { x, y };
-            let tile_entity =
-                commands.spawn(TileBundle { position: tile_pos, tilemap_id, texture_index, ..Default::default() }).id();
+            let tile_entity = commands
+                .spawn(TileBundle {
+                    position: tile_pos,
+                    tilemap_id,
+                    texture_index,
+                    ..Default::default()
+                })
+                .id();
             tile_storage.set(&tile_pos, tile_entity);
         }
     }

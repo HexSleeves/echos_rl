@@ -4,7 +4,7 @@ use crate::{
     model::{
         ModelConstants,
         components::{AITag, PlayerTag, Position, TerrainType, TurnActor, ViewShed},
-        resources::{CurrentMap, SpawnPoint},
+        resources::{CurrentMap, SpawnPoint, TurnQueue},
     },
     view::{ViewConstants, components::TileSprite},
 };
@@ -12,17 +12,19 @@ use crate::{
 pub fn spawn_player(
     mut commands: Commands,
     mut current_map: ResMut<CurrentMap>,
-    // mut turn_system: ResMut<TurnQueue>,
+    mut turn_system: ResMut<TurnQueue>,
     spawn_point: Option<Res<SpawnPoint>>,
 ) {
     // Determine where to spawn the player
     let player_position = if let Some(spawn_point) = spawn_point {
-        if let Some(pos) = spawn_point.player_spawn { pos } else { find_valid_position(&current_map) }
+        if let Some(pos) = spawn_point.player_spawn {
+            pos
+        } else {
+            find_valid_position(&current_map)
+        }
     } else {
         find_valid_position(&current_map)
     };
-
-    println!("Spawning player at {:?}", player_position);
 
     // Spawn the player
     let player_id = commands
@@ -46,18 +48,22 @@ pub fn spawn_player(
             actor_position,
             AITag,
             TurnActor::new(120),
-            TileSprite { tile_coords: (0, 16), tile_size: Vec2::splat(ViewConstants::TILE_SIZE), ..Default::default() },
+            TileSprite {
+                tile_coords: (0, 16),
+                tile_size: Vec2::splat(ViewConstants::TILE_SIZE),
+                ..Default::default()
+            },
         ))
         .id();
 
     // Set the player and actor on the map
-    current_map.place_actor(player_position, player_id);
-    current_map.place_actor(actor_position, actor_id);
+    let _ = current_map.place_actor(player_position, player_id);
+    let _ = current_map.place_actor(actor_position, actor_id);
 
     // Schedule the player and actor to take turns
-    // let current_time = turn_system.current_time();
-    // turn_system.schedule_turn(player_id, current_time);
-    // turn_system.schedule_turn(actor_id, current_time);
+    let current_time = turn_system.current_time();
+    turn_system.schedule_turn(player_id, current_time);
+    turn_system.schedule_turn(actor_id, current_time);
 }
 
 // Helper function to find a valid floor position

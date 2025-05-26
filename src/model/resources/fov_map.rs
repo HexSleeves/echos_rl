@@ -1,8 +1,4 @@
-use crate::model::{
-    ModelConstants,
-    components::{Position, TerrainType},
-    resources::Map,
-};
+use crate::model::{ModelConstants, components::Position, resources::Map};
 use bevy::prelude::*;
 use bitvec::prelude::*;
 use std::collections::HashMap;
@@ -114,7 +110,13 @@ impl FromWorld for FovMap {
 impl FovMap {
     pub fn new(width: usize, height: usize) -> Self {
         let size = width * height;
-        Self { width, height, revealed: bitvec![0; size], visible: bitvec![0; size], terrain_cache: HashMap::new() }
+        Self {
+            width,
+            height,
+            revealed: bitvec![0; size],
+            visible: bitvec![0; size],
+            terrain_cache: HashMap::new(),
+        }
     }
 
     /// Converts 2D coordinates to a 1D index
@@ -219,7 +221,8 @@ impl FovMap {
     ///
     /// This implementation uses the recursive shadowcasting algorithm which maintains
     /// a "light cone" defined by start and end slopes. When it encounters blocking terrain,
-    /// it recursively processes the area before the blocker and narrows the cone for the area after.
+    /// it recursively processes the area before the blocker and narrows the cone for the area
+    /// after.
     ///
     /// # Parameters
     /// - `origin`: The center point from which to calculate visibility
@@ -311,7 +314,15 @@ impl FovMap {
                     let new_end_slope = (col as f64 + 0.5) / row as f64;
 
                     // Recursively scan up to this wall
-                    self.cast_light(map, origin, radius, row + 1, start_slope, new_end_slope, octant);
+                    self.cast_light(
+                        map,
+                        origin,
+                        radius,
+                        row + 1,
+                        start_slope,
+                        new_end_slope,
+                        octant,
+                    );
 
                     // Mark that we're now blocked
                     was_blocked = true;

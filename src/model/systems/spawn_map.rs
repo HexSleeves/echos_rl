@@ -6,7 +6,11 @@ use crate::{
     view::resources::TextureAssets,
 };
 
-pub fn spawn_map(mut commands: Commands, mut current_map: ResMut<CurrentMap>, texture_assets: Res<TextureAssets>) {
+pub fn spawn_map(
+    mut commands: Commands,
+    mut current_map: ResMut<CurrentMap>,
+    texture_assets: Res<TextureAssets>,
+) {
     let mut rng = fastrand::Rng::new();
     let mut generator = GenConfig::new(1, ModelConstants::MAP_WIDTH, ModelConstants::MAP_HEIGHT);
 
@@ -17,7 +21,8 @@ pub fn spawn_map(mut commands: Commands, mut current_map: ResMut<CurrentMap>, te
     let tilemap_entity = commands.spawn_empty().id();
 
     // Generate tile storage and update our map's tiles with the terrain and tile entities
-    let tile_storage = generator.generate_tile_storage(&mut commands, TilemapId(tilemap_entity), &terrain_grid);
+    let tile_storage =
+        generator.generate_tile_storage(&mut commands, TilemapId(tilemap_entity), &terrain_grid);
 
     // Update our map with the generated terrain and tile entities
     for x in 0..current_map.size.0 {

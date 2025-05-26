@@ -15,6 +15,7 @@ pub mod controller;
 pub mod dev;
 pub mod model;
 pub mod ui;
+pub mod utils;
 pub mod view;
 
 mod app_constants;
@@ -38,9 +39,13 @@ enum AppSystems {
 fn main() {
     let mut app = App::new();
 
-    let brt_plugin =
-        BrtkPlugin::new(AppConstants::BASE, AppConstants::DOMAIN, AppConstants::COMPANY, AppConstants::APP_NAME)
-            .with_icon(include_bytes!("../build/macos/AppIcon.iconset/icon_256x256.png"));
+    let brt_plugin = BrtkPlugin::new(
+        AppConstants::BASE,
+        AppConstants::DOMAIN,
+        AppConstants::COMPANY,
+        AppConstants::APP_NAME,
+    )
+    .with_icon(include_bytes!("../build/macos/AppIcon.iconset/icon_256x256.png"));
 
     // Load AppSettings
     let app_settings = AppSettings::load(brt_plugin.folders(), true);
@@ -50,7 +55,10 @@ fn main() {
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     title: AppConstants::APP_NAME.to_string(),
-                    resolution: WindowResolution::new(app_settings.window_width(), app_settings.window_height()),
+                    resolution: WindowResolution::new(
+                        app_settings.window_width(),
+                        app_settings.window_height(),
+                    ),
                     mode: if app_settings.fullscreen() {
                         WindowMode::BorderlessFullscreen(MonitorSelection::Current)
                     } else {
@@ -78,7 +86,10 @@ fn main() {
 
     app
         // Order new `AppSystems` variants by adding them here:
-        .configure_sets(Update, (AppSystems::TickTimers, AppSystems::RecordInput, AppSystems::Update).chain())
+        .configure_sets(
+            Update,
+            (AppSystems::TickTimers, AppSystems::RecordInput, AppSystems::Update).chain(),
+        )
         // Insert resources
         .insert_resource(app_settings);
 

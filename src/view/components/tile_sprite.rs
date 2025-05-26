@@ -13,7 +13,9 @@ pub struct TileSprite {
 }
 
 impl TileSprite {
-    pub fn new(tile_coords: (u32, u32), tile_size: Vec2) -> Self { Self { tile_coords, tile_size, tint: None } }
+    pub fn new(tile_coords: (u32, u32), tile_size: Vec2) -> Self {
+        Self { tile_coords, tile_size, tint: None }
+    }
 
     pub fn with_tint(mut self, tint: Color) -> Self {
         self.tint = Some(tint);

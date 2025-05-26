@@ -1,10 +1,11 @@
 use bevy::prelude::*;
+use brtk::prelude::Direction;
 
-use crate::model::types::{direction::MoveDirection, error::GameError};
+use crate::model::types::error::GameError;
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum ActionType {
-    Move(MoveDirection),
+    Move(Direction),
     Attack(Entity),
     Wait,
     // Other actions

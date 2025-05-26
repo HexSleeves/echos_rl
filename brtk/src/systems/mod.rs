@@ -1,3 +1,6 @@
+mod init_resource;
+pub use self::init_resource::*;
+
 mod remove_resource;
 pub use self::remove_resource::*;
 
