@@ -1,5 +1,5 @@
 use crate::model::{
-    components::{Position, TerrainType, ViewShed},
+    components::{PlayerTag, Position, TerrainType, ViewShed},
     resources::{FovMap, Map},
 };
 use bevy::prelude::*;
@@ -42,10 +42,7 @@ pub fn compute_player_fov_system(
     mut fov_map: ResMut<FovMap>,
     q_terrain: Query<&TerrainType>,
     map: Res<Map>,
-    q_player: Query<
-        (&Position, &ViewShed),
-        (With<crate::model::components::PlayerTag>, Or<(Changed<Position>, Changed<ViewShed>)>),
-    >,
+    q_player: Query<(&Position, &ViewShed), (With<PlayerTag>, Or<(Changed<Position>, Changed<ViewShed>)>)>,
 ) {
     // Only compute if player has moved or ViewShed changed
     if let Ok((position, view_shed)) = q_player.single() {

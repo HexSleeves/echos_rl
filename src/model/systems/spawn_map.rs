@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
 use crate::{
-    model::{ModelConstants, generation::GenConfig, resources::CurrentMap},
+    model::{ModelConstants, generation::GenConfig, resources::CurrentMap, utils},
     view::resources::TextureAssets,
 };
 

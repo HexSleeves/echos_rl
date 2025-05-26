@@ -10,5 +10,5 @@ pub use self::fov::*;
 mod spawn_map;
 pub use self::spawn_map::*;
 
-// mod spawn_player;
-// pub use self::spawn_player::*;
+mod spawn_player;
+pub use self::spawn_player::*;

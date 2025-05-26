@@ -13,8 +13,8 @@ pub use self::input::*;
 mod position;
 pub use self::position::*;
 
-mod renderable;
-pub use self::renderable::*;
+// mod renderable;
+// pub use self::renderable::*;
 
 mod terrain_type;
 pub use self::terrain_type::*;

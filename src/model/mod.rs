@@ -26,7 +26,7 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<components::Description>()
         .register_type::<components::PlayerTag>()
         .register_type::<components::Position>()
-        .register_type::<components::Renderable>()
+        // .register_type::<components::Renderable>()
         .register_type::<components::TerrainType>()
         .register_type::<components::ViewShed>()
         .register_type::<resources::SpawnPoint>();
