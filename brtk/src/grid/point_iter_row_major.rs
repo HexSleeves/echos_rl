@@ -4,12 +4,7 @@ pub struct PointIterRowMajor {
 }
 
 impl PointIterRowMajor {
-    pub const fn new(size: (u32, u32)) -> Self {
-        Self {
-            point: (0, 0),
-            size,
-        }
-    }
+    pub const fn new(size: (u32, u32)) -> Self { Self { point: (0, 0), size } }
 }
 
 impl Iterator for PointIterRowMajor {

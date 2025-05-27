@@ -239,9 +239,7 @@ impl<T> Grid<T> {
                 let source_x = x + from_offset.0;
 
                 if let Some(source_value) = source.get((source_x, source_y)) {
-                    if let Some(destination_value) =
-                        destination.get_mut((destination_x, destination_y))
-                    {
+                    if let Some(destination_value) = destination.get_mut((destination_x, destination_y)) {
                         *destination_value = source_value.clone();
                     }
                 }
@@ -384,9 +382,7 @@ impl<T> Index<(i32, i32)> for Grid<T> {
     type Output = T;
 
     #[inline]
-    fn index(&self, index: (i32, i32)) -> &Self::Output {
-        self.get(index).expect("Invalid index position")
-    }
+    fn index(&self, index: (i32, i32)) -> &Self::Output { self.get(index).expect("Invalid index position") }
 }
 
 impl<T> IndexMut<(i32, i32)> for Grid<T> {

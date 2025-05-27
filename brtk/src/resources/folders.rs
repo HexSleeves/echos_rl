@@ -65,15 +65,27 @@ impl Folders {
 
 // Write
 impl Folders {
-    pub fn write_base(&self, file_path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Result<(), std::io::Error> {
+    pub fn write_base(
+        &self,
+        file_path: impl AsRef<Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> Result<(), std::io::Error> {
         Self::write(self.base(file_path), contents)
     }
 
-    pub fn write_config(&self, file_path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Result<(), std::io::Error> {
+    pub fn write_config(
+        &self,
+        file_path: impl AsRef<Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> Result<(), std::io::Error> {
         Self::write(self.config(file_path), contents)
     }
 
-    pub fn write_data(&self, file_path: impl AsRef<Path>, contents: impl AsRef<[u8]>) -> Result<(), std::io::Error> {
+    pub fn write_data(
+        &self,
+        file_path: impl AsRef<Path>,
+        contents: impl AsRef<[u8]>,
+    ) -> Result<(), std::io::Error> {
         Self::write(self.data(file_path), contents)
     }
 

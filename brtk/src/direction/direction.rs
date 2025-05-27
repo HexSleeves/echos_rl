@@ -1,9 +1,6 @@
 use std::{
     fmt::Display,
-    ops::{
-        Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Sub,
-        SubAssign,
-    },
+    ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Sub, SubAssign},
 };
 
 use bevy::prelude::*;
@@ -106,19 +103,15 @@ impl Direction {
     /// Returns the `UP_NORTH` [`Direction`]
     pub const UP_NORTH: Self = Self(DirectionFlags::UP | DirectionFlags::NORTH);
     /// Returns the `UP_NORTH_EAST` [`Direction`]
-    pub const UP_NORTH_EAST: Self =
-        Self(DirectionFlags::UP | DirectionFlags::NORTH | DirectionFlags::EAST);
+    pub const UP_NORTH_EAST: Self = Self(DirectionFlags::UP | DirectionFlags::NORTH | DirectionFlags::EAST);
     /// Returns the `UP_NORTH_WEST` [`Direction`]
-    pub const UP_NORTH_WEST: Self =
-        Self(DirectionFlags::UP | DirectionFlags::NORTH | DirectionFlags::WEST);
+    pub const UP_NORTH_WEST: Self = Self(DirectionFlags::UP | DirectionFlags::NORTH | DirectionFlags::WEST);
     /// Returns the `UP_SOUTH` [`Direction`]
     pub const UP_SOUTH: Self = Self(DirectionFlags::UP | DirectionFlags::SOUTH);
     /// Returns the `UP_SOUTH_EAST` [`Direction`]
-    pub const UP_SOUTH_EAST: Self =
-        Self(DirectionFlags::UP | DirectionFlags::SOUTH | DirectionFlags::EAST);
+    pub const UP_SOUTH_EAST: Self = Self(DirectionFlags::UP | DirectionFlags::SOUTH | DirectionFlags::EAST);
     /// Returns the `UP_SOUTH_WEST` [`Direction`]
-    pub const UP_SOUTH_WEST: Self =
-        Self(DirectionFlags::UP | DirectionFlags::SOUTH | DirectionFlags::WEST);
+    pub const UP_SOUTH_WEST: Self = Self(DirectionFlags::UP | DirectionFlags::SOUTH | DirectionFlags::WEST);
     /// Returns the `UP_WEST` [`Direction`]
     pub const UP_WEST: Self = Self(DirectionFlags::UP | DirectionFlags::WEST);
     /// Returns the `WEST` [`Direction`]
@@ -765,12 +758,7 @@ mod tests {
         let ordinal_directions: Vec<Direction> = OrdinalDirection::iter().collect();
         assert_eq!(
             ordinal_directions,
-            vec![
-                Direction::NORTH_EAST,
-                Direction::SOUTH_EAST,
-                Direction::SOUTH_WEST,
-                Direction::NORTH_WEST
-            ]
+            vec![Direction::NORTH_EAST, Direction::SOUTH_EAST, Direction::SOUTH_WEST, Direction::NORTH_WEST]
         );
         assert_eq!(ordinal_directions, Direction::iter_ordinal().collect::<Vec<Direction>>());
 
