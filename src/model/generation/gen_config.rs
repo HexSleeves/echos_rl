@@ -56,7 +56,7 @@ impl GenConfig {
         let underground_type = match depth {
             d if d <= 5 => UndergroundType::Mine,
             d if d <= 10 => UndergroundType::Cave,
-            _ => unreachable!(),
+            _ => UndergroundType::Cave, // or introduce a new enum variant
         };
 
         // Adjust generation parameters based on depth
