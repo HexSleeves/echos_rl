@@ -1,0 +1,25 @@
+EntityDefinition(
+    name: "Basic Enemy",
+    description: Some("A simple enemy creature for testing and basic encounters"),
+    components: EntityComponents(
+        // Standard enemy stats
+        turn_actor: Some(TurnActorData(
+            speed: 100,
+            action_queue_size: Some(2),
+        )),
+        view_shed: None,
+        tile_sprite: Some(TileSpriteData(
+            tile_coords: (1, 16),
+            tile_size: Some((12.0, 12.0)),
+            tint: None,
+        )),
+
+        // Entity type tags
+        is_player: Some(false),
+        is_ai: Some(true),
+
+        // Spawning properties
+        spawn_weight: Some(2.0), // More common than special enemies
+        level_range: Some((1, 5)),
+    ),
+)

@@ -129,6 +129,7 @@ tracing = { version = "0.1", features = [
 # keep the following in sync with Bevy's dependencies
 winit = { version = "0.30", default-features = false }
 image = { version = "0.25", default-features = false }
+ron = "0.10.1"
 
 [build-dependencies]
 embed-resource = "1"
