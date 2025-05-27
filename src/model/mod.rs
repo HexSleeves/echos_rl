@@ -14,9 +14,9 @@ pub use self::model_constants::*;
 
 #[derive(States, Debug, Clone, Copy, Eq, PartialEq, Hash, Default)]
 pub enum GameState {
-    #[default]
     PlayerTurn,
     MonstersTurn,
+    #[default]
     ProcessTurns,
 }
 
