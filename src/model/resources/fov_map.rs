@@ -14,7 +14,7 @@ pub struct FovMap {
 
 impl FromWorld for FovMap {
     fn from_world(_world: &mut World) -> Self {
-        let size = (ModelConstants::MAP_WIDTH, ModelConstants::MAP_HEIGHT);
+        let size = (ModelConstants::MAP_WIDTH as usize, ModelConstants::MAP_HEIGHT as usize);
         Self::new(size.0, size.1)
     }
 }

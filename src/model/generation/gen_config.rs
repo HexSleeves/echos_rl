@@ -13,8 +13,8 @@ use super::Room;
 #[derive(Debug, Clone, Reflect, Resource)]
 pub struct GenConfig {
     pub depth: usize,
-    pub width: usize,
-    pub height: usize,
+    pub width: u32,
+    pub height: u32,
     pub underground_type: UndergroundType,
 
     // Room generation
@@ -27,6 +27,8 @@ pub struct GenConfig {
     pub hazard_density: f32,         // 0.0 to 1.0
     pub special_feature_chance: f32, // 0.0 to 1.0
     pub echo_chamber_chance: f32,    // 0.0 to 1.0
+
+    pub player_spawn_point: Option<(u32, u32)>,
 }
 
 impl Default for GenConfig {
@@ -43,13 +45,14 @@ impl Default for GenConfig {
             width: ModelConstants::MAP_WIDTH,
             height: ModelConstants::MAP_HEIGHT,
             underground_type: UndergroundType::Mine,
+            player_spawn_point: None,
         }
     }
 }
 
 impl GenConfig {
     /// Create a new dungeon generator with the specified dimensions and default settings
-    pub fn new(depth: usize, width: usize, height: usize) -> Self {
+    pub fn new(depth: usize, width: u32, height: u32) -> Self {
         let underground_type = match depth {
             d if d <= 5 => UndergroundType::Mine,
             d if d <= 10 => UndergroundType::Cave,
@@ -128,6 +131,11 @@ impl GenConfig {
         // Place stairs
         if !self.rooms.is_empty() {
             self.place_stairs(&mut grid, rng);
+        }
+
+        // Find player spawn point
+        if let Some(player_spawn_point) = self.find_valid_position(&grid) {
+            self.player_spawn_point = Some(player_spawn_point);
         }
 
         grid
@@ -337,5 +345,23 @@ impl GenConfig {
         }
 
         tile_storage
+    }
+
+    // Helper function to find a valid floor position
+    fn find_valid_position(&self, grid: &Grid<TerrainType>) -> Option<(u32, u32)> {
+        let mut rng = fastrand::Rng::new();
+        let mut valid_positions = Vec::new();
+
+        for (x, y) in grid.position_iter() {
+            if grid[(x, y)].is_walkable() {
+                valid_positions.push((x as u32, y as u32));
+            }
+        }
+
+        if valid_positions.is_empty() {
+            return None;
+        }
+
+        Some(valid_positions[rng.usize(0..valid_positions.len())])
     }
 }

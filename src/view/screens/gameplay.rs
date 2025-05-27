@@ -2,13 +2,15 @@
 
 use bevy::prelude::*;
 
+use super::ScreenState;
 use crate::{
+    controller::systems::{
+        camera_movement, compute_fov, monsters_turn, process_turns, spawn_map, spawn_player,
+    },
     model::{
         GameState,
+        commands::process_spawn_commands,
         resources::{CurrentMap, FovMap, SpawnPoint, TurnQueue},
-        systems::{
-            camera_movement, compute_fov, monsters_turn, process_turns, spawn_map, spawn_player,
-        },
     },
     view::{
         resources::TileMap,
@@ -18,8 +20,6 @@ use crate::{
         },
     },
 };
-
-use super::ScreenState;
 
 // System sets for better organization
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
@@ -69,6 +69,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
+            process_spawn_commands,
             process_turns.run_if(in_state(GameState::ProcessTurns)),
             monsters_turn.run_if(in_state(GameState::MonstersTurn)),
         )

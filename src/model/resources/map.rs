@@ -31,7 +31,7 @@ impl Default for Tile {
 
 #[derive(Reflect, Clone, Resource)]
 pub struct Map {
-    pub size: (usize, usize),
+    pub size: (u32, u32),
     /// Single source of truth for all tile data
     pub tiles: Grid<Tile>,
     /// Fast reverse lookup: entity -> position
@@ -42,13 +42,13 @@ pub struct Map {
 
 impl FromWorld for Map {
     fn from_world(_world: &mut World) -> Self {
-        let size = (ModelConstants::MAP_WIDTH, ModelConstants::MAP_HEIGHT);
+        let size = (ModelConstants::MAP_WIDTH as u32, ModelConstants::MAP_HEIGHT as u32);
         Self::new(size)
     }
 }
 
 impl Map {
-    pub fn new(size: (usize, usize)) -> Self {
+    pub fn new(size: (u32, u32)) -> Self {
         let tiles = Grid::new_fill(size, Tile::default());
         Self {
             size,
@@ -234,5 +234,28 @@ impl Map {
             .into_iter()
             .filter(|&pos| self.is_walkable(pos) && self.get_actor(pos).is_none())
             .collect()
+    }
+
+    /// Get a random walkable position on the map
+    ///
+    /// This is a simple implementation that iterates over all positions and checks if they are
+    /// walkable. It is not efficient for large maps.
+    ///
+    /// Returns `None` if no walkable positions are found.
+    pub fn get_random_walkable_position(&self) -> Option<Position> {
+        let mut rng = fastrand::Rng::new();
+        let mut positions = Vec::new();
+
+        for (x, y) in self.tiles.position_iter() {
+            if self.is_walkable(Position::new(x, y)) {
+                positions.push(Position::new(x, y));
+            }
+        }
+
+        if positions.is_empty() {
+            return None;
+        }
+
+        Some(positions[rng.usize(0..positions.len())])
     }
 }

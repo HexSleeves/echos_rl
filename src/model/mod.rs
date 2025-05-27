@@ -1,12 +1,11 @@
 use bevy::prelude::*;
 
 pub mod actions;
-// pub mod commands;
+pub mod commands;
 pub mod components;
 pub mod entities;
 pub mod generation;
 pub mod resources;
-pub mod systems;
 pub mod types;
 pub mod utils;
 
