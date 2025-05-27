@@ -5,10 +5,7 @@ use crate::ui::{UiConstants, components::GameCamera};
 pub fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Camera2d,
-        Projection::from(OrthographicProjection {
-            scale: 0.7,
-            ..OrthographicProjection::default_2d()
-        }),
+        Projection::from(OrthographicProjection { scale: 0.7, ..OrthographicProjection::default_2d() }),
         UiConstants::GAME_LAYER,
         GameCamera,
     ));

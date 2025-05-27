@@ -63,9 +63,7 @@ pub struct TileSpriteData {
 }
 
 impl TileSpriteData {
-    pub fn new(tile_coords: (u32, u32)) -> Self {
-        Self { tile_coords, tile_size: None, tint: None }
-    }
+    pub fn new(tile_coords: (u32, u32)) -> Self { Self { tile_coords, tile_size: None, tint: None } }
 
     pub fn with_size(mut self, width: f32, height: f32) -> Self {
         self.tile_size = Some((width, height));
@@ -152,8 +150,7 @@ mod tests {
     fn test_serialization_round_trip() {
         let original = TurnActorData::new(150).with_queue_size(10);
         let serialized = ron::to_string(&original).expect("Failed to serialize");
-        let deserialized: TurnActorData =
-            ron::from_str(&serialized).expect("Failed to deserialize");
+        let deserialized: TurnActorData = ron::from_str(&serialized).expect("Failed to deserialize");
 
         assert_eq!(original.speed, deserialized.speed);
         assert_eq!(original.action_queue_size, deserialized.action_queue_size);
@@ -162,8 +159,7 @@ mod tests {
     #[test]
     fn test_player_ron_file_parsing() {
         let player_ron = include_str!("../../../assets/entities/player.ron");
-        let entity_def: EntityDefinition =
-            ron::from_str(player_ron).expect("Failed to parse player.ron");
+        let entity_def: EntityDefinition = ron::from_str(player_ron).expect("Failed to parse player.ron");
 
         assert_eq!(entity_def.name, "Player");
         assert!(entity_def.is_player());
@@ -179,8 +175,7 @@ mod tests {
     #[test]
     fn test_whale_ron_file_parsing() {
         let whale_ron = include_str!("../../../assets/entities/enemies/whale.ron");
-        let entity_def: EntityDefinition =
-            ron::from_str(whale_ron).expect("Failed to parse whale.ron");
+        let entity_def: EntityDefinition = ron::from_str(whale_ron).expect("Failed to parse whale.ron");
 
         assert_eq!(entity_def.name, "Whale");
         assert!(!entity_def.is_player());

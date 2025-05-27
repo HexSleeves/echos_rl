@@ -39,8 +39,7 @@ impl GameAction for Walk {
     fn entity(&self) -> Option<Entity> { Some(self.entity) }
 
     fn perform(&self, world: &mut World) -> Result<u64, GameError> {
-        let mut state: SystemState<(ResMut<CurrentMap>, Query<&mut Position>)> =
-            SystemState::new(world);
+        let mut state: SystemState<(ResMut<CurrentMap>, Query<&mut Position>)> = SystemState::new(world);
 
         // Get references to the data
         let (current_map, mut q_position) = state.get_mut(world);

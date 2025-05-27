@@ -19,13 +19,7 @@ pub struct Tile {
 
 impl Default for Tile {
     fn default() -> Self {
-        Self {
-            terrain: TerrainType::Wall,
-            tile_entity: None,
-            actor: None,
-            visible: false,
-            explored: false,
-        }
+        Self { terrain: TerrainType::Wall, tile_entity: None, actor: None, visible: false, explored: false }
     }
 }
 
@@ -136,11 +130,7 @@ impl Map {
         }
     }
 
-    pub fn move_actor(
-        &mut self,
-        actor: Entity,
-        new_position: Position,
-    ) -> Result<Position, String> {
+    pub fn move_actor(&mut self, actor: Entity, new_position: Position) -> Result<Position, String> {
         let old_position = self.get_actor_position(actor).ok_or("Actor not found on map")?;
 
         self.remove_actor(actor);

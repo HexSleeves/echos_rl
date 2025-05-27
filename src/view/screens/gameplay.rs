@@ -15,8 +15,8 @@ use crate::{
     view::{
         resources::TileMap,
         systems::{
-            add_sprite_to_player, debug_fov_visualization, position_to_transform,
-            update_sprite_visibility, update_tilemap_visibility,
+            add_sprite_to_player, debug_fov_visualization, position_to_transform, update_sprite_visibility,
+            update_tilemap_visibility,
         },
     },
 };
@@ -48,11 +48,7 @@ pub(super) fn plugin(app: &mut App) {
     // Configure system sets ordering
     app.configure_sets(
         PostUpdate,
-        (
-            GameplaySystemSet::TurnProcessing,
-            GameplaySystemSet::Rendering,
-            GameplaySystemSet::Presentation,
-        )
+        (GameplaySystemSet::TurnProcessing, GameplaySystemSet::Rendering, GameplaySystemSet::Presentation)
             .chain()
             .run_if(in_state(ScreenState::Gameplay)),
     );

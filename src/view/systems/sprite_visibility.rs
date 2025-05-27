@@ -50,10 +50,7 @@ use crate::model::{
 /// - Uses efficient FOV map queries
 pub fn update_sprite_visibility(
     fov_map: Res<FovMap>,
-    mut q_sprites: Query<
-        (&Position, &mut Visibility, &mut Sprite),
-        (With<Sprite>, Without<PlayerTag>),
-    >,
+    mut q_sprites: Query<(&Position, &mut Visibility, &mut Sprite), (With<Sprite>, Without<PlayerTag>)>,
 ) {
     // Only update if the FOV map has changed
     if !fov_map.is_changed() {
@@ -114,10 +111,7 @@ pub fn update_entity_visibility(
 pub fn update_typed_visibility(
     fov_map: Res<FovMap>,
     // Entities that should only be visible in current FOV (enemies, NPCs)
-    mut q_living: Query<
-        (&Position, &mut Visibility),
-        (With<Sprite>, Without<PlayerTag>, With<AITag>),
-    >,
+    mut q_living: Query<(&Position, &mut Visibility), (With<Sprite>, Without<PlayerTag>, With<AITag>)>,
     // Entities that should be visible in revealed areas (items, decorations)
     mut q_static: Query<
         (&Position, &mut Visibility, &mut Sprite),

@@ -70,10 +70,7 @@ pub fn process_spawn_commands(
                 &mut turn_queue,
             ) {
                 Ok(id) => {
-                    info!(
-                        "Successfully spawned player from definition at {:?}",
-                        spawn_cmd.position
-                    );
+                    info!("Successfully spawned player from definition at {:?}", spawn_cmd.position);
                     id
                 }
                 Err(e) => {

@@ -63,10 +63,7 @@ const DEBUG_UNEXPLORED_COLOR: Color = Color::srgba(1.0, 1.0, 1.0, 1.0);
 ///
 /// Enable this system only during development/debugging.
 #[allow(dead_code)]
-pub fn debug_fov_visualization(
-    fov_map: Res<FovMap>,
-    mut q_tiles: Query<(&mut TileColor, &TilePos)>,
-) {
+pub fn debug_fov_visualization(fov_map: Res<FovMap>, mut q_tiles: Query<(&mut TileColor, &TilePos)>) {
     if !fov_map.is_changed() {
         return;
     }

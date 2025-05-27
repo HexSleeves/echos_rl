@@ -2,7 +2,7 @@ unstable_features = true
 
 fn_single_line                 = true
 comment_width                  = 100
-max_width                      = 100
+max_width                      = 110
 single_line_let_else_max_width = 100
 single_line_if_else_max_width  = 100
 use_small_heuristics           = "Max"

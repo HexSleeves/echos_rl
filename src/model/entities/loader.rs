@@ -13,9 +13,7 @@ pub struct EntityDefinitions {
 
 impl EntityDefinitions {
     /// Get an entity definition by name
-    pub fn get(&self, name: &str) -> Option<&Handle<EntityDefinition>> {
-        self.definitions.get(name)
-    }
+    pub fn get(&self, name: &str) -> Option<&Handle<EntityDefinition>> { self.definitions.get(name) }
 
     /// Get the player entity definition
     pub fn get_player(&self) -> Option<&Handle<EntityDefinition>> { self.get("player") }
@@ -118,8 +116,8 @@ mod tests {
 
         // Test basic_enemy.ron parsing
         let basic_enemy_ron = include_str!("../../../assets/entities/enemies/basic_enemy.ron");
-        let basic_enemy_def: EntityDefinition = ron::from_str(basic_enemy_ron)
-            .expect("Failed to parse basic_enemy.ron as EntityDefinition");
+        let basic_enemy_def: EntityDefinition =
+            ron::from_str(basic_enemy_ron).expect("Failed to parse basic_enemy.ron as EntityDefinition");
 
         assert_eq!(basic_enemy_def.name, "Basic Enemy");
         assert!(basic_enemy_def.is_ai());

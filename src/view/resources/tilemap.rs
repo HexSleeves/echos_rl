@@ -47,10 +47,7 @@ impl TileMap {
     }
 
     /// Get the sprite index for a given terrain type
-    pub fn get_sprite_index_for_terrain(
-        &self,
-        terrain_type: &crate::model::components::TerrainType,
-    ) -> u32 {
+    pub fn get_sprite_index_for_terrain(&self, terrain_type: &crate::model::components::TerrainType) -> u32 {
         terrain_type.texture_index()
     }
 

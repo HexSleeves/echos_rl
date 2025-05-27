@@ -86,10 +86,7 @@ fn main() {
 
     app
         // Order new `AppSystems` variants by adding them here:
-        .configure_sets(
-            Update,
-            (AppSystems::TickTimers, AppSystems::RecordInput, AppSystems::Update).chain(),
-        )
+        .configure_sets(Update, (AppSystems::TickTimers, AppSystems::RecordInput, AppSystems::Update).chain())
         // Insert resources
         .insert_resource(app_settings);
 

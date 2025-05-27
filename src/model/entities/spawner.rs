@@ -47,9 +47,7 @@ pub fn spawn_entity_from_definition(
     let entity_id = entity_commands.id();
 
     // Place the entity on the map
-    current_map
-        .place_actor(position, entity_id)
-        .map_err(|_| SpawnError::PositionOccupied(position))?;
+    current_map.place_actor(position, entity_id).map_err(|_| SpawnError::PositionOccupied(position))?;
 
     // Schedule the entity's turn if it has a TurnActor component
     if definition.components.turn_actor.is_some() {
@@ -69,9 +67,8 @@ pub fn spawn_player_from_definition(
     current_map: &mut CurrentMap,
     turn_queue: &mut TurnQueue,
 ) -> Result<Entity, SpawnError> {
-    let player_handle = entity_definitions
-        .get_player()
-        .ok_or(SpawnError::DefinitionNotFound("player".to_string()))?;
+    let player_handle =
+        entity_definitions.get_player().ok_or(SpawnError::DefinitionNotFound("player".to_string()))?;
 
     let player_definition =
         assets.get(player_handle).ok_or(SpawnError::AssetNotLoaded("player".to_string()))?;
@@ -93,9 +90,8 @@ pub fn spawn_enemy_from_definition(
         .get(enemy_name)
         .ok_or_else(|| SpawnError::DefinitionNotFound(enemy_name.to_string()))?;
 
-    let enemy_definition = assets
-        .get(enemy_handle)
-        .ok_or_else(|| SpawnError::AssetNotLoaded(enemy_name.to_string()))?;
+    let enemy_definition =
+        assets.get(enemy_handle).ok_or_else(|| SpawnError::AssetNotLoaded(enemy_name.to_string()))?;
 
     spawn_entity_from_definition(commands, enemy_definition, position, current_map, turn_queue)
 }
@@ -109,8 +105,7 @@ pub fn spawn_random_enemy_from_definition(
     current_map: &mut CurrentMap,
     turn_queue: &mut TurnQueue,
 ) -> Result<Entity, SpawnError> {
-    let enemy_handle =
-        entity_definitions.get_random_enemy().ok_or(SpawnError::NoEnemiesAvailable)?;
+    let enemy_handle = entity_definitions.get_random_enemy().ok_or(SpawnError::NoEnemiesAvailable)?;
 
     let enemy_definition =
         assets.get(enemy_handle).ok_or(SpawnError::AssetNotLoaded("random_enemy".to_string()))?;
@@ -290,8 +285,7 @@ mod tests {
 
         // Test player.ron
         let player_ron = include_str!("../../../assets/entities/player.ron");
-        let player_def: EntityDefinition =
-            ron::from_str(player_ron).expect("Failed to parse player.ron");
+        let player_def: EntityDefinition = ron::from_str(player_ron).expect("Failed to parse player.ron");
 
         assert!(player_def.is_player());
         assert!(!player_def.is_ai());
@@ -301,8 +295,7 @@ mod tests {
 
         // Test whale.ron
         let whale_ron = include_str!("../../../assets/entities/enemies/whale.ron");
-        let whale_def: EntityDefinition =
-            ron::from_str(whale_ron).expect("Failed to parse whale.ron");
+        let whale_def: EntityDefinition = ron::from_str(whale_ron).expect("Failed to parse whale.ron");
 
         assert!(!whale_def.is_player());
         assert!(whale_def.is_ai());

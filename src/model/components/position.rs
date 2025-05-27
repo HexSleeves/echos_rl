@@ -50,9 +50,7 @@ impl AddAssign<IVec2> for Position {
 impl Add<(i32, i32)> for Position {
     type Output = Self;
 
-    fn add(self, rhs: (i32, i32)) -> Self::Output {
-        Self(IVec2::new(self.0.x + rhs.0, self.0.y + rhs.1))
-    }
+    fn add(self, rhs: (i32, i32)) -> Self::Output { Self(IVec2::new(self.0.x + rhs.0, self.0.y + rhs.1)) }
 }
 
 impl AddAssign<(i32, i32)> for Position {

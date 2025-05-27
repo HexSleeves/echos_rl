@@ -8,10 +8,7 @@ macro_rules! spawn_with_fallback {
                     id
                 }
                 Err(e) => {
-                    warn!(
-                        "Failed to spawn {} from definition: {}. Using fallback.",
-                        $entity_type, e
-                    );
+                    warn!("Failed to spawn {} from definition: {}. Using fallback.", $entity_type, e);
                     $fallback_spawn
                 }
             }

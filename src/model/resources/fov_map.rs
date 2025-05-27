@@ -170,15 +170,7 @@ impl FovMap {
                     // We were not in a shadow
                     if is_blocking {
                         // Entering shadow - recursive call for visible area
-                        self.cast_light(
-                            map,
-                            origin,
-                            radius,
-                            row + 1,
-                            new_start,
-                            right_slope,
-                            octant,
-                        );
+                        self.cast_light(map, origin, radius, row + 1, new_start, right_slope, octant);
                         prev_blocked = true;
                     }
                 }
