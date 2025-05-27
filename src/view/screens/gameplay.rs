@@ -7,21 +7,37 @@ use crate::{
         GameState,
         resources::{CurrentMap, FovMap, SpawnPoint, TurnQueue},
         systems::{
-            FovSystemSet, camera_movement, compute_player_fov, monsters_turn, process_turns,
-            spawn_map, spawn_player,
+            camera_movement, compute_fov, monsters_turn, process_turns, spawn_map, spawn_player,
         },
     },
     view::{
         resources::TileMap,
-        systems::{add_sprite_to_player, position_to_transform},
+        systems::{
+            add_sprite_to_player, debug_fov_visualization, position_to_transform,
+            update_sprite_visibility, update_tilemap_visibility,
+        },
     },
 };
 
 use super::ScreenState;
 
+// System sets for better organization
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub enum GameplaySystemSet {
+    /// Initial setup when entering gameplay
+    Initialization,
+    /// Core game logic during turns
+    TurnProcessing,
+    /// Visual updates after game logic
+    Rendering,
+    /// Camera and transform updates
+    Presentation,
+}
+
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins(bevy_ecs_tilemap::TilemapPlugin);
 
+    // Initialize resources
     app.init_state::<GameState>()
         .init_resource::<TileMap>()
         .init_resource::<TurnQueue>()
@@ -29,27 +45,54 @@ pub(super) fn plugin(app: &mut App) {
         .init_resource::<FovMap>()
         .init_resource::<SpawnPoint>();
 
-    // ON ENTER
-    app.add_systems(
-        OnEnter(ScreenState::Gameplay),
-        (spawn_map, spawn_player, compute_player_fov, process_turns).chain(),
-    );
-
-    // UPDATE
-    app.add_systems(
-        Update,
+    // Configure system sets ordering
+    app.configure_sets(
+        PostUpdate,
         (
-            camera_movement,
-            compute_player_fov.in_set(FovSystemSet::Compute),
-            process_turns.run_if(in_state(GameState::ProcessTurns)),
-            monsters_turn.run_if(in_state(GameState::MonstersTurn)),
+            GameplaySystemSet::TurnProcessing,
+            GameplaySystemSet::Rendering,
+            GameplaySystemSet::Presentation,
         )
+            .chain()
             .run_if(in_state(ScreenState::Gameplay)),
     );
 
-    // POST UPDATE
+    // === INITIALIZATION ===
+    // Only run setup systems when entering the gameplay screen
+    app.add_systems(
+        OnEnter(ScreenState::Gameplay),
+        (spawn_map, spawn_player).chain().in_set(GameplaySystemSet::Initialization),
+    );
+
+    // === MAIN GAME LOOP ===
+    // Core turn processing
+    app.add_systems(
+        Update,
+        (
+            process_turns.run_if(in_state(GameState::ProcessTurns)),
+            monsters_turn.run_if(in_state(GameState::MonstersTurn)),
+        )
+            .in_set(GameplaySystemSet::TurnProcessing)
+            .run_if(in_state(ScreenState::Gameplay)),
+    );
+
+    // === VISUAL UPDATES ===
+    // Always running systems for new entities
+    app.add_systems(PostUpdate, add_sprite_to_player.run_if(in_state(ScreenState::Gameplay)));
+
+    // Rendering updates after turn processing
     app.add_systems(
         PostUpdate,
-        (position_to_transform, add_sprite_to_player).run_if(in_state(ScreenState::Gameplay)),
+        (compute_fov, update_tilemap_visibility, update_sprite_visibility, debug_fov_visualization)
+            .chain()
+            .in_set(GameplaySystemSet::Rendering)
+            .run_if(in_state(GameState::ProcessTurns)),
+    );
+
+    // === PRESENTATION ===
+    // Camera and transform updates
+    app.add_systems(
+        PostUpdate,
+        (camera_movement, position_to_transform).chain().in_set(GameplaySystemSet::Presentation),
     );
 }

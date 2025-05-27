@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use systems::FovSystemSet;
 
 pub mod actions;
 // pub mod commands;
@@ -18,9 +17,7 @@ pub enum GameState {
     #[default]
     PlayerTurn,
     MonstersTurn,
-    ComputeFov,
     ProcessTurns,
-    ProcessActions,
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -30,6 +27,4 @@ pub(super) fn plugin(app: &mut App) {
         .register_type::<components::TerrainType>()
         .register_type::<components::ViewShed>()
         .register_type::<resources::SpawnPoint>();
-
-    app.configure_sets(Update, (FovSystemSet::Compute, FovSystemSet::React).chain());
 }

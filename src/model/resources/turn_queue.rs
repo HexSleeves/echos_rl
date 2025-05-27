@@ -17,7 +17,7 @@ pub struct TurnQueue {
 
 impl TurnQueue {
     pub fn print_queue(&self) {
-        log::info!("Current time: {:?}, Turn queue: {:?}", self.current_time, self.turn_queue);
+        info!("Current time: {:?}, Turn queue: {:?}", self.current_time, self.turn_queue);
     }
 
     // Add actor to the queue with wrapping time calculation
@@ -68,7 +68,7 @@ impl TurnQueue {
             return CleanupMetrics::default();
         }
 
-        log::info!("Cleaning up dead entities...");
+        info!("Cleaning up dead entities...");
 
         let queue_size_before = self.turn_queue.len();
         let start_time = std::time::Instant::now();

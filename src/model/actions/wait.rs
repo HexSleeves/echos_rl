@@ -26,7 +26,7 @@ pub struct Wait {
 impl GameAction for Wait {
     fn entity(&self) -> Option<Entity> { Some(self.entity) }
     fn perform(&self, _world: &mut World) -> Result<u64, GameError> {
-        log::info!("Entity {} is waiting", self.entity);
+        info!("Entity {} is waiting", self.entity);
         Ok(1000)
     }
 }

@@ -40,7 +40,7 @@ pub fn player_input_system(
 
         for (act, keys) in ACTION_KEYS.iter() {
             if keys.iter().any(|key| input.just_pressed(*key)) {
-                log::info!("Player input: {:?}", act);
+                info!("Player input: {:?}", act);
                 action = Some(*act);
                 break;
             }

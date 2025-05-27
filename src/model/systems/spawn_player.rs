@@ -38,6 +38,7 @@ pub fn spawn_player(
                 tile_size: Vec2::splat(ViewConstants::TILE_SIZE),
                 ..Default::default()
             },
+            Transform::default(),
         ))
         .id();
 
@@ -58,12 +59,12 @@ pub fn spawn_player(
 
     // Set the player and actor on the map
     let _ = current_map.place_actor(player_position, player_id);
-    let _ = current_map.place_actor(actor_position, actor_id);
+    // let _ = current_map.place_actor(actor_position, actor_id);
 
     // Schedule the player and actor to take turns
     let current_time = turn_system.current_time();
     turn_system.schedule_turn(player_id, current_time);
-    turn_system.schedule_turn(actor_id, current_time);
+    // turn_system.schedule_turn(actor_id, current_time);
 }
 
 // Helper function to find a valid floor position

@@ -10,6 +10,8 @@ use crate::model::{
 };
 
 pub fn process_turns(world: &mut World) {
+    info!("Processing turns");
+
     let mut state: SystemState<(
         ResMut<NextState<GameState>>,
         Query<(Entity, &mut TurnActor, Option<&PlayerTag>)>,
@@ -21,10 +23,9 @@ pub fn process_turns(world: &mut World) {
 
         // Log significant cleanups
         if metrics.entities_removed > 10 {
-            log::info!(
+            info!(
                 "Turn queue cleanup: removed {} entities in {:?}",
-                metrics.entities_removed,
-                metrics.processing_time
+                metrics.entities_removed, metrics.processing_time
             );
         }
         turn_queue.print_queue();
@@ -38,7 +39,7 @@ pub fn process_turns(world: &mut World) {
             };
 
             if !actor.is_alive() {
-                log::info!("Actor is dead. Why is it still in the queue?");
+                info!("Actor is dead. Why is it still in the queue?");
                 continue;
             }
 
@@ -47,7 +48,7 @@ pub fn process_turns(world: &mut World) {
 
             // Player is waiting for input
             if is_player && !has_action {
-                log::info!("Player is awaiting input: {:?}", entity);
+                info!("Player is awaiting input: {:?}", entity);
                 next_state.set(GameState::PlayerTurn);
                 world.entity_mut(entity).insert(AwaitingInput);
                 turn_queue.schedule_turn(entity, time);
@@ -55,7 +56,7 @@ pub fn process_turns(world: &mut World) {
             }
 
             let Some(action) = actor.next_action() else {
-                log::info!("No action for entity: {:?}. Rescheduling turn.", entity);
+                info!("No action for entity: {:?}. Rescheduling turn.", entity);
                 turn_queue.schedule_turn(entity, time);
                 return;
             };
@@ -78,7 +79,7 @@ pub fn process_turns(world: &mut World) {
 }
 
 pub fn monsters_turn(world: &mut World) {
-    log::info!("Monsters turn");
+    info!("Monsters turn");
 
     let mut state: SystemState<(
         ResMut<NextState<GameState>>,
