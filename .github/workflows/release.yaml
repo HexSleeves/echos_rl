@@ -21,7 +21,7 @@ concurrency:
 # Configure the release workflow by editing the following values.
 env:
   # The base filename of the binary produced by `cargo build`.
-  cargo_build_binary_name: my_game
+  cargo_build_binary_name: echos_in_the_dark
 
   # The path to the assets directory.
   assets_path: assets
@@ -37,7 +37,7 @@ env:
 
   # The itch.io project to upload to in the format `user-name/project-name`.
   # There will be no upload to itch.io if this is commented out.
-  #upload_to_itch: your-itch-username/my_game
+  upload_to_itch: hex-sleeves/echos-in-the-dark
 
   ############
   # ADVANCED #
@@ -46,27 +46,27 @@ env:
   # The ID of the app produced by this workflow.
   # Applies to macOS releases.
   # Must contain only A-Z, a-z, 0-9, hyphen, and period: <https://developer.apple.com/documentation/bundleresources/information_property_list/cfbundleidentifier>.
-  app_id: .my-game
+  app_id: hex-sleeves.echos-in-the-dark
 
   # The base filename of the binary in the package produced by this workflow.
   # Applies to Windows, macOS, and Linux releases.
   # Defaults to `cargo_build_binary_name` if commented out.
-  #app_binary_name: my_game
+  # app_binary_name: echos_in_the_dark
 
   # The name of the `.zip` or `.dmg` file produced by this workflow.
   # Defaults to `app_binary_name` if commented out.
-  #app_package_name: my-game
+  app_package_name: echos-in-the-dark
 
   # The display name of the app produced by this workflow.
   # Applies to macOS releases.
   # Defaults to `app_package_name` if commented out.
-  #app_display_name: My Game
+  app_display_name: Echoes in the Dark
 
   # The short display name of the app produced by this workflow.
   # Applies to macOS releases.
   # Must be 15 or fewer characters: <https://developer.apple.com/documentation/bundleresources/information_property_list/cfbundlename>.
   # Defaults to `app_display_name` if commented out.
-  #app_short_name: My Game
+  #app_short_name: Echoes in the Dark
 
   # Before enabling LFS, please take a look at GitHub's documentation for costs and quota limits:
   # <https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-storage-and-bandwidth-usage>
@@ -75,6 +75,9 @@ env:
   # Enabling this only helps with consecutive releases to the same tag (and takes up cache storage space).
   # See: <https://github.com/orgs/community/discussions/27059>.
   use_github_cache: false
+
+  # Reduce compile time.
+  RUSTFLAGS: -Dwarnings -Zshare-generics=y -Zthreads=0
 
 jobs:
   # Forward some environment variables as outputs of this job.
@@ -105,6 +108,8 @@ jobs:
       - get-version
     env:
       version: ${{ needs.get-version.outputs.version }}
+      # Avoid rate-limiting. See: <https://github.com/cargo-bins/cargo-binstall/issues/2045>.
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       matrix:
         include:
@@ -172,7 +177,7 @@ jobs:
 
       - name: Install Rust toolchain
         if: ${{ env.is_platform_enabled == 'true' }}
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@nightly
         with:
           targets: ${{ matrix.targets }}
 
@@ -183,7 +188,7 @@ jobs:
           shared-key: release
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
-      - name: Install Bevy dependencies (Linux)
+      - name: Install build dependencies (Linux)
         if: ${{ env.is_platform_enabled == 'true' && matrix.platform == 'linux' }}
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
 
@@ -191,21 +196,19 @@ jobs:
         if: ${{ env.is_platform_enabled == 'true' }}
         run: rm -rf tmp; mkdir -p tmp/binary '${{ env.app }}'
 
-      - name: Install Bevy CLI
+      - name: Install cargo-binstall
         if: ${{ env.is_platform_enabled == 'true' }}
-        run: cargo install --locked --git='https://github.com/TheBevyFlock/bevy_cli' bevy_cli
-
-      - name: Install cargo-binstall (Web)
-        if: ${{ env.is_platform_enabled == 'true' && matrix.platform == 'web' }}
         uses: cargo-bins/cargo-binstall@main
 
-      - name: Install wasm-opt (Web)
-        if: ${{ env.is_platform_enabled == 'true' && matrix.platform == 'web' }}
-        run: cargo binstall --locked --no-confirm wasm-opt
+      - name: Install Bevy CLI
+        if: ${{ env.is_platform_enabled == 'true' }}
+        run: cargo binstall --locked --no-confirm --force --git='https://github.com/TheBevyFlock/bevy_cli' bevy_cli
 
       - name: Build and add web bundle to app (Web)
         if: ${{ env.is_platform_enabled == 'true' && matrix.platform == 'web' }}
         run: |
+          cargo binstall --locked --no-confirm --force wasm-bindgen-cli
+          cargo binstall --locked --no-confirm --force wasm-opt
           bevy build --locked --release --features='${{ matrix.features }}' --yes web --bundle
           mv 'target/bevy_web/web-release/${{ env.cargo_build_binary_name }}' '${{ env.app }}'
 
@@ -224,7 +227,7 @@ jobs:
 
       - name: Add assets to app (non-Web)
         if: ${{ env.is_platform_enabled == 'true' && matrix.platform != 'web' }}
-        run: cp -r ./'${{ env.assets_path }}' '${{ env.app }}' || true # Ignore error if assets folder does not exist.
+        run: cp -R ./'${{ env.assets_path }}' '${{ env.app }}' || true # Ignore error if assets folder does not exist.
 
       - name: Add metadata to app (macOS)
         if: ${{ env.is_platform_enabled == 'true' && matrix.platform == 'macos' }}
