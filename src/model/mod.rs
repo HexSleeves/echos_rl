@@ -33,5 +33,7 @@ pub(super) fn plugin(app: &mut App) {
         .register_type::<entities::EntityComponents>()
         .register_type::<entities::TurnActorData>()
         .register_type::<entities::ViewShedData>()
-        .register_type::<entities::TileSpriteData>();
+        .register_type::<entities::TileSpriteData>()
+        // Register EntityDefinition as an asset type
+        .init_asset::<entities::EntityDefinition>();
 }

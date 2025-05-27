@@ -5,7 +5,10 @@ use bevy::{
 use bevy_asset_loader::prelude::*;
 use iyes_progress::{ProgressPlugin, ProgressTracker};
 
-use crate::view::{resources::TextureAssets, screens::ScreenState};
+use crate::{
+    model::entities::EntityDefinitions,
+    view::{resources::TextureAssets, screens::ScreenState},
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((ProgressPlugin::<ScreenState>::new()
@@ -13,7 +16,8 @@ pub(super) fn plugin(app: &mut App) {
         .add_loading_state(
             LoadingState::new(ScreenState::Loading)
                 .with_dynamic_assets_file::<StandardDynamicAssetCollection>("textures.ron")
-                .load_collection::<TextureAssets>(),
+                .load_collection::<TextureAssets>()
+                .load_collection::<EntityDefinitions>(),
         )
         .add_systems(
             Update,

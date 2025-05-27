@@ -33,6 +33,9 @@
     "urizen_textures": Folder (
         path: "textures/urizen",
     ),
+    "entity_definitions": Folder (
+        path: "entities",
+    ),
     "texture_atlas_layout": TextureAtlasLayout (
         tile_size_x: 96,
         tile_size_y: 99,
