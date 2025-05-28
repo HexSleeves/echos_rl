@@ -7,16 +7,24 @@ use super::definition::EntityDefinition;
 #[derive(AssetCollection, Resource)]
 pub struct EntityDefinitions {
     /// All entity definition files loaded from the entities folder
-    #[asset(key = "entity_definitions", collection(typed, mapped))]
+    #[asset(path = "entities", collection(typed, mapped))]
     pub definitions: HashMap<String, Handle<EntityDefinition>>,
+
+    #[asset(key = "player")]
+    pub player: Handle<EntityDefinition>,
 }
 
 impl EntityDefinitions {
     /// Get an entity definition by name
     pub fn get(&self, name: &str) -> Option<&Handle<EntityDefinition>> { self.definitions.get(name) }
 
+    /// Find an entity definition by name
+    pub fn find(&self, name: &str) -> Option<(&String, &Handle<EntityDefinition>)> {
+        self.definitions.iter().find(|(key, _)| *key == name)
+    }
+
     /// Get the player entity definition
-    pub fn get_player(&self) -> Option<&Handle<EntityDefinition>> { self.get("player") }
+    pub fn get_player(&self) -> &Handle<EntityDefinition> { &self.player }
 
     /// Get all enemy entity definitions
     pub fn get_enemies(&self) -> Vec<&Handle<EntityDefinition>> {
@@ -55,7 +63,7 @@ mod tests {
     #[test]
     fn test_entity_definitions_creation() {
         // Test that we can create an empty EntityDefinitions resource
-        let definitions = EntityDefinitions { definitions: HashMap::new() };
+        let definitions = EntityDefinitions { definitions: HashMap::new(), player: Handle::default() };
 
         assert!(definitions.get("player").is_none());
         assert!(definitions.get_enemies().is_empty());
@@ -72,18 +80,18 @@ mod tests {
         let whale_handle = Handle::default();
         let goblin_handle = Handle::default();
 
-        definitions.insert("player".to_string(), player_handle);
+        definitions.insert("player".to_string(), player_handle.clone());
         definitions.insert("enemies/whale".to_string(), whale_handle);
         definitions.insert("enemies/goblin".to_string(), goblin_handle);
 
-        let entity_definitions = EntityDefinitions { definitions };
+        let entity_definitions = EntityDefinitions { definitions, player: Handle::default() };
 
         // Test enemy filtering
         let enemies = entity_definitions.get_enemies();
         assert_eq!(enemies.len(), 2);
 
         // Test player access
-        assert!(entity_definitions.get_player().is_some());
+        assert_eq!(entity_definitions.get_player(), &player_handle);
 
         // Test names
         let names = entity_definitions.get_names();
@@ -99,7 +107,7 @@ mod tests {
         // by checking that the RON files can be parsed as EntityDefinition assets
 
         // Test player.ron parsing
-        let player_ron = include_str!("../../../assets/entities/player.ron");
+        let player_ron = include_str!("../../../../assets/entities/player.definition.ron");
         let player_def: EntityDefinition =
             ron::from_str(player_ron).expect("Failed to parse player.ron as EntityDefinition");
 
@@ -107,7 +115,7 @@ mod tests {
         assert!(player_def.is_player());
 
         // Test whale.ron parsing
-        let whale_ron = include_str!("../../../assets/entities/enemies/whale.ron");
+        let whale_ron = include_str!("../../../../assets/entities/enemies/whale.definition.ron");
         let whale_def: EntityDefinition =
             ron::from_str(whale_ron).expect("Failed to parse whale.ron as EntityDefinition");
 
@@ -115,7 +123,7 @@ mod tests {
         assert!(whale_def.is_ai());
 
         // Test basic_enemy.ron parsing
-        let basic_enemy_ron = include_str!("../../../assets/entities/enemies/basic_enemy.ron");
+        let basic_enemy_ron = include_str!("../../../../assets/entities/enemies/basic_enemy.definition.ron");
         let basic_enemy_def: EntityDefinition =
             ron::from_str(basic_enemy_ron).expect("Failed to parse basic_enemy.ron as EntityDefinition");
 

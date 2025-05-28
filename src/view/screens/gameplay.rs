@@ -23,7 +23,7 @@ use crate::{
 
 // System sets for better organization
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
-pub enum GameplaySystemSet {
+pub enum GameplaySystems {
     /// Initial setup when entering gameplay
     Initialization,
     /// Core game logic during turns
@@ -48,7 +48,7 @@ pub(super) fn plugin(app: &mut App) {
     // Configure system sets ordering
     app.configure_sets(
         PostUpdate,
-        (GameplaySystemSet::TurnProcessing, GameplaySystemSet::Rendering, GameplaySystemSet::Presentation)
+        (GameplaySystems::TurnProcessing, GameplaySystems::Rendering, GameplaySystems::Presentation)
             .chain()
             .run_if(in_state(ScreenState::Gameplay)),
     );
@@ -57,7 +57,7 @@ pub(super) fn plugin(app: &mut App) {
     // Only run setup systems when entering the gameplay screen
     app.add_systems(
         OnEnter(ScreenState::Gameplay),
-        (spawn_map, spawn_player).chain().in_set(GameplaySystemSet::Initialization),
+        (spawn_map, spawn_player).chain().in_set(GameplaySystems::Initialization),
     );
 
     // === MAIN GAME LOOP ===
@@ -69,7 +69,7 @@ pub(super) fn plugin(app: &mut App) {
             process_turns.run_if(in_state(GameState::ProcessTurns)),
             monsters_turn.run_if(in_state(GameState::MonstersTurn)),
         )
-            .in_set(GameplaySystemSet::TurnProcessing)
+            .in_set(GameplaySystems::TurnProcessing)
             .run_if(in_state(ScreenState::Gameplay)),
     );
 
@@ -82,7 +82,7 @@ pub(super) fn plugin(app: &mut App) {
         PostUpdate,
         (compute_fov, update_tilemap_visibility, update_sprite_visibility, debug_fov_visualization)
             .chain()
-            .in_set(GameplaySystemSet::Rendering)
+            .in_set(GameplaySystems::Rendering)
             .run_if(in_state(GameState::ProcessTurns)),
     );
 
@@ -90,6 +90,6 @@ pub(super) fn plugin(app: &mut App) {
     // Camera and transform updates
     app.add_systems(
         PostUpdate,
-        (camera_movement, position_to_transform).chain().in_set(GameplaySystemSet::Presentation),
+        (camera_movement, position_to_transform).chain().in_set(GameplaySystems::Presentation),
     );
 }

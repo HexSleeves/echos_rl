@@ -305,7 +305,7 @@ impl GenConfig {
     /// Convert the terrain grid into actual game entities
     pub fn generate_tile_storage(
         &self,
-        commands: &mut Commands,
+        mut commands: Commands,
         tilemap_id: TilemapId,
         terrain_grid: &Grid<TerrainType>,
     ) -> TileStorage {
@@ -339,7 +339,7 @@ impl GenConfig {
         let mut valid_positions = Vec::new();
 
         for (x, y) in grid.position_iter() {
-            if grid[(x, y)].is_walkable() {
+            if grid.in_bounds((x, y)) && grid[(x, y)].is_walkable() {
                 valid_positions.push((x as u32, y as u32));
             }
         }

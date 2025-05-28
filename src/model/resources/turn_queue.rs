@@ -20,12 +20,15 @@ impl TurnQueue {
         info!("Current time: {:?}, Turn queue: {:?}", self.current_time, self.turn_queue);
     }
 
-    // Add actor to the queue with wrapping time calculation
+    /// Check if the turn queue is empty
+    pub fn is_empty(&self) -> bool { self.turn_queue.is_empty() }
+
+    /// Add actor to the queue with wrapping time calculation
     pub fn schedule_turn(&mut self, entity: Entity, next_time: u64) {
         self.turn_queue.push(Reverse((next_time, entity)));
     }
 
-    // Get the next actor in the queue
+    /// Get the next actor in the queue
     pub fn get_next_actor(&mut self) -> Option<(Entity, u64)> {
         if let Some(Reverse((time, entity))) = self.turn_queue.pop() {
             // Update current time with wrapping protection

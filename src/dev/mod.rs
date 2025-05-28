@@ -13,7 +13,7 @@ pub(super) fn plugin(app: &mut App) {
 
     #[cfg(feature = "dev_log")]
     {
-        app.add_plugins((LogDiagnosticsPlugin::default()));
+        app.add_plugins(LogDiagnosticsPlugin::default());
     }
 
     app.add_systems(

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use super::components::*;
 
 /// Main entity definition loaded from RON files
-#[derive(Asset, Serialize, Deserialize, Debug, Clone, Reflect)]
+#[derive(Asset, Serialize, Deserialize, Debug, Clone, TypePath)]
 pub struct EntityDefinition {
     /// Human-readable name for the entity
     pub name: String,

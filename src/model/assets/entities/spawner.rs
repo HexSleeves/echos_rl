@@ -3,15 +3,35 @@ use bevy::prelude::*;
 use crate::{
     model::{
         components::{AITag, AwaitingInput, PlayerTag, Position, TurnActor, ViewShed},
-        entities::{EntityDefinition, EntityDefinitions},
         resources::{CurrentMap, TurnQueue},
     },
     view::{ViewConstants, components::TileSprite},
 };
 
+use super::{EntityDefinition, EntityDefinitions};
+
+/// Errors that can occur during entity spawning
+#[derive(Debug, thiserror::Error)]
+pub enum SpawnError {
+    #[error("Entity definition '{0}' not found")]
+    DefinitionNotFound(String),
+
+    #[error("Asset '{0}' not loaded")]
+    AssetNotLoaded(String),
+
+    #[error("Position {0:?} is already occupied")]
+    PositionOccupied(Position),
+
+    #[error("No enemy definitions available")]
+    NoEnemiesAvailable,
+
+    #[error("Failed to place entity on map")]
+    MapPlacementFailed,
+}
+
 /// Spawn an entity from a definition with optional position override
 pub fn spawn_entity_from_definition(
-    commands: &mut Commands,
+    mut commands: Commands,
     definition: &EntityDefinition,
     position: Position,
     current_map: &mut CurrentMap,
@@ -60,15 +80,14 @@ pub fn spawn_entity_from_definition(
 
 /// Spawn the player from entity definitions
 pub fn spawn_player_from_definition(
-    commands: &mut Commands,
+    commands: Commands,
     entity_definitions: &EntityDefinitions,
     assets: &Assets<EntityDefinition>,
     position: Position,
     current_map: &mut CurrentMap,
     turn_queue: &mut TurnQueue,
 ) -> Result<Entity, SpawnError> {
-    let player_handle =
-        entity_definitions.get_player().ok_or(SpawnError::DefinitionNotFound("player".to_string()))?;
+    let player_handle = entity_definitions.get_player();
 
     let player_definition =
         assets.get(player_handle).ok_or(SpawnError::AssetNotLoaded("player".to_string()))?;
@@ -78,7 +97,7 @@ pub fn spawn_player_from_definition(
 
 /// Spawn an enemy from entity definitions by name
 pub fn spawn_enemy_from_definition(
-    commands: &mut Commands,
+    commands: Commands,
     entity_definitions: &EntityDefinitions,
     assets: &Assets<EntityDefinition>,
     enemy_name: &str,
@@ -98,7 +117,7 @@ pub fn spawn_enemy_from_definition(
 
 /// Spawn a random enemy from available definitions
 pub fn spawn_random_enemy_from_definition(
-    commands: &mut Commands,
+    commands: Commands,
     entity_definitions: &EntityDefinitions,
     assets: &Assets<EntityDefinition>,
     position: Position,
@@ -119,7 +138,7 @@ pub mod fallback {
 
     /// Fallback player spawning with exact hardcoded values
     pub fn spawn_player_hardcoded(
-        commands: &mut Commands,
+        mut commands: Commands,
         position: Position,
         current_map: &mut CurrentMap,
         turn_queue: &mut TurnQueue,
@@ -149,7 +168,7 @@ pub mod fallback {
 
     /// Fallback enemy spawning with exact hardcoded values (whale)
     pub fn spawn_enemy_hardcoded(
-        commands: &mut Commands,
+        mut commands: Commands,
         position: Position,
         current_map: &mut CurrentMap,
         turn_queue: &mut TurnQueue,
@@ -176,29 +195,10 @@ pub mod fallback {
     }
 }
 
-/// Errors that can occur during entity spawning
-#[derive(Debug, thiserror::Error)]
-pub enum SpawnError {
-    #[error("Entity definition '{0}' not found")]
-    DefinitionNotFound(String),
-
-    #[error("Asset '{0}' not loaded")]
-    AssetNotLoaded(String),
-
-    #[error("Position {0:?} is already occupied")]
-    PositionOccupied(Position),
-
-    #[error("No enemy definitions available")]
-    NoEnemiesAvailable,
-
-    #[error("Failed to place entity on map")]
-    MapPlacementFailed,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::entities::{EntityComponents, TileSpriteData, TurnActorData, ViewShedData};
+    use crate::model::assets::entities::{EntityComponents, TileSpriteData, TurnActorData, ViewShedData};
 
     fn create_test_player_definition() -> EntityDefinition {
         EntityDefinition {
@@ -284,7 +284,7 @@ mod tests {
         // Test that our actual RON files work with the spawning system
 
         // Test player.ron
-        let player_ron = include_str!("../../../assets/entities/player.ron");
+        let player_ron = include_str!("../../../../assets/entities/player.definition.ron");
         let player_def: EntityDefinition = ron::from_str(player_ron).expect("Failed to parse player.ron");
 
         assert!(player_def.is_player());
@@ -294,7 +294,7 @@ mod tests {
         assert_eq!(player_def.components.tile_sprite.as_ref().unwrap().tile_coords, (10, 18));
 
         // Test whale.ron
-        let whale_ron = include_str!("../../../assets/entities/enemies/whale.ron");
+        let whale_ron = include_str!("../../../../assets/entities/enemies/whale.definition.ron");
         let whale_def: EntityDefinition = ron::from_str(whale_ron).expect("Failed to parse whale.ron");
 
         assert!(!whale_def.is_player());
@@ -304,7 +304,7 @@ mod tests {
         assert!(whale_def.components.view_shed.is_none());
 
         // Test basic_enemy.ron
-        let basic_enemy_ron = include_str!("../../../assets/entities/enemies/basic_enemy.ron");
+        let basic_enemy_ron = include_str!("../../../../assets/entities/enemies/basic_enemy.definition.ron");
         let basic_enemy_def: EntityDefinition =
             ron::from_str(basic_enemy_ron).expect("Failed to parse basic_enemy.ron");
 

@@ -6,25 +6,24 @@ use bevy_asset_loader::prelude::*;
 use iyes_progress::{ProgressPlugin, ProgressTracker};
 
 use crate::{
-    model::entities::EntityDefinitions,
+    model::assets::entities::EntityDefinitions,
     view::{resources::TextureAssets, screens::ScreenState},
 };
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((ProgressPlugin::<ScreenState>::new()
-        .with_state_transition(ScreenState::Loading, ScreenState::Gameplay),))
-        .add_loading_state(
-            LoadingState::new(ScreenState::Loading)
-                .with_dynamic_assets_file::<StandardDynamicAssetCollection>("textures.ron")
-                .load_collection::<TextureAssets>()
-                .load_collection::<EntityDefinitions>(),
-        )
-        .add_systems(
-            Update,
-            print_progress
-                .run_if(in_state(ScreenState::Loading))
-                .after(LoadingStateSet(ScreenState::Loading)),
-        );
+        .with_state_transition(ScreenState::Loading, ScreenState::Gameplay),));
+
+    app.add_loading_state(
+        LoadingState::new(ScreenState::Loading)
+            .with_dynamic_assets_file::<StandardDynamicAssetCollection>("entities.ron")
+            .load_collection::<TextureAssets>()
+            .load_collection::<EntityDefinitions>(),
+    )
+    .add_systems(
+        Update,
+        print_progress.run_if(in_state(ScreenState::Loading)).after(LoadingStateSet(ScreenState::Loading)),
+    );
 }
 
 fn print_progress(

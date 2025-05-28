@@ -22,7 +22,7 @@ pub fn spawn_map(
 
     // Generate tile storage and update our map's tiles with the terrain and tile entities
     let tile_storage =
-        generator.generate_tile_storage(&mut commands, TilemapId(tilemap_entity), &terrain_grid);
+        generator.generate_tile_storage(commands.reborrow(), TilemapId(tilemap_entity), &terrain_grid);
 
     // Update our map with the generated terrain and tile entities
     for x in 0..current_map.size.0 {

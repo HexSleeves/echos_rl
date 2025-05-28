@@ -96,5 +96,8 @@ fn main() {
     // Assign plugins
     app.add_plugins((brt_plugin, ui::plugin, view::plugin, controller::plugin, model::plugin));
 
-    app.run();
+    match app.run() {
+        AppExit::Success => std::process::exit(0),
+        AppExit::Error(code) => std::process::exit(code.get() as i32),
+    }
 }

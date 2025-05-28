@@ -7,7 +7,7 @@ use crate::model::resources::Map;
 pub fn fill_tilemap(
     map_size: TilemapSize,
     tilemap_id: TilemapId,
-    commands: &mut Commands,
+    mut commands: Commands,
     tile_storage: &mut TileStorage,
     gamemap: &Map,
 ) {
@@ -36,7 +36,7 @@ pub fn fill_tilemap_default(
     texture_index: TileTextureIndex,
     map_size: TilemapSize,
     tilemap_id: TilemapId,
-    commands: &mut Commands,
+    mut commands: Commands,
     tile_storage: &mut TileStorage,
 ) {
     for y in 0..map_size.y {

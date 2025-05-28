@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 
 use crate::model::{
-    components::Position,
-    entities::{
-        EntityDefinition, EntityDefinitions,
+    assets::entities::{
+        EntityDefinition, EntityDefinitions, spawn_enemy_from_definition,
         spawner::{fallback, spawn_player_from_definition, spawn_random_enemy_from_definition},
     },
+    components::Position,
     resources::{CurrentMap, TurnQueue},
 };
 
@@ -62,7 +62,7 @@ pub fn process_spawn_commands(
             (entity_definitions.as_ref(), assets.as_ref())
         {
             match spawn_player_from_definition(
-                &mut commands,
+                commands.reborrow(),
                 entity_definitions,
                 assets,
                 spawn_cmd.position,
@@ -76,7 +76,7 @@ pub fn process_spawn_commands(
                 Err(e) => {
                     warn!("Failed to spawn player from definition: {}. Using fallback.", e);
                     fallback::spawn_player_hardcoded(
-                        &mut commands,
+                        commands.reborrow(),
                         spawn_cmd.position,
                         &mut current_map,
                         &mut turn_queue,
@@ -86,7 +86,7 @@ pub fn process_spawn_commands(
         } else {
             info!("Entity definitions not available, using hardcoded player spawning");
             fallback::spawn_player_hardcoded(
-                &mut commands,
+                commands.reborrow(),
                 spawn_cmd.position,
                 &mut current_map,
                 &mut turn_queue,
@@ -107,8 +107,8 @@ pub fn process_spawn_commands(
             let spawn_result = match &spawn_cmd.enemy_name {
                 Some(name) => {
                     // Spawn specific enemy by name
-                    crate::model::entities::spawner::spawn_enemy_from_definition(
-                        &mut commands,
+                    spawn_enemy_from_definition(
+                        commands.reborrow(),
                         entity_definitions,
                         assets,
                         name,
@@ -120,7 +120,7 @@ pub fn process_spawn_commands(
                 None => {
                     // Spawn random enemy
                     spawn_random_enemy_from_definition(
-                        &mut commands,
+                        commands.reborrow(),
                         entity_definitions,
                         assets,
                         spawn_cmd.position,
@@ -138,7 +138,7 @@ pub fn process_spawn_commands(
                 Err(e) => {
                     warn!("Failed to spawn enemy from definition: {}. Using fallback.", e);
                     fallback::spawn_enemy_hardcoded(
-                        &mut commands,
+                        commands.reborrow(),
                         spawn_cmd.position,
                         &mut current_map,
                         &mut turn_queue,
@@ -148,7 +148,7 @@ pub fn process_spawn_commands(
         } else {
             info!("Entity definitions not available, using hardcoded enemy spawning");
             fallback::spawn_enemy_hardcoded(
-                &mut commands,
+                commands.reborrow(),
                 spawn_cmd.position,
                 &mut current_map,
                 &mut turn_queue,
