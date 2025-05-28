@@ -36,12 +36,12 @@ build-dist:
 # Run development version
 run: build
 	@echo "Running development version..."
-	@cargo run --features dev_native
+	@bevy run --features dev_native
 
 # Run release version
 run-release: build-release
 	@echo "Running release version..."
-	@cargo run --release
+	@bevy run --release
 
 # Run tests
 test:

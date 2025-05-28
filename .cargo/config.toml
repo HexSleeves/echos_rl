@@ -164,6 +164,17 @@ codegen-backend = true
 [profile.dev.package."*"]
 codegen-backend = "llvm"
 
+# This section applies flags if the 'has_cranelift' cfg is set by build.rs
+# AND we are in a debug build (which is where Cranelift is most beneficial).
+[target.'cfg(all(debug_assertions, has_cranelift))']
+rustflags = ["-Z", "codegen-backend=cranelift"]
+
+# You might also want to explicitly ensure LLVM for release builds,
+# though it's the default. This is mostly for clarity or if you had
+# other global rustflags you wanted to override for release.
+# [target.'cfg(all(not(debug_assertions), has_cranelift))']
+# rustflags = ["-Z", "codegen-backend=llvm"] # or just empty: rustflags = []
+
 #######################################################
 # End of Cranelift codegen backend for dev profile
 #######################################################

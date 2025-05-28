@@ -1,33 +1,46 @@
-extern crate embed_resource;
-use std::env;
+// build.rs
+use std::{env, process::Command};
 
 fn main() {
-    let target = env::var("TARGET").unwrap();
+    let target = env::var("TARGET").unwrap_or_else(|_| "unknown".to_string());
     if target.contains("windows") {
-        // on windows we will set our game icon as icon for the executable
-        embed_resource::compile("build/windows/icon.rc");
+        println!("cargo:rerun-if-changed=build/windows/icon.rc");
+        println!("cargo:rerun-if-changed=build/windows/icon.ico");
+        embed_resource::compile("build/windows/icon.rc", embed_resource::NONE).manifest_optional().unwrap();
     }
 
-    // Check if Cranelift is available
-    let cranelift_available = std::process::Command::new("rustc")
+    // Always rerun this build script if it changes
+    println!("cargo:rerun-if-changed=build.rs");
+
+    let cranelift_check_status = Command::new("rustc")
         .arg("-Z")
         .arg("codegen-backend=cranelift")
         .arg("--version")
-        .output()
-        .map(|output| output.status.success())
-        .unwrap_or(false);
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status();
+
+    let cranelift_available = match cranelift_check_status {
+        Ok(status) => status.success(),
+        Err(e) => {
+            println!(
+                "cargo:warning=Failed to execute rustc for Cranelift check ({}). Assuming Cranelift is not available.",
+                e
+            );
+            false
+        }
+    };
 
     if cranelift_available {
-        println!("cargo:warning=Cranelift available, using optimized config");
-        // Enable Cranelift for faster dev builds
-        println!("cargo:rustc-env=CRANELIFT_AVAILABLE=1");
-
-        // Set environment variable that can be used by cargo config
-        // This doesn't directly set the codegen backend, but signals availability
-        println!("cargo:rustc-env=USE_CRANELIFT=1");
+        println!("cargo:warning=Cranelift backend available. Will attempt to use via .cargo/config.toml.");
+        // Set a custom cfg flag that .cargo/config.toml can read
+        println!("cargo:rustc-cfg=has_cranelift");
+        println!("cargo:rustc-env=CRANELIFT_COMPILATION_ENABLED=1"); // Informational
     } else {
-        println!("cargo:warning=Cranelift not available, using standard LLVM backend");
-        println!("cargo:rustc-env=CRANELIFT_AVAILABLE=0");
-        println!("cargo:rustc-env=USE_CRANELIFT=0");
+        println!(
+            "cargo:warning=Cranelift backend not available or rustc check failed. Using default LLVM backend."
+        );
+        println!("cargo:rustc-env=CRANELIFT_COMPILATION_ENABLED=0"); // Informational
     }
 }

@@ -104,7 +104,8 @@ image = { version = "0.25", default-features = false }
 ron   = "0.10.1"
 
 [build-dependencies]
-embed-resource = "1"
+embed-resource = "3.0.2"
+# embed-resource = "1"
 
 ########################
 # PROFILES #
