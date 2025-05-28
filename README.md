@@ -135,16 +135,31 @@ commands.spawn_random_enemy(position);
 
 ### Building
 
-```bash
-# Development build (faster compilation)
-cargo build
+This project includes an intelligent build system with automatic Cranelift detection for faster development builds:
 
-# Release build (optimized)
-cargo build --release
+```bash
+# Development build with automatic Cranelift detection (recommended)
+./build.sh
+
+# Release build (optimized with LLVM)
+./build.sh --release
 
 # Distribution build (maximum optimization)
-cargo build --profile dist
+./build.sh --profile dist
+
+# Or use convenient make targets
+make build          # Dev build
+make build-release  # Release build
+make run           # Build and run
 ```
+
+**Traditional cargo still works:**
+```bash
+cargo build         # Standard build
+cargo build --release
+```
+
+For detailed information about the build system, see [BUILD_GUIDE.md](BUILD_GUIDE.md).
 
 ### Testing
 

@@ -2,6 +2,21 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Build (Intelligent)",
+            "type": "shell",
+            "command": "./build.sh",
+            "presentation": {
+                "clear": true
+            },
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
             "label": "Run native dev",
             "type": "process",
             "command": "bevy",
@@ -19,10 +34,8 @@
             "problemMatcher": [
                 "$rustc"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build",
+            "dependsOn": "Build (Intelligent)"
         },
         {
             "label": "Run native release",

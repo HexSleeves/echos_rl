@@ -3,6 +3,9 @@ use bevy::{
     input::common_conditions::input_just_pressed, prelude::*, ui::UiDebugOptions,
 };
 
+#[cfg(feature = "dev_log")]
+use bevy::diagnostic::LogDiagnosticsPlugin;
+
 use crate::{model::GameState, view::screens::ScreenState};
 
 pub(super) fn plugin(app: &mut App) {

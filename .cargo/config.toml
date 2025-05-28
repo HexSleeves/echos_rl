@@ -149,14 +149,18 @@ rustflags = [
 
 #######################################################
 # Enable Cranelift codegen backend for dev profile
-# Comment this out for MacOS
+# This is controlled dynamically by build.rs and build.sh
+# Comment this out for MacOS if you have issues
 #######################################################
 [unstable]
 codegen-backend = true
 
-[profile.dev]
-codegen-backend = "cranelift"
+# Cranelift configuration - uncomment to enable manually
+# Note: build.sh script will override this dynamically
+# [profile.dev]
+# codegen-backend = "cranelift"
 
+# Keep dependencies using LLVM for better compatibility
 [profile.dev.package."*"]
 codegen-backend = "llvm"
 
