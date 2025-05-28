@@ -41,25 +41,30 @@ pub fn spawn_entity_from_definition(
 
     // Add components based on entity type
     if definition.is_player() {
+        println!("Adding PlayerTag component");
         entity_commands.insert((PlayerTag, AwaitingInput));
     } else if definition.is_ai() {
+        println!("Adding AITag component");
         entity_commands.insert(AITag);
     }
 
     // Add TurnActor component if specified
     if let Some(turn_actor_data) = &definition.components.turn_actor {
+        println!("Adding TurnActor component: {:?}", turn_actor_data);
         let turn_actor: TurnActor = turn_actor_data.into();
         entity_commands.insert(turn_actor);
     }
 
     // Add ViewShed component if specified
     if let Some(view_shed_data) = &definition.components.view_shed {
+        println!("Adding ViewShed component: {:?}", view_shed_data);
         let view_shed: ViewShed = view_shed_data.into();
         entity_commands.insert(view_shed);
     }
 
     // Add TileSprite component if specified
     if let Some(tile_sprite_data) = &definition.components.tile_sprite {
+        println!("Adding TileSprite component: {:?}", tile_sprite_data);
         let tile_sprite: TileSprite = tile_sprite_data.into();
         entity_commands.insert(tile_sprite);
     }
@@ -71,6 +76,7 @@ pub fn spawn_entity_from_definition(
 
     // Schedule the entity's turn if it has a TurnActor component
     if definition.components.turn_actor.is_some() {
+        println!("Scheduling turn for entity: {:?}", entity_id);
         let current_time = turn_queue.current_time();
         turn_queue.schedule_turn(entity_id, current_time);
     }
