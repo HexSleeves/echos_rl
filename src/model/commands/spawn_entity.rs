@@ -36,9 +36,7 @@ pub fn process_spawn_commands(
 ) {
     // Process player spawn commands
     for (entity, spawn_cmd) in player_commands.iter() {
-        let player_id = if let (Some(entity_definitions), Some(assets)) =
-            (entity_definitions.as_ref(), assets.as_ref())
-        {
+        if let (Some(entity_definitions), Some(assets)) = (entity_definitions.as_ref(), assets.as_ref()) {
             match spawn_player_from_definition(
                 commands.reborrow(),
                 entity_definitions,
@@ -47,29 +45,27 @@ pub fn process_spawn_commands(
                 &mut current_map,
                 &mut turn_queue,
             ) {
-                Ok(id) => {
-                    info!("Successfully spawned player from definition at {:?}", spawn_cmd.position);
-                    id
+                Ok(player_id) => {
+                    info!(
+                        "Successfully spawned player from definition at {:?} with ID {:?}",
+                        spawn_cmd.position, player_id
+                    );
                 }
                 Err(e) => {
-                    panic!("Failed to spawn player from definition: {}", e);
+                    warn!("Failed to spawn player from definition: {}. Skipping player spawn.", e);
                 }
             }
         } else {
-            panic!("Entity definitions not available, using hardcoded player spawning");
-        };
+            warn!("Entity definitions not available, cannot spawn player");
+        }
 
-        info!("Spawned player {:?} at {:?}", player_id, spawn_cmd.position);
-
-        // Remove the command entity
+        // Remove the command entity regardless of success/failure
         commands.entity(entity).despawn();
     }
 
     // Process enemy spawn commands
     for (entity, spawn_cmd) in enemy_commands.iter() {
-        let enemy_id = if let (Some(entity_definitions), Some(assets)) =
-            (entity_definitions.as_ref(), assets.as_ref())
-        {
+        if let (Some(entity_definitions), Some(assets)) = (entity_definitions.as_ref(), assets.as_ref()) {
             let spawn_result = match &spawn_cmd.enemy_name {
                 Some(name) => {
                     // Spawn specific enemy by name
@@ -97,22 +93,26 @@ pub fn process_spawn_commands(
             };
 
             match spawn_result {
-                Ok(id) => {
-                    info!("Successfully spawned enemy from definition at {:?}", spawn_cmd.position);
-                    id
+                Ok(enemy_id) => {
+                    let enemy_type = spawn_cmd.enemy_name.as_deref().unwrap_or("random");
+                    info!(
+                        "Successfully spawned {} enemy from definition at {:?} with ID {:?}",
+                        enemy_type, spawn_cmd.position, enemy_id
+                    );
                 }
                 Err(e) => {
-                    panic!("Failed to spawn enemy from definition: {}", e);
+                    let enemy_type = spawn_cmd.enemy_name.as_deref().unwrap_or("random");
+                    warn!(
+                        "Failed to spawn {} enemy from definition: {}. Skipping enemy spawn.",
+                        enemy_type, e
+                    );
                 }
             }
         } else {
-            panic!("Entity definitions not available, using hardcoded enemy spawning");
-        };
+            warn!("Entity definitions not available, cannot spawn enemy");
+        }
 
-        let enemy_type = spawn_cmd.enemy_name.as_deref().unwrap_or("random");
-        info!("Spawned {} enemy {:?} at {:?}", enemy_type, enemy_id, spawn_cmd.position);
-
-        // Remove the command entity
+        // Remove the command entity regardless of success/failure
         commands.entity(entity).despawn();
     }
 }

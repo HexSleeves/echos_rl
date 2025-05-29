@@ -10,7 +10,8 @@ struct PrettyHashMap<'a, K, V>(&'a HashMap<K, V>);
 impl<'a, K: fmt::Debug + Ord, V: fmt::Debug> fmt::Debug for PrettyHashMap<'a, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut entries: Vec<_> = self.0.iter().collect();
-        entries.sort_by_key(|(k, _)| *k); // Sort by keys
+        // Sort by borrowed key to avoid moving/cloning
+        entries.sort_by(|(k1, _), (k2, _)| k1.cmp(k2));
 
         let mut map = f.debug_map();
         for (key, value) in entries {
@@ -27,11 +28,11 @@ pub struct EntityDefinitions {
     pub player: Handle<EntityDefinition>,
 
     /// All entity definition files loaded from the entities folder
-    #[asset(path = "entities", collection(typed, mapped))]
+    #[asset(key = "entities", collection(typed, mapped))]
     pub definitions: HashMap<String, Handle<EntityDefinition>>,
 
     /// All enemy definition files loaded from the entities folder
-    #[asset(path = "entities/enemies", collection(typed, mapped))]
+    #[asset(key = "enemies", collection(typed, mapped))]
     pub enemies: HashMap<String, Handle<EntityDefinition>>,
 }
 
@@ -88,7 +89,8 @@ impl EntityDefinitions {
 
     /// Check if all definitions are loaded
     pub fn is_loaded(&self, asset_server: &AssetServer) -> bool {
-        self.definitions.values().all(|handle| asset_server.is_loaded_with_dependencies(handle))
+        self.definitions.values().all(|h| asset_server.is_loaded_with_dependencies(h))
+            && self.enemies.values().all(|h| asset_server.is_loaded_with_dependencies(h))
     }
 
     /// Get all definition names

@@ -31,8 +31,6 @@ pub fn spawn_ai_enemies(
         return;
     };
 
-    println!("entity_definitions {:#?}", entity_definitions);
-
     // Spawn different types of AI enemies using simple names
     spawn_enemy_type(&mut commands, &current_map, &entity_definitions, &assets, "hostile_guard", 2);
     spawn_enemy_type(&mut commands, &current_map, &entity_definitions, &assets, "passive_critter", 3);

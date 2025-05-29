@@ -2,10 +2,10 @@
   "player": File (
     path: "entities/player.definition.ron",
   ),
-  "whale": File (
-    path: "entities/enemies/whale.definition.ron",
+  "entities": Folder (
+    path: "entities",
   ),
-  "basic_enemy": File (
-    path: "entities/enemies/basic_enemy.definition.ron",
+  "enemies": Folder (
+    path: "entities/enemies",
   ),
 })

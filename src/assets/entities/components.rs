@@ -171,20 +171,4 @@ mod tests {
         assert_eq!(components.view_shed.as_ref().unwrap().radius, 8);
         assert_eq!(components.tile_sprite.as_ref().unwrap().tile_coords, (10, 18));
     }
-
-    #[test]
-    fn test_whale_ron_file_parsing() {
-        let whale_ron = include_str!("../../../assets/entities/enemies/whale.definition.ron");
-        let entity_def: EntityDefinition = ron::from_str(whale_ron).expect("Failed to parse whale.ron");
-
-        assert_eq!(entity_def.name, "Whale");
-        assert!(!entity_def.is_player());
-        assert!(entity_def.is_ai());
-
-        // Verify component data matches hardcoded values
-        let components = &entity_def.components;
-        assert_eq!(components.turn_actor.as_ref().unwrap().speed, 120);
-        assert_eq!(components.tile_sprite.as_ref().unwrap().tile_coords, (0, 16));
-        assert!(components.view_shed.is_none()); // Enemies don't have view sheds
-    }
 }

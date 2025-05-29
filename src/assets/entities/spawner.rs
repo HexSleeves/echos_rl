@@ -135,7 +135,10 @@ pub fn spawn_entity_from_definition(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::assets::entities::{EntityComponents, TileSpriteData, TurnActorData, ViewShedData};
+    use crate::{
+        assets::entities::{EntityComponents, TileSpriteData, TurnActorData, ViewShedData},
+        view::ViewConstants,
+    };
 
     fn create_test_player_definition() -> EntityDefinition {
         EntityDefinition {
@@ -230,24 +233,26 @@ mod tests {
         assert_eq!(player_def.components.view_shed.as_ref().unwrap().radius, 8);
         assert_eq!(player_def.components.tile_sprite.as_ref().unwrap().tile_coords, (10, 18));
 
-        // Test whale.ron
-        let whale_ron = include_str!("../../../assets/entities/enemies/whale.definition.ron");
-        let whale_def: EntityDefinition = ron::from_str(whale_ron).expect("Failed to parse whale.ron");
+        // Test enemies/hostile_guard.ron
+        let hostile_guard_ron = include_str!("../../../assets/entities/enemies/hostile_guard.definition.ron");
+        let hostile_guard_def: EntityDefinition =
+            ron::from_str(hostile_guard_ron).expect("Failed to parse hostile_guard.ron");
 
-        assert!(!whale_def.is_player());
-        assert!(whale_def.is_ai());
-        assert_eq!(whale_def.components.turn_actor.as_ref().unwrap().speed, 120);
-        assert_eq!(whale_def.components.tile_sprite.as_ref().unwrap().tile_coords, (0, 16));
-        assert!(whale_def.components.view_shed.is_none());
+        assert!(!hostile_guard_def.is_player());
+        assert!(hostile_guard_def.is_ai());
+        assert_eq!(hostile_guard_def.components.turn_actor.as_ref().unwrap().speed, 120);
+        assert_eq!(hostile_guard_def.components.tile_sprite.as_ref().unwrap().tile_coords, (1, 16));
+        assert!(hostile_guard_def.components.view_shed.is_none());
 
-        // Test basic_enemy.ron
-        let basic_enemy_ron = include_str!("../../../assets/entities/enemies/basic_enemy.definition.ron");
-        let basic_enemy_def: EntityDefinition =
-            ron::from_str(basic_enemy_ron).expect("Failed to parse basic_enemy.ron");
+        // Test enemies/passive_critter.ron
+        let passive_critter_ron =
+            include_str!("../../../assets/entities/enemies/passive_critter.definition.ron");
+        let passive_critter_def: EntityDefinition =
+            ron::from_str(passive_critter_ron).expect("Failed to parse passive_critter.ron");
 
-        assert!(!basic_enemy_def.is_player());
-        assert!(basic_enemy_def.is_ai());
-        assert_eq!(basic_enemy_def.components.turn_actor.as_ref().unwrap().speed, 100);
-        assert_eq!(basic_enemy_def.components.tile_sprite.as_ref().unwrap().tile_coords, (1, 16));
+        assert!(!passive_critter_def.is_player());
+        assert!(passive_critter_def.is_ai());
+        assert_eq!(passive_critter_def.components.turn_actor.as_ref().unwrap().speed, 100);
+        assert_eq!(passive_critter_def.components.tile_sprite.as_ref().unwrap().tile_coords, (1, 16));
     }
 }
