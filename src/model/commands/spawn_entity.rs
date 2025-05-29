@@ -1,37 +1,15 @@
 use bevy::prelude::*;
 
-use crate::model::{
+use crate::{
     assets::entities::{
         EntityDefinition, EntityDefinitions, spawn_enemy_from_definition,
         spawner::{fallback, spawn_player_from_definition, spawn_random_enemy_from_definition},
     },
-    components::Position,
-    resources::{CurrentMap, TurnQueue},
+    model::{
+        components::Position,
+        resources::{CurrentMap, TurnQueue},
+    },
 };
-
-/// Convenience trait to add spawning commands to Commands
-pub trait SpawnEntityCommands {
-    /// Spawn a player at the given position
-    fn spawn_player(&mut self, position: Position);
-
-    /// Spawn a random enemy at the given position
-    fn spawn_random_enemy(&mut self, position: Position);
-
-    /// Spawn a specific enemy by name at the given position
-    fn spawn_enemy(&mut self, enemy_name: &str, position: Position);
-}
-
-impl SpawnEntityCommands for Commands<'_, '_> {
-    fn spawn_player(&mut self, position: Position) { self.spawn(SpawnPlayerCommand { position }); }
-
-    fn spawn_random_enemy(&mut self, position: Position) {
-        self.spawn(SpawnEnemyCommand { position, enemy_name: None });
-    }
-
-    fn spawn_enemy(&mut self, enemy_name: &str, position: Position) {
-        self.spawn(SpawnEnemyCommand { position, enemy_name: Some(enemy_name.to_string()) });
-    }
-}
 
 /// Entity command for spawning a player
 #[derive(Component)]
@@ -160,5 +138,29 @@ pub fn process_spawn_commands(
 
         // Remove the command entity
         commands.entity(entity).despawn();
+    }
+}
+
+/// Convenience trait to add spawning commands to Commands
+pub trait SpawnEntityCommands {
+    /// Spawn a player at the given position
+    fn spawn_player(&mut self, position: Position);
+
+    /// Spawn a random enemy at the given position
+    fn spawn_random_enemy(&mut self, position: Position);
+
+    /// Spawn a specific enemy by name at the given position
+    fn spawn_enemy(&mut self, enemy_name: &str, position: Position);
+}
+
+impl SpawnEntityCommands for Commands<'_, '_> {
+    fn spawn_player(&mut self, position: Position) { self.spawn(SpawnPlayerCommand { position }); }
+
+    fn spawn_random_enemy(&mut self, position: Position) {
+        self.spawn(SpawnEnemyCommand { position, enemy_name: None });
+    }
+
+    fn spawn_enemy(&mut self, enemy_name: &str, position: Position) {
+        self.spawn(SpawnEnemyCommand { position, enemy_name: Some(enemy_name.to_string()) });
     }
 }

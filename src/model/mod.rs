@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 
 pub mod actions;
-pub mod assets;
 pub mod commands;
 pub mod components;
 pub mod generation;
@@ -26,6 +25,4 @@ pub(super) fn plugin(app: &mut App) {
         .register_type::<components::TerrainType>()
         .register_type::<components::ViewShed>()
         .register_type::<resources::SpawnPoint>();
-
-    app.add_plugins(assets::plugin);
 }

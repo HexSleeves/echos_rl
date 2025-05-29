@@ -107,7 +107,7 @@ mod tests {
         // by checking that the RON files can be parsed as EntityDefinition assets
 
         // Test player.ron parsing
-        let player_ron = include_str!("../../../../assets/entities/player.definition.ron");
+        let player_ron = include_str!("../../../assets/entities/player.definition.ron");
         let player_def: EntityDefinition =
             ron::from_str(player_ron).expect("Failed to parse player.ron as EntityDefinition");
 
@@ -115,7 +115,7 @@ mod tests {
         assert!(player_def.is_player());
 
         // Test whale.ron parsing
-        let whale_ron = include_str!("../../../../assets/entities/enemies/whale.definition.ron");
+        let whale_ron = include_str!("../../../assets/entities/enemies/whale.definition.ron");
         let whale_def: EntityDefinition =
             ron::from_str(whale_ron).expect("Failed to parse whale.ron as EntityDefinition");
 
@@ -123,7 +123,7 @@ mod tests {
         assert!(whale_def.is_ai());
 
         // Test basic_enemy.ron parsing
-        let basic_enemy_ron = include_str!("../../../../assets/entities/enemies/basic_enemy.definition.ron");
+        let basic_enemy_ron = include_str!("../../../assets/entities/enemies/basic_enemy.definition.ron");
         let basic_enemy_def: EntityDefinition =
             ron::from_str(basic_enemy_ron).expect("Failed to parse basic_enemy.ron as EntityDefinition");
 

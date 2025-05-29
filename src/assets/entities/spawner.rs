@@ -29,61 +29,6 @@ pub enum SpawnError {
     MapPlacementFailed,
 }
 
-/// Spawn an entity from a definition with optional position override
-pub fn spawn_entity_from_definition(
-    mut commands: Commands,
-    definition: &EntityDefinition,
-    position: Position,
-    current_map: &mut CurrentMap,
-    turn_queue: &mut TurnQueue,
-) -> Result<Entity, SpawnError> {
-    let mut entity_commands = commands.spawn(position);
-
-    // Add components based on entity type
-    if definition.is_player() {
-        println!("Adding PlayerTag component");
-        entity_commands.insert((PlayerTag, AwaitingInput));
-    } else if definition.is_ai() {
-        println!("Adding AITag component");
-        entity_commands.insert(AITag);
-    }
-
-    // Add TurnActor component if specified
-    if let Some(turn_actor_data) = &definition.components.turn_actor {
-        println!("Adding TurnActor component: {:?}", turn_actor_data);
-        let turn_actor: TurnActor = turn_actor_data.into();
-        entity_commands.insert(turn_actor);
-    }
-
-    // Add ViewShed component if specified
-    if let Some(view_shed_data) = &definition.components.view_shed {
-        println!("Adding ViewShed component: {:?}", view_shed_data);
-        let view_shed: ViewShed = view_shed_data.into();
-        entity_commands.insert(view_shed);
-    }
-
-    // Add TileSprite component if specified
-    if let Some(tile_sprite_data) = &definition.components.tile_sprite {
-        println!("Adding TileSprite component: {:?}", tile_sprite_data);
-        let tile_sprite: TileSprite = tile_sprite_data.into();
-        entity_commands.insert(tile_sprite);
-    }
-
-    let entity_id = entity_commands.id();
-
-    // Place the entity on the map
-    current_map.place_actor(position, entity_id).map_err(|_| SpawnError::PositionOccupied(position))?;
-
-    // Schedule the entity's turn if it has a TurnActor component
-    if definition.components.turn_actor.is_some() {
-        println!("Scheduling turn for entity: {:?}", entity_id);
-        let current_time = turn_queue.current_time();
-        turn_queue.schedule_turn(entity_id, current_time);
-    }
-
-    Ok(entity_id)
-}
-
 /// Spawn the player from entity definitions
 pub fn spawn_player_from_definition(
     commands: Commands,
@@ -136,6 +81,55 @@ pub fn spawn_random_enemy_from_definition(
         assets.get(enemy_handle).ok_or(SpawnError::AssetNotLoaded("random_enemy".to_string()))?;
 
     spawn_entity_from_definition(commands, enemy_definition, position, current_map, turn_queue)
+}
+
+/// Spawn an entity from a definition with optional position override
+pub fn spawn_entity_from_definition(
+    mut commands: Commands,
+    definition: &EntityDefinition,
+    position: Position,
+    current_map: &mut CurrentMap,
+    turn_queue: &mut TurnQueue,
+) -> Result<Entity, SpawnError> {
+    let mut entity_commands = commands.spawn(position);
+
+    // Add components based on entity type
+    if definition.is_player() {
+        entity_commands.insert((PlayerTag, AwaitingInput));
+    } else if definition.is_ai() {
+        entity_commands.insert(AITag);
+    }
+
+    // Add TurnActor component if specified
+    if let Some(turn_actor_data) = &definition.components.turn_actor {
+        let turn_actor: TurnActor = turn_actor_data.into();
+        entity_commands.insert(turn_actor);
+    }
+
+    // Add ViewShed component if specified
+    if let Some(view_shed_data) = &definition.components.view_shed {
+        let view_shed: ViewShed = view_shed_data.into();
+        entity_commands.insert(view_shed);
+    }
+
+    // Add TileSprite component if specified
+    if let Some(tile_sprite_data) = &definition.components.tile_sprite {
+        let tile_sprite: TileSprite = tile_sprite_data.into();
+        entity_commands.insert(tile_sprite);
+    }
+
+    let entity_id = entity_commands.id();
+
+    // Place the entity on the map
+    current_map.place_actor(position, entity_id).map_err(|_| SpawnError::PositionOccupied(position))?;
+
+    // Schedule the entity's turn if it has a TurnActor component
+    if definition.components.turn_actor.is_some() {
+        let current_time = turn_queue.current_time();
+        turn_queue.schedule_turn(entity_id, current_time);
+    }
+
+    Ok(entity_id)
 }
 
 /// Fallback spawning functions that match the original hardcoded behavior exactly
@@ -204,7 +198,7 @@ pub mod fallback {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::assets::entities::{EntityComponents, TileSpriteData, TurnActorData, ViewShedData};
+    use crate::assets::entities::{EntityComponents, TileSpriteData, TurnActorData, ViewShedData};
 
     fn create_test_player_definition() -> EntityDefinition {
         EntityDefinition {
@@ -290,7 +284,7 @@ mod tests {
         // Test that our actual RON files work with the spawning system
 
         // Test player.ron
-        let player_ron = include_str!("../../../../assets/entities/player.definition.ron");
+        let player_ron = include_str!("../../../assets/entities/player.definition.ron");
         let player_def: EntityDefinition = ron::from_str(player_ron).expect("Failed to parse player.ron");
 
         assert!(player_def.is_player());
@@ -300,7 +294,7 @@ mod tests {
         assert_eq!(player_def.components.tile_sprite.as_ref().unwrap().tile_coords, (10, 18));
 
         // Test whale.ron
-        let whale_ron = include_str!("../../../../assets/entities/enemies/whale.definition.ron");
+        let whale_ron = include_str!("../../../assets/entities/enemies/whale.definition.ron");
         let whale_def: EntityDefinition = ron::from_str(whale_ron).expect("Failed to parse whale.ron");
 
         assert!(!whale_def.is_player());
@@ -310,7 +304,7 @@ mod tests {
         assert!(whale_def.components.view_shed.is_none());
 
         // Test basic_enemy.ron
-        let basic_enemy_ron = include_str!("../../../../assets/entities/enemies/basic_enemy.definition.ron");
+        let basic_enemy_ron = include_str!("../../../assets/entities/enemies/basic_enemy.definition.ron");
         let basic_enemy_def: EntityDefinition =
             ron::from_str(basic_enemy_ron).expect("Failed to parse basic_enemy.ron");
 

@@ -105,7 +105,7 @@ impl From<&TileSpriteData> for TileSprite {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::assets::entities::EntityDefinition;
+    use crate::assets::entities::EntityDefinition;
 
     #[test]
     fn test_turn_actor_conversion() {
@@ -158,7 +158,7 @@ mod tests {
 
     #[test]
     fn test_player_ron_file_parsing() {
-        let player_ron = include_str!("../../../../assets/entities/player.definition.ron");
+        let player_ron = include_str!("../../../assets/entities/player.definition.ron");
         let entity_def: EntityDefinition = ron::from_str(player_ron).expect("Failed to parse player.ron");
 
         assert_eq!(entity_def.name, "Player");
@@ -174,7 +174,7 @@ mod tests {
 
     #[test]
     fn test_whale_ron_file_parsing() {
-        let whale_ron = include_str!("../../../../assets/entities/enemies/whale.definition.ron");
+        let whale_ron = include_str!("../../../assets/entities/enemies/whale.definition.ron");
         let entity_def: EntityDefinition = ron::from_str(whale_ron).expect("Failed to parse whale.ron");
 
         assert_eq!(entity_def.name, "Whale");

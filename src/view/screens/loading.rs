@@ -6,7 +6,7 @@ use bevy_asset_loader::prelude::*;
 use iyes_progress::{ProgressPlugin, ProgressTracker};
 
 use crate::{
-    model::assets::entities::EntityDefinitions,
+    assets::entities::EntityDefinitions,
     view::{resources::TextureAssets, screens::ScreenState},
 };
 

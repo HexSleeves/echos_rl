@@ -26,6 +26,8 @@ use crate::{
 pub enum GameplaySystems {
     /// Initial setup when entering gameplay
     Initialization,
+    /// Spawn entities
+    SpawnEntities,
     /// Core game logic during turns
     TurnProcessing,
     /// Visual updates after game logic
@@ -48,7 +50,12 @@ pub(super) fn plugin(app: &mut App) {
     // Configure system sets ordering
     app.configure_sets(
         PostUpdate,
-        (GameplaySystems::TurnProcessing, GameplaySystems::Rendering, GameplaySystems::Presentation)
+        (
+            GameplaySystems::SpawnEntities,
+            GameplaySystems::TurnProcessing,
+            GameplaySystems::Rendering,
+            GameplaySystems::Presentation,
+        )
             .chain()
             .run_if(in_state(ScreenState::Gameplay)),
     );
@@ -61,11 +68,15 @@ pub(super) fn plugin(app: &mut App) {
     );
 
     // === MAIN GAME LOOP ===
+    app.add_systems(
+        PreUpdate,
+        process_spawn_commands.in_set(GameplaySystems::SpawnEntities).run_if(in_state(ScreenState::Gameplay)),
+    );
+
     // Core turn processing
     app.add_systems(
         Update,
         (
-            process_spawn_commands,
             process_turns.run_if(in_state(GameState::ProcessTurns)),
             monsters_turn.run_if(in_state(GameState::MonstersTurn)),
         )

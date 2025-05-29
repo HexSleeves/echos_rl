@@ -10,6 +10,7 @@ use bevy::{
 };
 use brtk::prelude::BrtkPlugin;
 
+pub mod assets;
 pub mod controller;
 #[cfg(feature = "dev")]
 pub mod dev;
@@ -94,7 +95,14 @@ fn main() {
     app.add_plugins(dev::plugin);
 
     // Assign plugins
-    app.add_plugins((brt_plugin, ui::plugin, view::plugin, controller::plugin, model::plugin));
+    app.add_plugins((
+        brt_plugin,
+        assets::plugin,
+        controller::plugin,
+        model::plugin,
+        ui::plugin,
+        view::plugin,
+    ));
 
     match app.run() {
         AppExit::Success => std::process::exit(0),
