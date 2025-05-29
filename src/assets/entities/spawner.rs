@@ -163,7 +163,10 @@ pub fn spawn_entity_from_definition(
     turn_queue: &mut TurnQueue,
     position: Option<Position>,
 ) -> Result<Entity, SpawnError> {
-    let position = position.unwrap_or(current_map.get_random_walkable_position().unwrap());
+    let position = match position {
+        Some(pos) => pos,
+        None => current_map.get_random_walkable_position().ok_or(SpawnError::MapPlacementFailed)?,
+    };
 
     let mut entity_commands = commands.spawn(position);
 

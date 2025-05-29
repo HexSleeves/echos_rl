@@ -21,7 +21,7 @@ pub struct SpawnPlayerCommand {
 #[derive(Component)]
 pub struct SpawnAICommand {
     pub position: Position,
-    pub enemy_name: Option<String>, // None for random enemy
+    pub ai_name: Option<String>, // None for random enemy
 }
 
 /// System to process spawn commands
@@ -66,7 +66,7 @@ pub fn process_spawn_commands(
     // Process enemy spawn commands
     for (entity, spawn_cmd) in ai_commands.iter() {
         if let (Some(entity_definitions), Some(assets)) = (entity_definitions.as_ref(), assets.as_ref()) {
-            let spawn_result = match &spawn_cmd.enemy_name {
+            let spawn_result = match &spawn_cmd.ai_name {
                 Some(name) => {
                     // Spawn specific enemy by name
                     spawn_ai_from_definition(
@@ -94,14 +94,14 @@ pub fn process_spawn_commands(
 
             match spawn_result {
                 Ok(enemy_id) => {
-                    let enemy_type = spawn_cmd.enemy_name.as_deref().unwrap_or("random");
+                    let enemy_type = spawn_cmd.ai_name.as_deref().unwrap_or("random");
                     info!(
                         "Successfully spawned {} enemy from definition at {:?} with ID {:?}",
                         enemy_type, spawn_cmd.position, enemy_id
                     );
                 }
                 Err(e) => {
-                    let enemy_type = spawn_cmd.enemy_name.as_deref().unwrap_or("random");
+                    let enemy_type = spawn_cmd.ai_name.as_deref().unwrap_or("random");
                     warn!(
                         "Failed to spawn {} enemy from definition: {}. Skipping enemy spawn.",
                         enemy_type, e
@@ -126,17 +126,17 @@ pub trait SpawnEntityCommands {
     fn spawn_random_enemy(&mut self, position: Position);
 
     /// Spawn a specific enemy by name at the given position
-    fn spawn_enemy(&mut self, enemy_name: &str, position: Position);
+    fn spawn_enemy(&mut self, ai_name: &str, position: Position);
 }
 
 impl SpawnEntityCommands for Commands<'_, '_> {
     fn spawn_player(&mut self, position: Position) { self.spawn(SpawnPlayerCommand { position }); }
 
     fn spawn_random_enemy(&mut self, position: Position) {
-        self.spawn(SpawnAICommand { position, enemy_name: None });
+        self.spawn(SpawnAICommand { position, ai_name: None });
     }
 
-    fn spawn_enemy(&mut self, enemy_name: &str, position: Position) {
-        self.spawn(SpawnAICommand { position, enemy_name: Some(enemy_name.to_string()) });
+    fn spawn_enemy(&mut self, ai_name: &str, position: Position) {
+        self.spawn(SpawnAICommand { position, ai_name: Some(ai_name.to_string()) });
     }
 }
