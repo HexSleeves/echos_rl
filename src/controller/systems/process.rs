@@ -75,12 +75,6 @@ pub fn process_turns(world: &mut World) {
                 }
             }
         }
-
-        let (mut next_state, _) = state.get_mut(world);
-        if turn_queue.is_empty() {
-            info!("Turn queue is empty. Moving to player turn.");
-            next_state.set(GameState::PlayerTurn);
-        }
     });
 }
 

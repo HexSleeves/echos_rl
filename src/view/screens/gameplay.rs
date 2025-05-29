@@ -6,6 +6,7 @@ use super::ScreenState;
 use crate::{
     controller::systems::{
         camera_movement, compute_fov, monsters_turn, process_turns, spawn_map, spawn_player,
+        toggle_fov_algorithm,
     },
     model::{
         GameState,
@@ -98,9 +99,11 @@ pub(super) fn plugin(app: &mut App) {
     );
 
     // === PRESENTATION ===
-    // Camera and transform updates
+    // Transform and camera updates
     app.add_systems(
         PostUpdate,
-        (camera_movement, position_to_transform).chain().in_set(GameplaySystems::Presentation),
+        (position_to_transform, camera_movement, toggle_fov_algorithm)
+            .in_set(GameplaySystems::Presentation)
+            .run_if(in_state(ScreenState::Gameplay)),
     );
 }
