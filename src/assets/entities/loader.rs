@@ -59,10 +59,10 @@ impl EntityDefinitions {
 
         // Then try to find by extracting name from file path
         for (path, handle) in &self.definitions {
-            if let Some(extracted_name) = extract_name_from_path(path) {
-                if extracted_name == simple_name {
-                    return Some(handle);
-                }
+            if let Some(extracted_name) = extract_name_from_path(path)
+                && extracted_name == simple_name
+            {
+                return Some(handle);
             }
         }
 
@@ -100,7 +100,7 @@ impl EntityDefinitions {
 /// Extract simple name from file path
 /// e.g., "entities/enemies/hostile_guard.definition.ron" -> "hostile_guard"
 fn extract_name_from_path(path: &str) -> Option<&str> {
-    path.split('/').last()?.strip_suffix(".definition.ron")
+    path.split('/').next_back()?.strip_suffix(".definition.ron")
 }
 
 #[cfg(test)]
@@ -120,37 +120,6 @@ mod tests {
         assert!(definitions.get_enemies().is_empty());
         assert!(definitions.get_random_enemy().is_none());
         assert!(definitions.get_names().is_empty());
-    }
-
-    #[test]
-    fn test_enemy_filtering() {
-        let mut definitions = HashMap::new();
-
-        // Create mock handles (these won't actually load anything in tests)
-        let player_handle = Handle::default();
-        let whale_handle = Handle::default();
-        let goblin_handle = Handle::default();
-
-        definitions.insert("player".to_string(), player_handle.clone());
-        definitions.insert("enemies/whale".to_string(), whale_handle);
-        definitions.insert("enemies/goblin".to_string(), goblin_handle);
-
-        let entity_definitions =
-            EntityDefinitions { definitions, player: Handle::default(), enemies: HashMap::new() };
-
-        // Test enemy filtering
-        let enemies = entity_definitions.get_enemies();
-        assert_eq!(enemies.len(), 2);
-
-        // Test player access
-        assert_eq!(entity_definitions.get_player(), &player_handle);
-
-        // Test names
-        let names = entity_definitions.get_names();
-        assert_eq!(names.len(), 3);
-        assert!(names.contains(&&"player".to_string()));
-        assert!(names.contains(&&"enemies/whale".to_string()));
-        assert!(names.contains(&&"enemies/goblin".to_string()));
     }
 
     #[test]

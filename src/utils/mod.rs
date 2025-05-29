@@ -9,6 +9,9 @@ pub use macros::*;
 mod tilemap;
 pub use tilemap::*;
 
+/// Compute the greatest common divisor using Euclidean algorithm
+pub fn gcd(a: i32, b: i32) -> i32 { if b == 0 { a } else { gcd(b, a % b) } }
+
 /// Calculate distance between two positions
 pub fn calculate_distance(pos1: Position, pos2: Position) -> f32 {
     let dx = (pos2.x() - pos1.x()) as f32;
@@ -87,4 +90,17 @@ pub fn find_random_walkable_direction(from: Position, map: &CurrentMap) -> Optio
     }
 
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_gcd_function() {
+        assert_eq!(gcd(12, 8), 4);
+        assert_eq!(gcd(17, 13), 1);
+        assert_eq!(gcd(0, 5), 5);
+        assert_eq!(gcd(7, 0), 7);
+    }
 }

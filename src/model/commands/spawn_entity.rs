@@ -126,7 +126,7 @@ pub trait SpawnEntityCommands {
     fn spawn_random_enemy(&mut self, position: Position);
 
     /// Spawn a specific enemy by name at the given position
-    fn spawn_enemy(&mut self, ai_name: &str, position: Position);
+    fn spawn_ai(&mut self, ai_name: &str, position: Position);
 }
 
 impl SpawnEntityCommands for Commands<'_, '_> {
@@ -136,7 +136,7 @@ impl SpawnEntityCommands for Commands<'_, '_> {
         self.spawn(SpawnAICommand { position, ai_name: None });
     }
 
-    fn spawn_enemy(&mut self, ai_name: &str, position: Position) {
+    fn spawn_ai(&mut self, ai_name: &str, position: Position) {
         self.spawn(SpawnAICommand { position, ai_name: Some(ai_name.to_string()) });
     }
 }

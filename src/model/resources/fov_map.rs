@@ -130,9 +130,6 @@ impl FovMap {
         points.push((-y, -x));
     }
 
-    /// Compute the greatest common divisor using Euclidean algorithm
-    fn gcd(&self, a: i32, b: i32) -> i32 { if b == 0 { a } else { self.gcd(b, a % b) } }
-
     /// Optimized raycasting FOV implementation using boundary ray casting
     /// Complexity: O(r²) instead of O(r³)
     fn compute_fov_raycasting(&mut self, map: &Map, origin: Position, radius: i32) {
@@ -169,12 +166,12 @@ impl FovMap {
                 }
 
                 // Check if this position blocks further vision
-                if let Some(terrain) = map.get_terrain(step_pos) {
-                    if terrain.blocks_vision() {
-                        blocked = true;
-                        // Continue the ray to mark tiles behind walls as not visible
-                        // but don't break - we still need to process the rest of the ray
-                    }
+                if let Some(terrain) = map.get_terrain(step_pos)
+                    && terrain.blocks_vision()
+                {
+                    blocked = true;
+                    // Continue the ray to mark tiles behind walls as not visible
+                    // but don't break - we still need to process the rest of the ray
                 }
             }
         }
@@ -230,7 +227,7 @@ impl FovMap {
     /// Uses memoization to avoid redundant calculations
     fn get_or_compute_ray_path(&mut self, dx: i32, dy: i32, max_radius: i32) -> Vec<(i32, i32)> {
         // Normalize the direction vector to its simplest form for better cache hits
-        let gcd = self.gcd(dx.abs(), dy.abs());
+        let gcd = crate::utils::gcd(dx.abs(), dy.abs());
         let normalized_dx = if gcd > 0 { dx / gcd } else { dx };
         let normalized_dy = if gcd > 0 { dy / gcd } else { dy };
 
@@ -324,7 +321,7 @@ impl FovMap {
             5 => (origin_x - row, origin_y + col), // Left-bottom
             6 => (origin_x - row, origin_y - col), // Left-top
             7 => (origin_x - col, origin_y - row), // Top-left
-            _ => panic!("Invalid octant: {}", octant),
+            _ => panic!("Invalid octant: {octant}"),
         };
 
         Position::new(x, y)
@@ -565,16 +562,6 @@ mod tests {
     }
 
     #[test]
-    fn test_gcd_function() {
-        let fov_map = FovMap::new(10, 10);
-
-        assert_eq!(fov_map.gcd(12, 8), 4);
-        assert_eq!(fov_map.gcd(17, 13), 1);
-        assert_eq!(fov_map.gcd(0, 5), 5);
-        assert_eq!(fov_map.gcd(7, 0), 7);
-    }
-
-    #[test]
     fn test_wall_blocking() {
         let mut fov_map = FovMap::new(20, 20);
         let map = create_test_map(20, 20);
@@ -621,8 +608,8 @@ mod tests {
         }
         let shadowcasting_time = start.elapsed();
 
-        println!("Raycasting time: {:?}", raycasting_time);
-        println!("Shadowcasting time: {:?}", shadowcasting_time);
+        println!("Raycasting time: {raycasting_time:?}");
+        println!("Shadowcasting time: {shadowcasting_time:?}");
         println!("Ray cache size: {}", fov_map.ray_cache_size());
 
         // The optimized raycasting should be reasonable compared to shadowcasting

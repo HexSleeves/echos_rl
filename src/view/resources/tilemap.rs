@@ -78,7 +78,7 @@ impl FromWorld for TileMap {
         let asset_server = world.resource::<AssetServer>();
         let texture = asset_server.load(ViewConstants::TILEMAP_TEXTURE_PATH);
         Self::new(
-            &asset_server,
+            asset_server,
             texture,
             Vec2::splat(ViewConstants::TILE_SIZE),
             ViewConstants::TILEMAP_COLUMNS,

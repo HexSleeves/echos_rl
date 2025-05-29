@@ -374,9 +374,9 @@ mod tests {
 
         assert!(!hostile_guard_def.is_player());
         assert!(hostile_guard_def.is_ai());
-        assert_eq!(hostile_guard_def.components.turn_actor.as_ref().unwrap().speed, 120);
+        assert_eq!(hostile_guard_def.components.turn_actor.as_ref().unwrap().speed, 110);
         assert_eq!(hostile_guard_def.components.tile_sprite.as_ref().unwrap().tile_coords, (1, 16));
-        assert!(hostile_guard_def.components.view_shed.is_none());
+        assert_eq!(hostile_guard_def.components.view_shed.as_ref().unwrap().radius, 6);
 
         // Test enemies/passive_critter.ron
         let passive_critter_ron =
@@ -386,7 +386,8 @@ mod tests {
 
         assert!(!passive_critter_def.is_player());
         assert!(passive_critter_def.is_ai());
-        assert_eq!(passive_critter_def.components.turn_actor.as_ref().unwrap().speed, 100);
-        assert_eq!(passive_critter_def.components.tile_sprite.as_ref().unwrap().tile_coords, (1, 16));
+        assert_eq!(passive_critter_def.components.turn_actor.as_ref().unwrap().speed, 90);
+        assert_eq!(passive_critter_def.components.tile_sprite.as_ref().unwrap().tile_coords, (2, 16));
+        assert_eq!(passive_critter_def.components.view_shed.as_ref().unwrap().radius, 5);
     }
 }

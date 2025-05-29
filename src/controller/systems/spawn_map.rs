@@ -34,7 +34,7 @@ pub fn spawn_map(
             current_map.set_terrain(position, terrain);
 
             // Link the tile entity if it exists
-            if let Some(tile_entity) = tile_storage.get(&TilePos::new(x as u32, y as u32)) {
+            if let Some(tile_entity) = tile_storage.get(&TilePos::new(x, y)) {
                 current_map.set_tile_entity(position, tile_entity);
             }
         }
@@ -52,7 +52,7 @@ pub fn spawn_map(
         storage: tile_storage.clone(),
         anchor: TilemapAnchor::Center,
         texture: TilemapTexture::Single(texture_handle),
-        size: TilemapSize::new(current_map.size.0 as u32, current_map.size.1 as u32),
+        size: TilemapSize::new(current_map.size.0, current_map.size.1),
         ..Default::default()
     });
 

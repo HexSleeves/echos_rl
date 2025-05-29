@@ -88,7 +88,7 @@ pub fn chase_player_action_system(
                             turn_actor.add_action(
                                 WalkBuilder::new()
                                     .with_entity(*actor_entity)
-                                    .with_direction(dir.into())
+                                    .with_direction(dir)
                                     .build(),
                             );
                             *action_state = ActionState::Success;
@@ -100,7 +100,7 @@ pub fn chase_player_action_system(
                                 turn_actor.add_action(
                                     WalkBuilder::new()
                                         .with_entity(*actor_entity)
-                                        .with_direction(alt_dir.into())
+                                        .with_direction(alt_dir)
                                         .build(),
                                 );
                                 *action_state = ActionState::Success;

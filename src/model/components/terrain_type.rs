@@ -111,28 +111,11 @@ impl TerrainType {
 
     /// Returns true if this tile type is mineable
     pub fn is_mineable(self) -> bool {
-        match self {
-            // | TerrainType::MineWall
-            // | TerrainType::CaveWall
-            // | TerrainType::IronOre
-            // | TerrainType::CopperOre
-            // | TerrainType::SonoriteOre
-            // | TerrainType::GlimmerstoneOre
-            // | TerrainType::WhisperingIronOre
-            // | TerrainType::UnstableWall => true,
-            _ => false,
-        }
+        false
     }
 
     /// Returns true if this tile type is an ore
     pub fn is_ore(self) -> bool {
-        match self {
-            // TerrainType::IronOre
-            // | TerrainType::CopperOre
-            // | TerrainType::SonoriteOre
-            // | TerrainType::GlimmerstoneOre
-            // | TerrainType::WhisperingIronOre => true,
-            _ => false,
-        }
+        false
     }
 }

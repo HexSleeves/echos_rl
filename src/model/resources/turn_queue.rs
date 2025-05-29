@@ -92,9 +92,9 @@ impl TurnQueue {
                 removed_count += 1;
 
                 if let Some(entity_name) = get_entity_debug_name(world, entity) {
-                    log::debug!("Removed dead entity from turn queue: {}", entity_name);
+                    log::debug!("Removed dead entity from turn queue: {entity_name}");
                 } else {
-                    log::debug!("Removed dead entity from turn queue: {:?}", entity);
+                    log::debug!("Removed dead entity from turn queue: {entity:?}");
                 }
             }
         }

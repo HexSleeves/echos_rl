@@ -4,7 +4,7 @@ EntityDefinition(
     components: EntityComponents(
         // Core gameplay components
         turn_actor: Some(TurnActorData(
-            speed: 90, // Slower than player but tries to flee
+            speed: 90, // faster than player but tries to flee
             action_queue_size: Some(2),
         )),
         view_shed: Some(ViewShedData(

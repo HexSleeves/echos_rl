@@ -44,7 +44,7 @@ pub fn wander_action_system(
                         turn_actor.add_action(
                             WalkBuilder::new()
                                 .with_entity(*actor_entity)
-                                .with_direction(direction.into())
+                                .with_direction(direction)
                                 .build(),
                         );
                         *action_state = ActionState::Success;

@@ -85,7 +85,7 @@ pub fn flee_from_player_action_system(
                             turn_actor.add_action(
                                 WalkBuilder::new()
                                     .with_entity(*actor_entity)
-                                    .with_direction(dir.into())
+                                    .with_direction(dir)
                                     .build(),
                             );
                             *action_state = ActionState::Success;
@@ -97,7 +97,7 @@ pub fn flee_from_player_action_system(
                                 turn_actor.add_action(
                                     WalkBuilder::new()
                                         .with_entity(*actor_entity)
-                                        .with_direction(random_dir.into())
+                                        .with_direction(random_dir)
                                         .build(),
                                 );
                                 *action_state = ActionState::Success;

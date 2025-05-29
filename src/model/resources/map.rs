@@ -36,7 +36,7 @@ pub struct Map {
 
 impl FromWorld for Map {
     fn from_world(_world: &mut World) -> Self {
-        let size = (ModelConstants::MAP_WIDTH as u32, ModelConstants::MAP_HEIGHT as u32);
+        let size = (ModelConstants::MAP_WIDTH, ModelConstants::MAP_HEIGHT);
         Self::new(size)
     }
 }
@@ -48,7 +48,7 @@ impl Map {
             size,
             tiles,
             actor_positions: HashMap::new(),
-            tile_storage: TileStorage::empty(TilemapSize::new(size.0 as u32, size.1 as u32)),
+            tile_storage: TileStorage::empty(TilemapSize::new(size.0, size.1)),
         }
     }
 
@@ -104,11 +104,10 @@ impl Map {
         }
 
         // Remove actor from previous position if it exists
-        if let Some(old_pos) = self.actor_positions.get(&actor) {
-            if let Some(tile) = self.tiles.get_mut((*old_pos).into()) {
+        if let Some(old_pos) = self.actor_positions.get(&actor)
+            && let Some(tile) = self.tiles.get_mut((*old_pos).into()) {
                 tile.actor = None;
             }
-        }
 
         // Place actor at new position
         if let Some(tile) = self.tiles.get_mut(position.into()) {
@@ -196,11 +195,10 @@ impl Map {
                 let pos = Position::new(x, y);
                 if self.in_bounds(pos) {
                     let distance_sq = (x - cx).pow(2) + (y - cy).pow(2);
-                    if distance_sq <= radius.pow(2) {
-                        if let Some(actor) = self.get_actor(pos) {
+                    if distance_sq <= radius.pow(2)
+                        && let Some(actor) = self.get_actor(pos) {
                             actors.push((pos, actor));
                         }
-                    }
                 }
             }
         }

@@ -309,13 +309,13 @@ impl GenConfig {
         tilemap_id: TilemapId,
         terrain_grid: &Grid<TerrainType>,
     ) -> TileStorage {
-        let mut tile_storage = TileStorage::empty(TilemapSize::new(self.width as u32, self.height as u32));
+        let mut tile_storage = TileStorage::empty(TilemapSize::new(self.width, self.height));
 
         for y in 0..self.height {
             for x in 0..self.width {
-                let tile_pos = TilePos { x: x as u32, y: y as u32 };
+                let tile_pos = TilePos { x, y };
 
-                let terrain_type = terrain_grid[(x as i32, y as i32)].clone();
+                let terrain_type = terrain_grid[(x as i32, y as i32)];
                 let description = Description::new(terrain_type.description());
                 let texture_index = TileTextureIndex(terrain_type.texture_index());
 

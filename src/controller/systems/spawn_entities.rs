@@ -14,7 +14,7 @@ pub fn spawn_player(
     // Determine where to spawn the player
     let player_position = spawn_point
         .and_then(|sp| sp.player_spawn)
-        .or_else(|| current_map.get_random_walkable_position().map(|pos| pos.into()))
+        .or_else(|| current_map.get_random_walkable_position())
         .unwrap_or_else(|| {
             warn!("No valid spawn point found, using default position");
             Position::new(0, 0)
@@ -29,7 +29,7 @@ pub fn spawn_player(
 pub fn spawn_enemies(mut commands: Commands, current_map: Res<CurrentMap>) {
     // Find a valid position for enemy spawning
     let enemy_position =
-        current_map.get_random_walkable_position().map(|pos| pos.into()).unwrap_or_else(|| {
+        current_map.get_random_walkable_position().unwrap_or_else(|| {
             warn!("No valid enemy spawn point found, using default position");
             Position::new(1, 1)
         });

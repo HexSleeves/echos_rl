@@ -29,7 +29,7 @@ pub fn process_turns(world: &mut World) {
             let (mut next_state, mut q_actor) = state.get_mut(world);
 
             let Ok((entity, mut actor, player)) = q_actor.get_mut(entity) else {
-                log::error!("Actor not found: {:?}", entity);
+                log::error!("Actor not found: {entity:?}");
                 continue;
             };
 
@@ -60,7 +60,7 @@ pub fn process_turns(world: &mut World) {
             match action.perform(world) {
                 Ok(d_time) => turn_queue.schedule_turn(entity, time + d_time),
                 Err(e) => {
-                    log::error!("Failed to perform action: {:?}", e);
+                    log::error!("Failed to perform action: {e:?}");
 
                     if is_player {
                         turn_queue.schedule_turn(entity, time);
@@ -94,7 +94,7 @@ pub fn monsters_turn(world: &mut World) {
 
         // Big-brain Thinkers will automatically queue actions based on their scorers
         // We don't need to do anything here - the AI systems handle it
-        log::debug!("AI entity {:?} waiting for big-brain decision", entity);
+        log::debug!("AI entity {entity:?} waiting for big-brain decision");
     }
 
     next_state.set(GameState::ProcessTurns);
