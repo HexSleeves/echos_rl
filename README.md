@@ -6,6 +6,7 @@ A modern roguelike game built with [Bevy Engine](https://bevyengine.org/) featur
 ![Rust Edition](https://img.shields.io/badge/Rust-2024-orange)
 ![License](https://img.shields.io/badge/License-CC0%201.0-green)
 ![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/HexSleeves/echos_rl?utm_source=oss&utm_medium=github&utm_campaign=HexSleeves%2Fechos_rl&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
 ## 🎮 About
 
@@ -117,16 +118,19 @@ commands.spawn_random_enemy(position);
 ## 🎯 Game Features
 
 ### Turn-Based System
+
 - **Action Queue**: Queue multiple actions per turn
 - **Speed-Based Timing**: Faster entities act more frequently
 - **Strategic Depth**: Plan your moves carefully
 
 ### Entity System
+
 - **Flexible Components**: Mix and match components for unique entities
 - **Data-Driven**: Modify entities without code changes
 - **Hot Reloading**: See changes instantly during development
 
 ### Procedural Generation
+
 - **Random Maps**: Each playthrough features unique layouts
 - **Dynamic Spawning**: Enemies spawn based on level and conditions
 - **Balanced Encounters**: Weighted spawn systems for fair gameplay
@@ -154,6 +158,7 @@ make run           # Build and run
 ```
 
 **Traditional cargo still works:**
+
 ```bash
 cargo build         # Standard build
 cargo build --release
@@ -198,12 +203,14 @@ Entity definitions support hot reloading in development mode:
 ## 📦 Dependencies
 
 ### Core Dependencies
+
 - **[Bevy](https://bevyengine.org/)** `0.16` - Game engine
 - **[bevy_ecs_tilemap](https://github.com/StarArawn/bevy_ecs_tilemap)** `0.16` - Tilemap rendering
 - **[bevy_asset_loader](https://github.com/NiklasEi/bevy_asset_loader)** `0.23` - Asset management
 - **[bevy_kira_audio](https://github.com/NiklasEi/bevy_kira_audio)** `0.23` - Audio system
 
 ### Utility Dependencies
+
 - **[serde](https://serde.rs/)** `1.0` - Serialization framework
 - **[ron](https://github.com/ron-rs/ron)** `0.10` - Rust Object Notation
 - **[fastrand](https://github.com/smol-rs/fastrand)** `2.0` - Fast random number generation
@@ -245,24 +252,28 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 ## 📋 Roadmap
 
 ### Phase 1: Foundation ✅
+
 - [x] Data-driven entity system
 - [x] Command-based spawning
 - [x] Asset loading integration
 - [x] Hot reloading support
 
 ### Phase 2: Core Gameplay 🚧
+
 - [ ] Combat system
 - [ ] Inventory management
 - [ ] Character progression
 - [ ] Save/load system
 
 ### Phase 3: Content 📋
+
 - [ ] Multiple enemy types
 - [ ] Items and equipment
 - [ ] Special abilities
 - [ ] Multiple levels/areas
 
 ### Phase 4: Polish 📋
+
 - [ ] UI improvements
 - [ ] Audio integration
 - [ ] Performance optimization
@@ -273,6 +284,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 This project is licensed under the **CC0 1.0 Universal** license - see the [LICENSE](LICENSE) file for details.
 
 This means you can:
+
 - ✅ Use the code for any purpose
 - ✅ Modify and distribute
 - ✅ Use commercially
@@ -287,7 +299,7 @@ This means you can:
 ## 📞 Contact
 
 - **Author**: Jacob L ([@lecoqjacob](https://github.com/lecoqjacob))
-- **Email**: lecoqjacob@gmail.com
+- **Email**: <lecoqjacob@gmail.com>
 - **Project**: [https://github.com/lecoqjacob/echos_rl](https://github.com/lecoqjacob/echos_rl)
 
 ---
