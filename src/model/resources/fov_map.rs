@@ -3,18 +3,13 @@ use bevy::prelude::*;
 use bitvec::prelude::*;
 
 /// FOV algorithm selection
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum FovAlgorithm {
     /// Simple raycasting using Bresenham's line algorithm - more reliable for wall blocking
     Raycasting,
+    #[default]
     /// Traditional shadowcasting algorithm - more efficient for large view distances
     Shadowcasting,
-}
-
-impl Default for FovAlgorithm {
-    fn default() -> Self {
-        Self::Raycasting // Default to the more reliable algorithm
-    }
 }
 
 /// Field of view map using bit-level storage for memory efficiency.

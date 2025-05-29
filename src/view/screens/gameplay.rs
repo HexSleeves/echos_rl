@@ -4,13 +4,13 @@ use bevy::prelude::*;
 
 use super::ScreenState;
 use crate::{
+    assets::entities::spawner::spawn_ai_enemies,
     controller::systems::{
         camera_movement, compute_fov, monsters_turn, process_turns, spawn_map, spawn_player,
         toggle_fov_algorithm,
     },
     model::{
         GameState,
-        ai::ai_spawner::spawn_ai_enemies,
         commands::process_spawn_commands,
         resources::{CurrentMap, FovMap, SpawnPoint, TurnQueue},
     },

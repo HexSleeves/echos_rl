@@ -1,4 +1,3 @@
-pub mod ai_spawner;
 pub mod systems;
 
 use bevy::prelude::*;

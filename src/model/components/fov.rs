@@ -8,5 +8,8 @@ pub struct ViewShed {
 }
 
 impl ViewShed {
-    pub fn new(radius: i32) -> Self { Self { radius } }
+    pub fn new(radius: i32) -> Self {
+        debug_assert!(radius >= 0, "ViewShed radius must be non-negative");
+        Self { radius }
+    }
 }

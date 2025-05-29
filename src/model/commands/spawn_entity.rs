@@ -2,8 +2,8 @@ use bevy::prelude::*;
 
 use crate::{
     assets::entities::{
-        EntityDefinition, EntityDefinitions, spawn_enemy_from_definition,
-        spawner::{spawn_player_from_definition, spawn_random_enemy_from_definition},
+        EntityDefinition, EntityDefinitions, spawn_ai_from_definition,
+        spawner::{spawn_player_from_definition, spawn_random_ai_from_definition},
     },
     model::{
         components::Position,
@@ -19,7 +19,7 @@ pub struct SpawnPlayerCommand {
 
 /// Entity command for spawning an enemy
 #[derive(Component)]
-pub struct SpawnEnemyCommand {
+pub struct SpawnAICommand {
     pub position: Position,
     pub enemy_name: Option<String>, // None for random enemy
 }
@@ -32,7 +32,7 @@ pub fn process_spawn_commands(
     entity_definitions: Option<Res<EntityDefinitions>>,
     assets: Option<Res<Assets<EntityDefinition>>>,
     player_commands: Query<(Entity, &SpawnPlayerCommand)>,
-    enemy_commands: Query<(Entity, &SpawnEnemyCommand)>,
+    ai_commands: Query<(Entity, &SpawnAICommand)>,
 ) {
     // Process player spawn commands
     for (entity, spawn_cmd) in player_commands.iter() {
@@ -64,12 +64,12 @@ pub fn process_spawn_commands(
     }
 
     // Process enemy spawn commands
-    for (entity, spawn_cmd) in enemy_commands.iter() {
+    for (entity, spawn_cmd) in ai_commands.iter() {
         if let (Some(entity_definitions), Some(assets)) = (entity_definitions.as_ref(), assets.as_ref()) {
             let spawn_result = match &spawn_cmd.enemy_name {
                 Some(name) => {
                     // Spawn specific enemy by name
-                    spawn_enemy_from_definition(
+                    spawn_ai_from_definition(
                         commands.reborrow(),
                         entity_definitions,
                         assets,
@@ -81,7 +81,7 @@ pub fn process_spawn_commands(
                 }
                 None => {
                     // Spawn random enemy
-                    spawn_random_enemy_from_definition(
+                    spawn_random_ai_from_definition(
                         commands.reborrow(),
                         entity_definitions,
                         assets,
@@ -133,10 +133,10 @@ impl SpawnEntityCommands for Commands<'_, '_> {
     fn spawn_player(&mut self, position: Position) { self.spawn(SpawnPlayerCommand { position }); }
 
     fn spawn_random_enemy(&mut self, position: Position) {
-        self.spawn(SpawnEnemyCommand { position, enemy_name: None });
+        self.spawn(SpawnAICommand { position, enemy_name: None });
     }
 
     fn spawn_enemy(&mut self, enemy_name: &str, position: Position) {
-        self.spawn(SpawnEnemyCommand { position, enemy_name: Some(enemy_name.to_string()) });
+        self.spawn(SpawnAICommand { position, enemy_name: Some(enemy_name.to_string()) });
     }
 }
