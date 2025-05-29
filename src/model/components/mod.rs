@@ -1,5 +1,8 @@
-mod actor;
+pub mod actor;
 pub use self::actor::*;
+
+pub mod ai_behavior;
+pub use self::ai_behavior::*;
 
 mod description;
 pub use self::description::*;

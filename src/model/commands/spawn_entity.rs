@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     assets::entities::{
         EntityDefinition, EntityDefinitions, spawn_enemy_from_definition,
-        spawner::{fallback, spawn_player_from_definition, spawn_random_enemy_from_definition},
+        spawner::{spawn_player_from_definition, spawn_random_enemy_from_definition},
     },
     model::{
         components::Position,
@@ -52,23 +52,11 @@ pub fn process_spawn_commands(
                     id
                 }
                 Err(e) => {
-                    warn!("Failed to spawn player from definition: {}. Using fallback.", e);
-                    fallback::spawn_player_hardcoded(
-                        commands.reborrow(),
-                        spawn_cmd.position,
-                        &mut current_map,
-                        &mut turn_queue,
-                    )
+                    panic!("Failed to spawn player from definition: {}", e);
                 }
             }
         } else {
-            info!("Entity definitions not available, using hardcoded player spawning");
-            fallback::spawn_player_hardcoded(
-                commands.reborrow(),
-                spawn_cmd.position,
-                &mut current_map,
-                &mut turn_queue,
-            )
+            panic!("Entity definitions not available, using hardcoded player spawning");
         };
 
         info!("Spawned player {:?} at {:?}", player_id, spawn_cmd.position);
@@ -114,23 +102,11 @@ pub fn process_spawn_commands(
                     id
                 }
                 Err(e) => {
-                    warn!("Failed to spawn enemy from definition: {}. Using fallback.", e);
-                    fallback::spawn_enemy_hardcoded(
-                        commands.reborrow(),
-                        spawn_cmd.position,
-                        &mut current_map,
-                        &mut turn_queue,
-                    )
+                    panic!("Failed to spawn enemy from definition: {}", e);
                 }
             }
         } else {
-            info!("Entity definitions not available, using hardcoded enemy spawning");
-            fallback::spawn_enemy_hardcoded(
-                commands.reborrow(),
-                spawn_cmd.position,
-                &mut current_map,
-                &mut turn_queue,
-            )
+            panic!("Entity definitions not available, using hardcoded enemy spawning");
         };
 
         let enemy_type = spawn_cmd.enemy_name.as_deref().unwrap_or("random");

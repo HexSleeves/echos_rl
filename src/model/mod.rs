@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 pub mod actions;
+pub mod ai;
 pub mod commands;
 pub mod components;
 pub mod generation;
@@ -19,10 +20,13 @@ pub enum GameState {
 }
 
 pub(super) fn plugin(app: &mut App) {
+    // Register component types
     app.register_type::<components::Description>()
         .register_type::<components::PlayerTag>()
         .register_type::<components::Position>()
         .register_type::<components::TerrainType>()
         .register_type::<components::ViewShed>()
         .register_type::<resources::SpawnPoint>();
+
+    app.add_plugins(ai::plugin);
 }

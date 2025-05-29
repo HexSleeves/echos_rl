@@ -6,3 +6,7 @@ use bevy::prelude::*;
 pub struct ViewShed {
     pub radius: i32,
 }
+
+impl ViewShed {
+    pub fn new(radius: i32) -> Self { Self { radius } }
+}

@@ -1,0 +1,27 @@
+EntityDefinition(
+    name: "Passive Critter",
+    description: Some("A harmless creature that flees when threatened"),
+    components: EntityComponents(
+        // Core gameplay components
+        turn_actor: Some(TurnActorData(
+            speed: 90, // Slower than player but tries to flee
+            action_queue_size: Some(2),
+        )),
+        view_shed: Some(ViewShedData(
+            radius: 5, // Moderate vision range
+        )),
+        tile_sprite: Some(TileSpriteData(
+            tile_coords: (2, 16), // Different sprite
+            tile_size: Some((12.0, 12.0)),
+            tint: Some((0.8, 1.0, 0.8, 1.0)), // Slight green tint for peaceful
+        )),
+
+        // Entity type tags
+        is_player: Some(false),
+        is_ai: Some(true),
+
+        // Spawning properties
+        spawn_weight: Some(2.0), // Less common than guards
+        level_range: Some((1, 3)),
+    ),
+)

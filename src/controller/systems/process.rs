@@ -1,17 +1,12 @@
 use bevy::{ecs::system::SystemState, prelude::*};
-use brtk::prelude::Direction;
 
 use crate::model::{
     GameState,
-    actions::WalkBuilder,
-    components::{AITag, AwaitingInput, DeadTag, PlayerTag, Position, TurnActor},
-    resources::{CurrentMap, TurnQueue},
-    types::GameActionBuilder,
+    components::{AITag, AwaitingInput, DeadTag, PlayerTag, TurnActor},
+    resources::TurnQueue,
 };
 
 pub fn process_turns(world: &mut World) {
-    info!("Processing turns");
-
     let mut state: SystemState<(
         ResMut<NextState<GameState>>,
         Query<(Entity, &mut TurnActor, Option<&PlayerTag>)>,
@@ -84,54 +79,22 @@ pub fn monsters_turn(world: &mut World) {
     let mut state: SystemState<(
         ResMut<NextState<GameState>>,
         Query<(Entity, &mut TurnActor), (With<AITag>, Without<PlayerTag>, Without<DeadTag>)>,
-        Query<&Position>,
-        Res<CurrentMap>,
     )> = SystemState::new(world);
 
-    let (mut next_state, mut ai_query, position_query, current_map) = state.get_mut(world);
+    let (mut next_state, ai_query) = state.get_mut(world);
 
-    for (entity, mut turn_actor) in &mut ai_query {
+    // Check if any AI entities need actions
+    // Big-brain will handle the decision making, we just need to ensure
+    // entities without actions get a chance to think
+    for (entity, turn_actor) in &ai_query {
         // Skip entities that already have actions queued
         if turn_actor.peak_next_action().is_some() {
             continue;
         }
 
-        // Get the entity's current position
-        if let Ok(position) = position_query.get(entity) {
-            // Try different directions in a random order
-            let mut valid_direction = None;
-
-            // Find a valid direction to move (one that leads to a walkable tile)
-            for direction in Direction::iter_cardinal() {
-                // Skip this direction randomly to add some variety
-                if fastrand::bool() {
-                    continue;
-                }
-
-                let new_position = *position + direction.coord();
-
-                // Check if the new position is valid
-                if let Some(terrain_type) = current_map.get_terrain(new_position) {
-                    // Check if we can walk there
-                    if terrain_type.is_walkable() {
-                        valid_direction = Some(direction);
-                        break;
-                    }
-                }
-            }
-
-            // If we found a valid direction, queue the walk action
-            if let Some(direction) = valid_direction {
-                log::debug!("AI entity {:?} moving in direction {:?}", entity, direction);
-                turn_actor.add_action(
-                    WalkBuilder::new().with_entity(entity).with_direction(direction.into()).build(),
-                );
-            } else {
-                // If no valid direction was found, just wait
-                log::debug!("AI entity {:?} has no valid move, waiting", entity);
-                // Here we could add a wait action if we had one
-            }
-        }
+        // Big-brain Thinkers will automatically queue actions based on their scorers
+        // We don't need to do anything here - the AI systems handle it
+        log::debug!("AI entity {:?} waiting for big-brain decision", entity);
     }
 
     next_state.set(GameState::ProcessTurns);

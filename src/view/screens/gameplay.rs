@@ -10,6 +10,7 @@ use crate::{
     },
     model::{
         GameState,
+        ai::ai_spawner::spawn_ai_enemies,
         commands::process_spawn_commands,
         resources::{CurrentMap, FovMap, SpawnPoint, TurnQueue},
     },
@@ -65,7 +66,7 @@ pub(super) fn plugin(app: &mut App) {
     // Only run setup systems when entering the gameplay screen
     app.add_systems(
         OnEnter(ScreenState::Gameplay),
-        (spawn_map, spawn_player).chain().in_set(GameplaySystems::Initialization),
+        (spawn_map, spawn_player, spawn_ai_enemies).chain().in_set(GameplaySystems::Initialization),
     );
 
     // === MAIN GAME LOOP ===

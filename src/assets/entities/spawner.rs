@@ -5,7 +5,7 @@ use crate::{
         components::{AITag, AwaitingInput, PlayerTag, Position, TurnActor, ViewShed},
         resources::{CurrentMap, TurnQueue},
     },
-    view::{ViewConstants, components::TileSprite},
+    view::components::TileSprite,
 };
 
 use super::{EntityDefinition, EntityDefinitions};
@@ -130,69 +130,6 @@ pub fn spawn_entity_from_definition(
     }
 
     Ok(entity_id)
-}
-
-/// Fallback spawning functions that match the original hardcoded behavior exactly
-pub mod fallback {
-    use super::*;
-
-    /// Fallback player spawning with exact hardcoded values
-    pub fn spawn_player_hardcoded(
-        mut commands: Commands,
-        position: Position,
-        current_map: &mut CurrentMap,
-        turn_queue: &mut TurnQueue,
-    ) -> Entity {
-        let player_id = commands
-            .spawn((
-                position,
-                PlayerTag,
-                AwaitingInput,
-                TurnActor::new(100),
-                ViewShed { radius: 8 },
-                TileSprite {
-                    tile_coords: (10, 18),
-                    tile_size: Vec2::splat(ViewConstants::TILE_SIZE),
-                    ..Default::default()
-                },
-            ))
-            .id();
-
-        // Place on map and schedule turn
-        let _ = current_map.place_actor(position, player_id);
-        let current_time = turn_queue.current_time();
-        turn_queue.schedule_turn(player_id, current_time);
-
-        player_id
-    }
-
-    /// Fallback enemy spawning with exact hardcoded values (whale)
-    pub fn spawn_enemy_hardcoded(
-        mut commands: Commands,
-        position: Position,
-        current_map: &mut CurrentMap,
-        turn_queue: &mut TurnQueue,
-    ) -> Entity {
-        let enemy_id = commands
-            .spawn((
-                position,
-                AITag,
-                TurnActor::new(120),
-                TileSprite {
-                    tile_coords: (0, 16),
-                    tile_size: Vec2::splat(ViewConstants::TILE_SIZE),
-                    ..Default::default()
-                },
-            ))
-            .id();
-
-        // Place on map and schedule turn
-        let _ = current_map.place_actor(position, enemy_id);
-        let current_time = turn_queue.current_time();
-        turn_queue.schedule_turn(enemy_id, current_time);
-
-        enemy_id
-    }
 }
 
 #[cfg(test)]

@@ -70,6 +70,7 @@ bevy_asset_loader = { version = "0.23.0", features = [
     "progress_tracking",
 ] }
 bevy_kira_audio = { version = "0.23.0", features = ["android_shared_stdcxx"] }
+big-brain = { git = "https://github.com/zkat/big-brain", branch = "main" }
 brtk = { path = "./brtk" }
 iyes_progress = { version = "0.14.0" }
 
@@ -78,7 +79,7 @@ anyhow = { version = "1" }
 # 'Small vector' optimization: store up to a small number of items on the stack
 bitvec = { version = "1" }
 # A fast random number generator
-fastrand  = { version = "2" }
+fastrand  = "2.0"
 once_cell = { version = "1" }
 rand      = { version = "0.9" }
 # A generic serialization/deserialization framework
@@ -86,8 +87,9 @@ serde = { version = "1", features = ["derive", "rc", "alloc"] }
 # Error handling
 thiserror = { version = "2" }
 # A native Rust encoder and decoder of TOML-formatted files and streams
-toml = "0.8.22"
-ron  = "0.10"
+toml  = "0.8.22"
+ron   = "0.10"
+regex = "1.0"
 
 # Compile low-severity logs out of native builds for performance.
 log = { version = "0.4", features = [
