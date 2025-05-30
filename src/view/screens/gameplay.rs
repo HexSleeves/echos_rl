@@ -4,9 +4,8 @@ use bevy::prelude::*;
 
 use super::ScreenState;
 use crate::{
-    assets::entities::spawner::spawn_ai_enemies,
     controller::systems::{
-        camera_movement, compute_fov, monsters_turn, process_turns, spawn_map, spawn_player,
+        camera_movement, compute_fov, process_turns, spawn_enemies, spawn_map, spawn_player,
         toggle_fov_algorithm,
     },
     model::{
@@ -66,7 +65,7 @@ pub(super) fn plugin(app: &mut App) {
     // Only run setup systems when entering the gameplay screen
     app.add_systems(
         OnEnter(ScreenState::Gameplay),
-        (spawn_map, spawn_player, spawn_ai_enemies).chain().in_set(GameplaySystems::Initialization),
+        (spawn_map, spawn_player, spawn_enemies).chain().in_set(GameplaySystems::Initialization),
     );
 
     // === MAIN GAME LOOP ===
@@ -78,10 +77,8 @@ pub(super) fn plugin(app: &mut App) {
     // Core turn processing
     app.add_systems(
         Update,
-        (
-            process_turns.run_if(in_state(GameState::ProcessTurns)),
-            monsters_turn.run_if(in_state(GameState::MonstersTurn)),
-        )
+        process_turns
+            .run_if(in_state(GameState::ProcessTurns))
             .in_set(GameplaySystems::TurnProcessing)
             .run_if(in_state(ScreenState::Gameplay)),
     );

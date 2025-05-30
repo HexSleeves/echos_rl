@@ -21,14 +21,19 @@ pub fn flee_from_player_scorer_system(
     player_query: Query<&Position, With<PlayerTag>>,
     fov_map: Res<FovMap>,
     mut scorer_query: Query<(&Actor, &mut Score), With<FleeFromPlayerScorer>>,
-    ai_query: Query<(&Position, &AIBehavior)>,
+    ai_query: Query<(&Position, &AIBehavior, &TurnActor)>,
 ) {
     let Ok(player_pos) = player_query.single() else {
         return;
     };
 
     for (Actor(actor_entity), mut score) in scorer_query.iter_mut() {
-        if let Ok((ai_pos, ai_behavior)) = ai_query.get(*actor_entity) {
+        if let Ok((ai_pos, ai_behavior, turn_actor)) = ai_query.get(*actor_entity) {
+            // Skip scoring if this entity already has an action queued
+            if turn_actor.peak_next_action().is_some() {
+                continue;
+            }
+
             let mut flee_score = 0.0;
 
             // Only passive enemies want to flee
@@ -83,10 +88,7 @@ pub fn flee_from_player_action_system(
                         {
                             // Queue the walk action
                             turn_actor.add_action(
-                                WalkBuilder::new()
-                                    .with_entity(*actor_entity)
-                                    .with_direction(dir)
-                                    .build(),
+                                WalkBuilder::new().with_entity(*actor_entity).with_direction(dir).build(),
                             );
                             *action_state = ActionState::Success;
                         } else {

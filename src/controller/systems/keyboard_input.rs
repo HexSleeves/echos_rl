@@ -52,7 +52,9 @@ pub fn player_input_system(
             }
 
             commands.entity(entity).remove::<AwaitingInput>();
-            next_state.set(GameState::MonstersTurn);
+
+            // After player action is gathered, move to ProcessTurns to execute all actions in order
+            next_state.set(GameState::ProcessTurns);
         }
     }
 }

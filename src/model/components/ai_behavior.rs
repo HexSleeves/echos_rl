@@ -7,6 +7,10 @@ pub struct AIBehavior {
     pub detection_range: i32,
     pub behavior_type: AIBehaviorType,
     pub last_known_player_position: Option<Position>,
+    /// Turn number when the player was last seen
+    pub last_player_seen_turn: Option<u64>,
+    /// Number of turns to wait before switching from chase to wander
+    pub turns_before_wander: u64,
 }
 
 /// Different types of AI behavior patterns
@@ -22,20 +26,53 @@ pub enum AIBehaviorType {
 
 impl Default for AIBehavior {
     fn default() -> Self {
-        Self { behavior_type: AIBehaviorType::Neutral, detection_range: 8, last_known_player_position: None }
+        Self {
+            behavior_type: AIBehaviorType::Neutral,
+            detection_range: 8,
+            last_known_player_position: None,
+            last_player_seen_turn: None,
+            turns_before_wander: 5, // Default to 5 turns
+        }
     }
 }
 
 impl AIBehavior {
     pub fn hostile(detection_range: i32) -> Self {
-        Self { behavior_type: AIBehaviorType::Hostile, detection_range, last_known_player_position: None }
+        Self {
+            behavior_type: AIBehaviorType::Hostile,
+            detection_range,
+            last_known_player_position: None,
+            last_player_seen_turn: None,
+            turns_before_wander: 5, // Hostile enemies give up chase after 5 turns
+        }
     }
 
     pub fn passive(detection_range: i32) -> Self {
-        Self { behavior_type: AIBehaviorType::Passive, detection_range, last_known_player_position: None }
+        Self {
+            behavior_type: AIBehaviorType::Passive,
+            detection_range,
+            last_known_player_position: None,
+            last_player_seen_turn: None,
+            turns_before_wander: 3, // Passive enemies give up faster
+        }
     }
 
     pub fn neutral() -> Self { Self::default() }
+
+    /// Check if the AI should switch from chasing to wandering based on turns elapsed
+    pub fn should_switch_to_wander(&self, current_turn: u64) -> bool {
+        if let Some(last_seen) = self.last_player_seen_turn {
+            current_turn.saturating_sub(last_seen) >= self.turns_before_wander
+        } else {
+            false
+        }
+    }
+
+    /// Update the last seen turn when player is spotted
+    pub fn mark_player_seen(&mut self, current_turn: u64, player_position: Position) {
+        self.last_player_seen_turn = Some(current_turn);
+        self.last_known_player_position = Some(player_position);
+    }
 }
 
 // ============================================================================

@@ -2,7 +2,7 @@ use bevy::{ecs::system::SystemState, prelude::*};
 
 use crate::model::{
     GameState,
-    components::{AITag, AwaitingInput, DeadTag, PlayerTag, TurnActor},
+    components::{AwaitingInput, PlayerTag, TurnActor},
     resources::TurnQueue,
 };
 
@@ -44,7 +44,7 @@ pub fn process_turns(world: &mut World) {
             // Player is waiting for input
             if is_player && !has_action {
                 info!("Player is awaiting input: {:?}", entity);
-                next_state.set(GameState::PlayerTurn);
+                next_state.set(GameState::GatherActions);
                 world.entity_mut(entity).insert(AwaitingInput);
                 turn_queue.schedule_turn(entity, time);
                 return;
@@ -71,31 +71,4 @@ pub fn process_turns(world: &mut World) {
             }
         }
     });
-}
-
-pub fn monsters_turn(world: &mut World) {
-    info!("Monsters turn");
-
-    let mut state: SystemState<(
-        ResMut<NextState<GameState>>,
-        Query<(Entity, &mut TurnActor), (With<AITag>, Without<PlayerTag>, Without<DeadTag>)>,
-    )> = SystemState::new(world);
-
-    let (mut next_state, ai_query) = state.get_mut(world);
-
-    // Check if any AI entities need actions
-    // Big-brain will handle the decision making, we just need to ensure
-    // entities without actions get a chance to think
-    for (entity, turn_actor) in &ai_query {
-        // Skip entities that already have actions queued
-        if turn_actor.peak_next_action().is_some() {
-            continue;
-        }
-
-        // Big-brain Thinkers will automatically queue actions based on their scorers
-        // We don't need to do anything here - the AI systems handle it
-        log::debug!("AI entity {entity:?} waiting for big-brain decision");
-    }
-
-    next_state.set(GameState::ProcessTurns);
 }

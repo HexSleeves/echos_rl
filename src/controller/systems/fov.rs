@@ -12,7 +12,7 @@ pub fn compute_fov(
     query: Query<(&Position, &ViewShed), With<PlayerTag>>,
 ) {
     if let Ok((player_pos, view_shed)) = query.single() {
-        info!("Computing FOV for player at {:?}", player_pos);
+        debug!("Computing FOV");
         fov_map.compute_fov(&map, *player_pos, view_shed.radius);
     }
 }

@@ -9,6 +9,8 @@ pub(super) fn plugin(app: &mut App) {
     // Add big-brain plugin for AI
     app.add_plugins(BigBrainPlugin::new(PreUpdate));
 
+    // AI systems should only run during GatherActions state
+    // This prevents constant re-evaluation when waiting for player input
     app.add_systems(
         PreUpdate,
         (
@@ -18,7 +20,7 @@ pub(super) fn plugin(app: &mut App) {
             systems::player_visibility_scorer_system,
         )
             .in_set(BigBrainSet::Scorers)
-            .run_if(in_state(GameState::ProcessTurns)),
+            .run_if(in_state(GameState::GatherActions)),
     );
 
     // Add AI action systems (run in PreUpdate with BigBrainSet::Actions)
@@ -31,6 +33,6 @@ pub(super) fn plugin(app: &mut App) {
             systems::idle_action_system,
         )
             .in_set(BigBrainSet::Actions)
-            .run_if(in_state(GameState::ProcessTurns)),
+            .run_if(in_state(GameState::GatherActions)),
     );
 }

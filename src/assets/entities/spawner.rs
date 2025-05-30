@@ -88,72 +88,80 @@ pub fn spawn_random_ai_from_definition(
     spawn_entity_from_definition(commands, enemy_definition, current_map, turn_queue, Some(position))
 }
 
-/// System to spawn enemies with AI behaviors
-    #[rustfmt::skip]
-pub fn spawn_ai_enemies(
-    mut commands: Commands,
-    mut turn_queue: ResMut<TurnQueue>,
-    mut current_map: ResMut<CurrentMap>,
-    assets: Option<Res<Assets<EntityDefinition>>>,
-    entity_definitions: Option<Res<EntityDefinitions>>,
-) {
-    let Some(entity_definitions) = entity_definitions else {
-        warn!("EntityDefinitions resource not available for AI spawning");
-        return;
-    };
+// /// System to spawn enemies with AI behaviors
+// pub fn spawn_ai_enemies(
+//     mut commands: Commands,
+//     mut turn_queue: ResMut<TurnQueue>,
+//     mut current_map: ResMut<CurrentMap>,
+//     assets: Option<Res<Assets<EntityDefinition>>>,
+//     entity_definitions: Option<Res<EntityDefinitions>>,
+// ) {
+//     let Some(entity_definitions) = entity_definitions else {
+//         warn!("EntityDefinitions resource not available for AI spawning");
+//         return;
+//     };
 
-    let Some(assets) = assets else {
-        warn!("EntityDefinition assets not available for AI spawning");
-        return;
-    };
+//     let Some(assets) = assets else {
+//         warn!("EntityDefinition assets not available for AI spawning");
+//         return;
+//     };
 
-    // Spawn different types of AI enemies using simple names
-    spawn_enemy_type(commands.reborrow(), &assets, &entity_definitions, &mut current_map, &mut turn_queue, "hostile_guard", 2);
-    spawn_enemy_type(commands.reborrow(), &assets, &entity_definitions, &mut current_map, &mut turn_queue, "passive_critter", 3);
-    spawn_enemy_type(commands, &assets, &entity_definitions, &mut current_map, &mut turn_queue, "neutral_wanderer", 2);
-}
+//     // Spawn different types of AI enemies using simple names
+//     spawn_enemy_type(
+//         commands.reborrow(),
+//         &assets,
+//         &entity_definitions,
+//         &mut current_map,
+//         &mut turn_queue,
+//         "hostile_guard",
+//         1,
+//     );
+//     // spawn_enemy_type(commands.reborrow(), &assets, &entity_definitions, &mut current_map, &mut
+//     // turn_queue, "passive_critter", 3); spawn_enemy_type(commands, &assets,
+//     // &entity_definitions, &mut current_map, &mut turn_queue, "neutral_wanderer", 2);
+// }
 
-fn spawn_enemy_type(
-    mut commands: Commands,
-    assets: &Assets<EntityDefinition>,
-    entity_definitions: &EntityDefinitions,
-    current_map: &mut CurrentMap,
-    turn_queue: &mut TurnQueue,
-    enemy_type: &str,
-    count: usize,
-) {
-    let Some(definition_handle) = entity_definitions.get_by_name(enemy_type) else {
-        warn!("Enemy definition '{}' not found", enemy_type);
-        return;
-    };
+// fn spawn_enemy_type(
+//     mut commands: Commands,
+//     assets: &Assets<EntityDefinition>,
+//     entity_definitions: &EntityDefinitions,
+//     current_map: &mut CurrentMap,
+//     turn_queue: &mut TurnQueue,
+//     enemy_type: &str,
+//     count: usize,
+// ) {
+//     let Some(definition_handle) = entity_definitions.get_by_name(enemy_type) else {
+//         warn!("Enemy definition '{}' not found", enemy_type);
+//         return;
+//     };
 
-    let Some(definition) = assets.get(definition_handle) else {
-        warn!("Enemy definition asset for '{}' not loaded", enemy_type);
-        return;
-    };
+//     let Some(definition) = assets.get(definition_handle) else {
+//         warn!("Enemy definition asset for '{}' not loaded", enemy_type);
+//         return;
+//     };
 
-    for _ in 0..count {
-        if let Some(spawn_pos) = current_map.get_random_walkable_position() {
-            // spawn_ai_entity(commands, definition, spawn_pos);
-            match spawn_entity_from_definition(
-                commands.reborrow(),
-                definition,
-                current_map,
-                turn_queue,
-                Some(spawn_pos),
-            ) {
-                Ok(entity) => {
-                    info!("[Enemy] Entity {} Spawned enemy '{}' at {:?}", entity, enemy_type, spawn_pos);
-                }
-                Err(e) => {
-                    warn!("[Enemy] Failed to spawn enemy '{}': {}", enemy_type, e);
-                }
-            }
-        } else {
-            warn!("Could not find spawn position for {}", enemy_type);
-        }
-    }
-}
+//     for _ in 0..count {
+//         if let Some(spawn_pos) = current_map.get_random_walkable_position() {
+//             // spawn_ai_entity(commands, definition, spawn_pos);
+//             match spawn_entity_from_definition(
+//                 commands.reborrow(),
+//                 definition,
+//                 current_map,
+//                 turn_queue,
+//                 Some(spawn_pos),
+//             ) {
+//                 Ok(entity) => {
+//                     info!("[Enemy] Entity {} Spawned enemy '{}' at {:?}", entity, enemy_type,
+// spawn_pos);                 }
+//                 Err(e) => {
+//                     warn!("[Enemy] Failed to spawn enemy '{}': {}", enemy_type, e);
+//                 }
+//             }
+//         } else {
+//             warn!("Could not find spawn position for {}", enemy_type);
+//         }
+//     }
+// }
 
 /// Spawn an entity from a definition with optional position override
 pub fn spawn_entity_from_definition(
@@ -174,7 +182,16 @@ pub fn spawn_entity_from_definition(
     if definition.is_player() {
         entity_commands.insert((PlayerTag, AwaitingInput));
     } else if definition.is_ai() {
-        add_ai_components(&mut entity_commands, definition);
+        // Determine AI behavior type based on the entity name
+        let ai_behavior = determine_ai_behavior_from_definition(definition);
+        let behavior_type = ai_behavior.behavior_type.clone();
+
+        // Create the appropriate thinker based on behavior type
+        let thinker = create_thinker_for_behavior(&ai_behavior.behavior_type);
+
+        entity_commands.insert((AITag, ai_behavior, AIState::default(), thinker));
+
+        info!("Added AI components to entity '{}' with behavior {:?}", definition.name, behavior_type);
     }
 
     // Add TurnActor component if specified
@@ -209,19 +226,6 @@ pub fn spawn_entity_from_definition(
     Ok(entity_id)
 }
 
-fn add_ai_components(entity_commands: &mut EntityCommands, definition: &EntityDefinition) {
-    // Determine AI behavior type based on the entity name
-    let ai_behavior = determine_ai_behavior_from_definition(definition);
-    let behavior_type = ai_behavior.behavior_type.clone();
-
-    // Create the appropriate thinker based on behavior type
-    let thinker = create_thinker_for_behavior(&ai_behavior.behavior_type);
-
-    entity_commands.insert((AITag, ai_behavior, AIState::default(), thinker));
-
-    info!("Added AI components to entity '{}' with behavior {:?}", definition.name, behavior_type);
-}
-
 /// Determine AI behavior type from entity definition
 fn determine_ai_behavior_from_definition(definition: &EntityDefinition) -> AIBehavior {
     let behavior_type = match definition.name.to_lowercase().as_str() {
@@ -234,7 +238,12 @@ fn determine_ai_behavior_from_definition(definition: &EntityDefinition) -> AIBeh
     // Determine detection range based on view shed or use default
     let detection_range = definition.components.view_shed.as_ref().map(|vs| vs.radius).unwrap_or(5); // Default detection range
 
-    AIBehavior { behavior_type, detection_range, last_known_player_position: None }
+    // Create AIBehavior with appropriate turn tracking settings
+    match behavior_type {
+        AIBehaviorType::Hostile => AIBehavior::hostile(detection_range),
+        AIBehaviorType::Passive => AIBehavior::passive(detection_range),
+        AIBehaviorType::Neutral => AIBehavior::neutral(),
+    }
 }
 
 /// Create a big-brain Thinker based on the AI behavior type
@@ -251,7 +260,7 @@ fn create_thinker_for_behavior(behavior_type: &AIBehaviorType) -> ThinkerBuilder
         AIBehaviorType::Passive => {
             // Passive enemies prioritize fleeing from the player
             Thinker::build()
-                .picker(FirstToScore { threshold: 0.5 })
+                .picker(FirstToScore { threshold: 0.1 })
                 .when(FleeFromPlayerScorer, FleeFromPlayerAction)
                 .when(WanderScorer, WanderAction)
                 .otherwise(IdleAction)
@@ -259,7 +268,7 @@ fn create_thinker_for_behavior(behavior_type: &AIBehaviorType) -> ThinkerBuilder
         AIBehaviorType::Neutral => {
             // Neutral enemies just wander around, ignoring the player
             Thinker::build()
-                .picker(FirstToScore { threshold: 0.3 })
+                .picker(FirstToScore { threshold: 0.1 })
                 .when(WanderScorer, WanderAction)
                 .otherwise(IdleAction)
         }

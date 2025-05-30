@@ -13,8 +13,9 @@ pub use self::model_constants::*;
 
 #[derive(States, Debug, Clone, Copy, Eq, PartialEq, Hash, Default)]
 pub enum GameState {
-    PlayerTurn,
-    MonstersTurn,
+    /// Gather actions from all entities (player + monsters) without processing them
+    GatherActions,
+    /// Process all queued actions in turn queue order
     #[default]
     ProcessTurns,
 }
