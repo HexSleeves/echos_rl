@@ -110,12 +110,8 @@ impl TerrainType {
     }
 
     /// Returns true if this tile type is mineable
-    pub fn is_mineable(self) -> bool {
-        false
-    }
+    pub fn is_mineable(self) -> bool { false }
 
     /// Returns true if this tile type is an ore
-    pub fn is_ore(self) -> bool {
-        false
-    }
+    pub fn is_ore(self) -> bool { false }
 }

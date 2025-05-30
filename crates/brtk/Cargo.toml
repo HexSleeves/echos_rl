@@ -1,0 +1,24 @@
+[package]
+name = "brtk"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["icon"]
+icon = ["bevy/bevy_winit", "bevy/bevy_window"]
+
+[dependencies]
+bevy = { workspace = true, features = ["bevy_asset"] }
+
+directories = "6" # A tiny mid-level library that provides platform-specific standard locations of directories
+thiserror = { workspace = true } # This library provides a convenient derive macro for the standard library's std::error::Error trait.
+
+# Randomness
+rand_pcg = { version = "0.9.0", features = ["serde"] } # Selected PCG random number generators
+rand = { workspace = true } # Random number generators and other randomness functionality.
+regex = { workspace = true } # An implementation of regular expressions for Rust.
+serde = { workspace = true } # A generic serialization/deserialization framework
+
+# keep the following in sync with Bevy's dependencies
+winit = { workspace = true }
+image = { workspace = true }

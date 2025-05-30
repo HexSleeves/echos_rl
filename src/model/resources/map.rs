@@ -105,9 +105,10 @@ impl Map {
 
         // Remove actor from previous position if it exists
         if let Some(old_pos) = self.actor_positions.get(&actor)
-            && let Some(tile) = self.tiles.get_mut((*old_pos).into()) {
-                tile.actor = None;
-            }
+            && let Some(tile) = self.tiles.get_mut((*old_pos).into())
+        {
+            tile.actor = None;
+        }
 
         // Place actor at new position
         if let Some(tile) = self.tiles.get_mut(position.into()) {
@@ -196,9 +197,10 @@ impl Map {
                 if self.in_bounds(pos) {
                     let distance_sq = (x - cx).pow(2) + (y - cy).pow(2);
                     if distance_sq <= radius.pow(2)
-                        && let Some(actor) = self.get_actor(pos) {
-                            actors.push((pos, actor));
-                        }
+                        && let Some(actor) = self.get_actor(pos)
+                    {
+                        actors.push((pos, actor));
+                    }
                 }
             }
         }

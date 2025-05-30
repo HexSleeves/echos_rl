@@ -28,11 +28,10 @@ pub fn spawn_player(
 
 pub fn spawn_enemies(mut commands: Commands, current_map: Res<CurrentMap>) {
     // Find a valid position for enemy spawning
-    let enemy_position =
-        current_map.get_random_walkable_position().unwrap_or_else(|| {
-            warn!("No valid enemy spawn point found, using default position");
-            Position::new(1, 1)
-        });
+    let enemy_position = current_map.get_random_walkable_position().unwrap_or_else(|| {
+        warn!("No valid enemy spawn point found, using default position");
+        Position::new(1, 1)
+    });
 
     // Use the command-based spawning for a random enemy
     commands.spawn_random_enemy(enemy_position);
