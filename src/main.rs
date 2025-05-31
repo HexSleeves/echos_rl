@@ -10,6 +10,13 @@ use bevy::{
 };
 use brtk::prelude::BrtkPlugin;
 
+// New module structure
+pub mod core;
+pub mod gameplay;
+pub mod rendering;
+pub mod prelude;
+
+// Existing modules (to be migrated)
 pub mod assets;
 pub mod controller;
 #[cfg(feature = "dev")]
@@ -97,11 +104,14 @@ fn main() {
     // Assign plugins
     app.add_plugins((
         brt_plugin,
+        core::plugin,        // New core plugin
         assets::plugin,
         controller::plugin,
         model::plugin,
         ui::plugin,
         view::plugin,
+        // gameplay::plugin,  // Will be enabled after migration
+        // rendering::plugin, // Will be enabled after migration
     ));
 
     match app.run() {
