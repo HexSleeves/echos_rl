@@ -11,7 +11,7 @@ use crate::{
         },
         resources::{CurrentMap, TurnQueue},
     },
-    view::components::TileSprite,
+    rendering::components::TileSprite,
 };
 
 /// Errors that can occur during entity spawning
@@ -205,7 +205,7 @@ fn create_thinker_for_behavior(behavior_type: &AIBehaviorType) -> ThinkerBuilder
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::view::ViewConstants;
+    use crate::rendering::RenderingConstants;
     use echos_assets::entities::{EntityComponents, TileSpriteData, TurnActorData, ViewShedData};
 
     fn create_test_player_definition() -> EntityDefinition {
@@ -284,7 +284,7 @@ mod tests {
         let tile_sprite_data = player_def.components.tile_sprite.as_ref().unwrap();
         let tile_sprite: TileSprite = tile_sprite_data.into();
         assert_eq!(tile_sprite.tile_coords, (10, 18));
-        assert_eq!(tile_sprite.tile_size, Vec2::splat(ViewConstants::TILE_SIZE));
+        assert_eq!(tile_sprite.tile_size, Vec2::splat(RenderingConstants::TILE_SIZE));
     }
 
     #[test]

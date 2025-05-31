@@ -12,7 +12,7 @@ pub use bevy_inspector_egui::{
     prelude::*, quick::*,
 };
 
-use crate::{model::GameState, view::screens::ScreenState};
+use crate::{core::states::GameState, rendering::screens::ScreenState};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin::default());

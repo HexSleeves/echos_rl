@@ -129,11 +129,11 @@ impl EchosInTheDark {
             self.brt_plugin.clone(),
             core::plugin, // New core plugin
             gameplay::plugin, // New gameplay plugin
+            rendering::plugin, // New rendering plugin (migrated from view)
             controller::plugin,
             model::plugin,
             ui::plugin,
-            view::plugin,
-            // rendering::plugin, // Will be enabled after migration
+            // view::plugin, // Disabled - migrated to rendering
         ));
 
         self

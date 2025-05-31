@@ -3,7 +3,7 @@ use bevy_ecs_tilemap::prelude::*;
 
 use crate::{
     model::{ModelConstants, components::Position, generation::GenConfig, resources::CurrentMap},
-    view::resources::TextureAssets,
+    rendering::resources::TextureAssets,
 };
 
 pub fn spawn_map(
