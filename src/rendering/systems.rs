@@ -7,11 +7,7 @@ use crate::{
         constants::ModelConstants,
         resources::FovMap,
     },
-    rendering::{
-        components::TileSprite,
-        resources::TileMap,
-        RenderingConstants,
-    },
+    rendering::{RenderingConstants, components::TileSprite, resources::TileMap},
 };
 
 // ============================================================================
@@ -111,11 +107,7 @@ pub fn update_entity_visibility(
     }
 
     for (position, mut visibility) in &mut q_entities {
-        *visibility = if fov_map.is_visible(*position) {
-            Visibility::Visible
-        } else {
-            Visibility::Hidden
-        };
+        *visibility = if fov_map.is_visible(*position) { Visibility::Visible } else { Visibility::Hidden };
     }
 }
 
@@ -141,11 +133,7 @@ pub fn update_typed_visibility(
 
     // Living entities: only visible in current FOV
     for (position, mut visibility) in &mut q_living {
-        *visibility = if fov_map.is_visible(*position) {
-            Visibility::Visible
-        } else {
-            Visibility::Hidden
-        };
+        *visibility = if fov_map.is_visible(*position) { Visibility::Visible } else { Visibility::Hidden };
     }
 
     // Static entities: visible in revealed areas with transparency
@@ -167,10 +155,7 @@ pub fn update_typed_visibility(
 // ============================================================================
 
 /// System that updates tilemap visibility based on FOV
-pub fn update_tilemap_visibility(
-    fov_map: Res<FovMap>,
-    mut q_tiles: Query<(&mut TileColor, &TilePos)>,
-) {
+pub fn update_tilemap_visibility(fov_map: Res<FovMap>, mut q_tiles: Query<(&mut TileColor, &TilePos)>) {
     if !fov_map.is_changed() {
         return;
     }

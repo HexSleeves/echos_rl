@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 pub mod components;
 pub mod generation;
+pub mod spawning;
 pub mod systems;
 
 /// World plugin that handles map generation and world management

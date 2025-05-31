@@ -1,10 +1,7 @@
 use bevy::{platform::collections::HashMap, prelude::*};
 use bitvec::prelude::*;
 
-use crate::{
-    core::components::Position,
-    core::{constants::ModelConstants, resources::Map},
-};
+use crate::core::{components::Position, constants::ModelConstants, resources::Map};
 
 /// FOV algorithm selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
