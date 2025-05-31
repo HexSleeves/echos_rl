@@ -5,7 +5,7 @@ use crate::{
         ModelConstants,
         components::{PlayerTag, Position},
     },
-    view::ViewConstants,
+    rendering::RenderingConstants,
 };
 
 /// Camera system that follows the player with smooth interpolation and handles zoom controls.
@@ -36,10 +36,10 @@ pub fn camera_movement(
         if let Ok(player_position) = player_query.single() {
             // Convert tile position to world coordinates (same calculation as
             // position_to_transform)
-            let target_x = player_position.x() as f32 * ViewConstants::TILE_SIZE
-                - (ModelConstants::MAP_WIDTH as f32 * ViewConstants::HALF_TILE_SIZE);
-            let target_y = player_position.y() as f32 * ViewConstants::TILE_SIZE
-                - (ModelConstants::MAP_HEIGHT as f32 * ViewConstants::HALF_TILE_SIZE);
+            let target_x = player_position.x() as f32 * RenderingConstants::TILE_SIZE
+                - (ModelConstants::MAP_WIDTH as f32 * RenderingConstants::HALF_TILE_SIZE);
+            let target_y = player_position.y() as f32 * RenderingConstants::TILE_SIZE
+                - (ModelConstants::MAP_HEIGHT as f32 * RenderingConstants::HALF_TILE_SIZE);
 
             let target_position = Vec3::new(target_x, target_y, camera_transform.translation.z);
 
