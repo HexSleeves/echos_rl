@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
-pub mod player;
 pub mod enemies;
+pub mod player;
 pub mod turns;
 pub mod world;
 
@@ -9,7 +9,7 @@ pub mod world;
 pub fn plugin(app: &mut App) {
     app.add_plugins((
         player::plugin,
-        enemies::plugin,  // Now includes AI systems
+        enemies::plugin, // Now includes AI systems
         turns::plugin,
         world::plugin,
     ));

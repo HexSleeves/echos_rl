@@ -2,8 +2,13 @@ use bevy::prelude::*;
 use echos_assets::entities::{EntityDefinition, EntityDefinitions};
 
 use crate::{
-    core::{components::Position, resources::{CurrentMap, TurnQueue}},
-    gameplay::world::spawning::{spawn_ai_from_definition, spawn_player_from_definition, spawn_random_ai_from_definition},
+    core::{
+        components::Position,
+        resources::{CurrentMap, TurnQueue},
+    },
+    gameplay::world::spawning::{
+        spawn_ai_from_definition, spawn_player_from_definition, spawn_random_ai_from_definition,
+    },
 };
 
 /// Entity command for spawning a player

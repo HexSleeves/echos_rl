@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
-    impl_debug_with_field, impl_game_action,
     core::types::{GameAction, GameError},
+    impl_debug_with_field, impl_game_action,
 };
 
 #[derive(Default)]

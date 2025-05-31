@@ -24,16 +24,10 @@ pub fn spawn_player_from_definition(
     turn_queue: &mut TurnQueue,
 ) -> Result<Entity, String> {
     let player_handle = entity_definitions.get_player();
-    let definition = assets
-        .get(player_handle)
-        .ok_or("Player definition not loaded")?;
+    let definition = assets.get(player_handle).ok_or("Player definition not loaded")?;
 
-    let mut entity_commands = commands.spawn((
-        position,
-        PlayerTag,
-        AwaitingInput,
-        Description::new(&definition.name),
-    ));
+    let mut entity_commands =
+        commands.spawn((position, PlayerTag, AwaitingInput, Description::new(&definition.name)));
 
     // Add components based on definition
     if let Some(turn_data) = &definition.components.turn_actor {
@@ -62,7 +56,7 @@ pub fn spawn_player_from_definition(
     turn_queue.schedule_turn(player_id, 0);
 
     // Update map with player position
-    current_map.place_actor(position, player_id).map_err(|e| format!("Failed to place player: {}", e))?;
+    current_map.place_actor(position, player_id).map_err(|e| format!("Failed to place player: {e}"))?;
 
     info!("Spawned player '{}' at {:?}", definition.name, position);
     Ok(player_id)
@@ -70,7 +64,7 @@ pub fn spawn_player_from_definition(
 
 /// Spawn a specific AI entity from definition data
 pub fn spawn_ai_from_definition(
-    mut commands: Commands,
+    commands: Commands,
     entity_definitions: &EntityDefinitions,
     assets: &Assets<EntityDefinition>,
     ai_name: &str,
@@ -80,31 +74,26 @@ pub fn spawn_ai_from_definition(
 ) -> Result<Entity, String> {
     let ai_handle = entity_definitions
         .get_by_name(ai_name)
-        .ok_or_else(|| format!("AI definition '{}' not found", ai_name))?;
+        .ok_or_else(|| format!("AI definition '{ai_name}' not found"))?;
 
-    let definition = assets
-        .get(ai_handle)
-        .ok_or_else(|| format!("AI definition '{}' not loaded", ai_name))?;
+    let definition =
+        assets.get(ai_handle).ok_or_else(|| format!("AI definition '{ai_name}' not loaded"))?;
 
     spawn_ai_entity(commands, definition, position, current_map, turn_queue)
 }
 
 /// Spawn a random AI entity from available definitions
 pub fn spawn_random_ai_from_definition(
-    mut commands: Commands,
+    commands: Commands,
     entity_definitions: &EntityDefinitions,
     assets: &Assets<EntityDefinition>,
     position: Position,
     current_map: &mut CurrentMap,
     turn_queue: &mut TurnQueue,
 ) -> Result<Entity, String> {
-    let random_handle = entity_definitions
-        .get_random_enemy()
-        .ok_or("No enemy definitions available")?;
+    let random_handle = entity_definitions.get_random_enemy().ok_or("No enemy definitions available")?;
 
-    let definition = assets
-        .get(random_handle)
-        .ok_or("Random enemy definition not loaded")?;
+    let definition = assets.get(random_handle).ok_or("Random enemy definition not loaded")?;
 
     spawn_ai_entity(commands, definition, position, current_map, turn_queue)
 }
@@ -152,7 +141,7 @@ fn spawn_ai_entity(
     turn_queue.schedule_turn(ai_id, 0);
 
     // Update map with AI position
-    current_map.place_actor(position, ai_id).map_err(|e| format!("Failed to place AI: {}", e))?;
+    current_map.place_actor(position, ai_id).map_err(|e| format!("Failed to place AI: {e}"))?;
 
     info!("Spawned AI '{}' at {:?}", definition.name, position);
     Ok(ai_id)

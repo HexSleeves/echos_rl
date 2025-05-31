@@ -2,10 +2,7 @@ use std::{cmp::Reverse, collections::BinaryHeap};
 
 use bevy::prelude::*;
 
-use crate::{
-    core::components::DeadTag,
-    gameplay::turns::components::TurnActor,
-};
+use crate::{core::components::DeadTag, gameplay::turns::components::TurnActor};
 
 #[derive(Resource, Default)]
 pub struct TurnQueue {

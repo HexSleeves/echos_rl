@@ -1,9 +1,7 @@
 use bevy::prelude::*;
 use brtk::prelude::Direction;
 
-use crate::{
-    core::{components::Position, resources::CurrentMap},
-};
+use crate::core::{components::Position, resources::CurrentMap};
 
 pub mod macros;
 pub use macros::*;

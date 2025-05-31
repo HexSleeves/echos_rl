@@ -2,9 +2,9 @@ use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
 use crate::{
-    core::components::Position,
     core::{
         commands::SpawnEntityCommands,
+        components::Position,
         constants::ModelConstants,
         resources::{CurrentMap, SpawnPoint},
     },

@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
-use crate::{
-    core::components::{PlayerTag, Position, ViewShed},
-    core::resources::{CurrentMap, FovAlgorithm, FovMap},
+use crate::core::{
+    components::{PlayerTag, Position, ViewShed},
+    resources::{CurrentMap, FovAlgorithm, FovMap},
 };
 
 /// Generic cleanup system for removing entities with a specific component

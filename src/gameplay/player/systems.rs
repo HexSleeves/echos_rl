@@ -19,9 +19,7 @@ pub fn spawn_player(
     current_map: Res<crate::core::resources::CurrentMap>,
     spawn_point: Option<Res<crate::core::resources::SpawnPoint>>,
 ) {
-    use crate::{
-        core::{components::Position, commands::SpawnEntityCommands},
-    };
+    use crate::core::{commands::SpawnEntityCommands, components::Position};
 
     // Determine where to spawn the player
     let player_position = spawn_point

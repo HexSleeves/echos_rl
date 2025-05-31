@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use crate::core::components::Position;
+use bevy::prelude::*;
 
 /// Event fired when the player moves
 #[derive(Event, Debug)]

@@ -50,6 +50,12 @@ pub struct EchosInTheDark {
     app_settings: AppSettings,
 }
 
+impl Default for EchosInTheDark {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EchosInTheDark {
     pub fn new() -> Self {
         let brt_plugin = BrtkPlugin::new(
@@ -127,8 +133,8 @@ impl EchosInTheDark {
         // Assign plugins
         app.add_plugins((
             self.brt_plugin.clone(),
-            core::plugin, // New core plugin
-            gameplay::plugin, // New gameplay plugin
+            core::plugin,      // New core plugin
+            gameplay::plugin,  // New gameplay plugin
             rendering::plugin, // New rendering plugin (migrated from view)
             // controller::plugin, // Disabled - migrated to gameplay modules
             // model::plugin, // Disabled - migrated to core and gameplay modules

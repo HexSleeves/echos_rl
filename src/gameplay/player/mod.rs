@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
 pub mod components;
-pub mod systems;
 pub mod events;
+pub mod systems;
 
 use crate::core::states::GameState;
 
@@ -12,12 +12,8 @@ pub fn plugin(app: &mut App) {
     app.register_type::<components::PlayerTag>();
 
     // Add player events
-    app.add_event::<events::PlayerMoved>()
-        .add_event::<events::PlayerDied>();
+    app.add_event::<events::PlayerMoved>().add_event::<events::PlayerDied>();
 
     // Add player systems
-    app.add_systems(
-        Update,
-        systems::player_input_system.run_if(in_state(GameState::GatherActions))
-    );
+    app.add_systems(Update, systems::player_input_system.run_if(in_state(GameState::GatherActions)));
 }
