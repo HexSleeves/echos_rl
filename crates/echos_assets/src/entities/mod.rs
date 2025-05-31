@@ -1,16 +1,17 @@
 pub mod components;
 pub mod definition;
 pub mod loader;
-pub mod spawner;
 
 pub use components::*;
 pub use definition::*;
 pub use loader::*;
-pub use spawner::*;
 
 use bevy::prelude::*;
+use bevy_common_assets::ron::RonAssetPlugin;
 
 pub(super) fn plugin(app: &mut App) {
+    app.add_plugins(RonAssetPlugin::<EntityDefinition>::new(&["definition.ron"]));
+
     app.register_type::<definition::EntityComponents>()
         .register_type::<components::TurnActorData>()
         .register_type::<components::ViewShedData>()

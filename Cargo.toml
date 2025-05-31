@@ -12,10 +12,11 @@ members  = ["crates/*"]
 
 [workspace.dependencies]
 ### Internal crates ###
-brtk = { path = "crates/brtk" }
+brtk         = { path = "crates/brtk" }
+echos_assets = { path = "crates/echos_assets" }
 
 ### BEVY ###
-bevy = { version = "0.16.0", default-features = false, features = [] }
+bevy = { version = "0.16.1", default-features = false, features = [] }
 bevy_asset_loader = { version = "0.23.0", features = [
     "2d",
     "standard_dynamic_assets",
@@ -86,10 +87,26 @@ dev_native = [
     "bevy/embedded_watcher",
 ]
 
-dev_log = ["dev"]
+# configuration for debugging information
+debug = ["bevy-inspector-egui", "debug-graph"]
+
+debug-trace = ["debug", "trace"]
+
+# Parallelism
+parallel = ["rayon"]
+
+# Debugging
+debug-graph = ["bevy_mod_debugdump"]
+
+# Tracing
+trace              = ["bevy/trace"]
+trace_chrome       = ["bevy/trace_chrome"]
+trace_tracy        = ["bevy/trace_tracy"]
+trace_tracy_memory = ["bevy/trace_tracy_memory"]
 
 [dependencies]
-brtk = { workspace = true }
+brtk         = { workspace = true }
+echos_assets = { workspace = true }
 
 bevy = { workspace = true, default-features = false, features = [
     "animation",
@@ -151,6 +168,17 @@ tracing = { workspace = true }
 ### Platform dependencies ###
 winit = { workspace = true }
 image = { workspace = true }
+
+######################################
+#########       Debug
+######################################
+bevy-inspector-egui = { version = "0.31", optional = true }
+bevy_mod_debugdump  = { version = "0.13", optional = true }
+
+######################################
+#########       Parallel
+######################################
+rayon = { version = "1", optional = true }
 
 [build-dependencies]
 embed-resource = "3.0.3"

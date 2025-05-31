@@ -1,4 +1,7 @@
 use bevy::prelude::*;
+use echos_assets::entities::TileSpriteData;
+
+use crate::view::ViewConstants;
 
 /// Component for entities that are rendered using a sprite from a tilemap
 #[derive(Component, Reflect, Default, Clone)]
@@ -20,5 +23,31 @@ impl TileSprite {
     pub fn with_tint(mut self, tint: Color) -> Self {
         self.tint = Some(tint);
         self
+    }
+}
+
+impl From<TileSpriteData> for TileSprite {
+    fn from(data: TileSpriteData) -> Self {
+        let tile_size = data
+            .tile_size
+            .map(|(w, h)| Vec2::new(w, h))
+            .unwrap_or_else(|| Vec2::splat(ViewConstants::TILE_SIZE));
+
+        let tint = data.tint.map(|(r, g, b, a)| Color::srgba(r, g, b, a));
+
+        TileSprite { tile_coords: data.tile_coords, tile_size, tint }
+    }
+}
+
+impl From<&TileSpriteData> for TileSprite {
+    fn from(data: &TileSpriteData) -> Self {
+        let tile_size = data
+            .tile_size
+            .map(|(w, h)| Vec2::new(w, h))
+            .unwrap_or_else(|| Vec2::splat(ViewConstants::TILE_SIZE));
+
+        let tint = data.tint.map(|(r, g, b, a)| Color::srgba(r, g, b, a));
+
+        TileSprite { tile_coords: data.tile_coords, tile_size, tint }
     }
 }

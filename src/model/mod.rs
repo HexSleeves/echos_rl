@@ -7,6 +7,7 @@ pub mod components;
 pub mod generation;
 pub mod resources;
 pub mod types;
+pub mod entities;
 
 mod model_constants;
 pub use self::model_constants::*;

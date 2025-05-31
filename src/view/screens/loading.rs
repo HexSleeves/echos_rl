@@ -6,9 +6,10 @@ use bevy_asset_loader::prelude::*;
 use iyes_progress::{ProgressPlugin, ProgressTracker};
 
 use crate::{
-    assets::entities::EntityDefinitions,
+    // assets::entities::EntityDefinitions,
     view::{resources::TextureAssets, screens::ScreenState},
 };
+use echos_assets::entities::EntityDefinitions;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((ProgressPlugin::<ScreenState>::new()

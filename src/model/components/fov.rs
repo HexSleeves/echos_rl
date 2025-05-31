@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use echos_assets::entities::ViewShedData;
 
 /// Add this as a component to entities that can see
 #[derive(Component, Reflect)]
@@ -12,4 +13,20 @@ impl ViewShed {
         debug_assert!(radius >= 0, "ViewShed radius must be non-negative");
         Self { radius }
     }
+}
+
+impl From<i32> for ViewShed {
+    fn from(radius: i32) -> Self { Self::new(radius) }
+}
+
+impl From<&i32> for ViewShed {
+    fn from(radius: &i32) -> Self { Self::new(*radius) }
+}
+
+impl From<ViewShedData> for ViewShed {
+    fn from(data: ViewShedData) -> Self { Self::new(data.radius) }
+}
+
+impl From<&ViewShedData> for ViewShed {
+    fn from(data: &ViewShedData) -> Self { Self::new(data.radius) }
 }
