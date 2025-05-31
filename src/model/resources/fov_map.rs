@@ -96,7 +96,7 @@ impl FovMap {
     pub fn clear_visibility(&mut self) { self.visible.fill(false); }
 
     /// Updates the FOV for an entity at the given position with the given radius
-    pub fn compute_fov(&mut self, map: &Map, origin: Position, radius: i32) {
+    pub fn compute_fov(&mut self, map: &Map, origin: Position, radius: u8) {
         self.clear_visibility();
 
         // Always mark the origin as visible
@@ -104,8 +104,8 @@ impl FovMap {
 
         // Dispatch to the appropriate algorithm
         match self.algorithm {
-            FovAlgorithm::Raycasting => self.compute_fov_raycasting(map, origin, radius),
-            FovAlgorithm::Shadowcasting => self.compute_fov_shadowcasting(map, origin, radius),
+            FovAlgorithm::Raycasting => self.compute_fov_raycasting(map, origin, radius as i32),
+            FovAlgorithm::Shadowcasting => self.compute_fov_shadowcasting(map, origin, radius as i32),
         }
     }
 }

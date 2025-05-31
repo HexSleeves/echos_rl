@@ -13,11 +13,10 @@ use brtk::prelude::BrtkPlugin;
 // New module structure
 pub mod core;
 pub mod gameplay;
-pub mod rendering;
 pub mod prelude;
+pub mod rendering;
 
 // Existing modules (to be migrated)
-pub mod assets;
 pub mod controller;
 #[cfg(feature = "dev")]
 pub mod dev;
@@ -25,6 +24,8 @@ pub mod model;
 pub mod ui;
 pub mod utils;
 pub mod view;
+
+mod log;
 
 mod app_constants;
 pub use self::app_constants::*;
@@ -44,30 +45,46 @@ enum AppSystems {
     Update,
 }
 
-fn main() {
-    let mut app = App::new();
+pub struct EchosInTheDark {
+    brt_plugin: BrtkPlugin,
+    app_settings: AppSettings,
+}
 
-    let brt_plugin = BrtkPlugin::new(
-        AppConstants::BASE,
-        AppConstants::DOMAIN,
-        AppConstants::COMPANY,
-        AppConstants::APP_NAME,
-    )
-    .with_icon(include_bytes!("../build/macos/AppIcon.iconset/icon_256x256.png"));
+impl EchosInTheDark {
+    pub fn new() -> Self {
+        let brt_plugin = BrtkPlugin::new(
+            AppConstants::BASE,
+            AppConstants::DOMAIN,
+            AppConstants::COMPANY,
+            AppConstants::APP_NAME,
+        )
+        .with_icon(include_bytes!("../build/macos/AppIcon.iconset/icon_256x256.png"));
 
-    // Load AppSettings
-    let app_settings = AppSettings::load(brt_plugin.folders(), true);
+        // Load AppSettings
+        let app_settings = AppSettings::load(brt_plugin.folders(), true);
 
-    app.add_plugins(
-        DefaultPlugins
+        Self { app_settings, brt_plugin }
+    }
+
+    fn configure_sets(self, app: &mut App) -> Self {
+        app.configure_sets(
+            Update,
+            (AppSystems::TickTimers, AppSystems::RecordInput, AppSystems::Update).chain(),
+        );
+
+        self
+    }
+
+    fn default_plugins(self, app: &mut App) -> Self {
+        let defaults = DefaultPlugins
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     title: AppConstants::APP_NAME.to_string(),
                     resolution: WindowResolution::new(
-                        app_settings.window_width(),
-                        app_settings.window_height(),
+                        self.app_settings.window_width(),
+                        self.app_settings.window_height(),
                     ),
-                    mode: if app_settings.fullscreen() {
+                    mode: if self.app_settings.fullscreen() {
                         WindowMode::BorderlessFullscreen(MonitorSelection::Current)
                     } else {
                         WindowMode::Windowed
@@ -89,33 +106,51 @@ fn main() {
                 meta_check: AssetMetaCheck::Never,
                 ..Default::default()
             })
-            .set(ImagePlugin::default_nearest()),
-    );
+            .set(ImagePlugin::default_nearest())
+            .set(log::log_plugin())
+            .build();
 
-    app
-        // Order new `AppSystems` variants by adding them here:
-        .configure_sets(Update, (AppSystems::TickTimers, AppSystems::RecordInput, AppSystems::Update).chain())
-        // Insert resources
-        .insert_resource(app_settings);
+        app.add_plugins(defaults);
 
-    #[cfg(feature = "dev")]
-    app.add_plugins(dev::plugin);
+        // #[cfg(feature = "release")]
+        // {
+        //     defaults.add_before::<bevy::asset::AssetPlugin,
+        // _>(bevy_embedded_assets::EmbeddedAssetPlugin); }
 
-    // Assign plugins
-    app.add_plugins((
-        brt_plugin,
-        core::plugin,        // New core plugin
-        assets::plugin,
-        controller::plugin,
-        model::plugin,
-        ui::plugin,
-        view::plugin,
-        // gameplay::plugin,  // Will be enabled after migration
-        // rendering::plugin, // Will be enabled after migration
-    ));
-
-    match app.run() {
-        AppExit::Success => std::process::exit(0),
-        AppExit::Error(code) => std::process::exit(code.get() as i32),
+        self
     }
+
+    fn app_plugins(self, app: &mut App) -> Self {
+        #[cfg(feature = "dev")]
+        app.add_plugins(dev::plugin);
+
+        // Assign plugins
+        app.add_plugins((
+            self.brt_plugin.clone(),
+            core::plugin, // New core plugin
+            controller::plugin,
+            model::plugin,
+            ui::plugin,
+            view::plugin,
+            // gameplay::plugin,  // Will be enabled after migration
+            // rendering::plugin, // Will be enabled after migration
+        ));
+
+        self
+    }
+
+    fn run(self, app: &mut App) {
+        app.insert_resource(self.app_settings).insert_resource(ClearColor(Color::BLACK)).run();
+    }
+}
+
+fn main() {
+    let mut app = App::new();
+
+    // Default Plugins
+    EchosInTheDark::new()
+        .default_plugins(&mut app)
+        .app_plugins(&mut app)
+        .configure_sets(&mut app)
+        .run(&mut app);
 }

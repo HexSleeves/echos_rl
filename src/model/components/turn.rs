@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use echos_assets::entities::TurnActorData;
 use std::collections::VecDeque;
 
 use crate::model::types::GameAction;
@@ -30,6 +31,18 @@ impl TurnActor {
     pub fn peak_next_action(&self) -> Option<&dyn GameAction> { self.actions.front().map(Box::as_ref) }
 
     pub fn is_alive(&self) -> bool { self.alive }
+}
+
+impl From<TurnActorData> for TurnActor {
+    fn from(data: TurnActorData) -> Self {
+        Self { speed: data.speed, alive: true, next_turn_time: 0, actions: VecDeque::new() }
+    }
+}
+
+impl From<&TurnActorData> for TurnActor {
+    fn from(data: &TurnActorData) -> Self {
+        Self { speed: data.speed, alive: true, next_turn_time: 0, actions: VecDeque::new() }
+    }
 }
 
 #[derive(Component)]

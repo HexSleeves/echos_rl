@@ -103,6 +103,7 @@ impl EntityComponents {
 
     /// Set level range
     pub fn with_level_range(mut self, min: u32, max: u32) -> Self {
+        assert!(min <= max, "Level range minimum ({}) cannot be greater than maximum ({})", min, max);
         self.level_range = Some((min, max));
         self
     }

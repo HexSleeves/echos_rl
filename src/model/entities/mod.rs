@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
+use echos_assets::entities::{EntityDefinition, EntityDefinitions};
 
 use crate::{
     model::{
@@ -12,8 +13,6 @@ use crate::{
     },
     view::components::TileSprite,
 };
-
-use super::{EntityDefinition, EntityDefinitions};
 
 /// Errors that can occur during entity spawning
 #[derive(Debug, thiserror::Error)]
@@ -88,81 +87,6 @@ pub fn spawn_random_ai_from_definition(
     spawn_entity_from_definition(commands, enemy_definition, current_map, turn_queue, Some(position))
 }
 
-// /// System to spawn enemies with AI behaviors
-// pub fn spawn_ai_enemies(
-//     mut commands: Commands,
-//     mut turn_queue: ResMut<TurnQueue>,
-//     mut current_map: ResMut<CurrentMap>,
-//     assets: Option<Res<Assets<EntityDefinition>>>,
-//     entity_definitions: Option<Res<EntityDefinitions>>,
-// ) {
-//     let Some(entity_definitions) = entity_definitions else {
-//         warn!("EntityDefinitions resource not available for AI spawning");
-//         return;
-//     };
-
-//     let Some(assets) = assets else {
-//         warn!("EntityDefinition assets not available for AI spawning");
-//         return;
-//     };
-
-//     // Spawn different types of AI enemies using simple names
-//     spawn_enemy_type(
-//         commands.reborrow(),
-//         &assets,
-//         &entity_definitions,
-//         &mut current_map,
-//         &mut turn_queue,
-//         "hostile_guard",
-//         1,
-//     );
-//     // spawn_enemy_type(commands.reborrow(), &assets, &entity_definitions, &mut current_map, &mut
-//     // turn_queue, "passive_critter", 3); spawn_enemy_type(commands, &assets,
-//     // &entity_definitions, &mut current_map, &mut turn_queue, "neutral_wanderer", 2);
-// }
-
-// fn spawn_enemy_type(
-//     mut commands: Commands,
-//     assets: &Assets<EntityDefinition>,
-//     entity_definitions: &EntityDefinitions,
-//     current_map: &mut CurrentMap,
-//     turn_queue: &mut TurnQueue,
-//     enemy_type: &str,
-//     count: usize,
-// ) {
-//     let Some(definition_handle) = entity_definitions.get_by_name(enemy_type) else {
-//         warn!("Enemy definition '{}' not found", enemy_type);
-//         return;
-//     };
-
-//     let Some(definition) = assets.get(definition_handle) else {
-//         warn!("Enemy definition asset for '{}' not loaded", enemy_type);
-//         return;
-//     };
-
-//     for _ in 0..count {
-//         if let Some(spawn_pos) = current_map.get_random_walkable_position() {
-//             // spawn_ai_entity(commands, definition, spawn_pos);
-//             match spawn_entity_from_definition(
-//                 commands.reborrow(),
-//                 definition,
-//                 current_map,
-//                 turn_queue,
-//                 Some(spawn_pos),
-//             ) {
-//                 Ok(entity) => {
-//                     info!("[Enemy] Entity {} Spawned enemy '{}' at {:?}", entity, enemy_type,
-// spawn_pos);                 }
-//                 Err(e) => {
-//                     warn!("[Enemy] Failed to spawn enemy '{}': {}", enemy_type, e);
-//                 }
-//             }
-//         } else {
-//             warn!("Could not find spawn position for {}", enemy_type);
-//         }
-//     }
-// }
-
 /// Spawn an entity from a definition with optional position override
 pub fn spawn_entity_from_definition(
     mut commands: Commands,
@@ -226,6 +150,8 @@ pub fn spawn_entity_from_definition(
     Ok(entity_id)
 }
 
+const DEFAULT_DETECTION_RANGE: u8 = 5;
+
 /// Determine AI behavior type from entity definition
 fn determine_ai_behavior_from_definition(definition: &EntityDefinition) -> AIBehavior {
     let behavior_type = match definition.name.to_lowercase().as_str() {
@@ -236,7 +162,8 @@ fn determine_ai_behavior_from_definition(definition: &EntityDefinition) -> AIBeh
     };
 
     // Determine detection range based on view shed or use default
-    let detection_range = definition.components.view_shed.as_ref().map(|vs| vs.radius).unwrap_or(5); // Default detection range
+    let detection_range =
+        definition.components.view_shed.as_ref().map(|vs| vs.radius).unwrap_or(DEFAULT_DETECTION_RANGE);
 
     // Create AIBehavior with appropriate turn tracking settings
     match behavior_type {
@@ -278,10 +205,8 @@ fn create_thinker_for_behavior(behavior_type: &AIBehaviorType) -> ThinkerBuilder
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        assets::entities::{EntityComponents, TileSpriteData, TurnActorData, ViewShedData},
-        view::ViewConstants,
-    };
+    use crate::view::ViewConstants;
+    use echos_assets::entities::{EntityComponents, TileSpriteData, TurnActorData, ViewShedData};
 
     fn create_test_player_definition() -> EntityDefinition {
         EntityDefinition {

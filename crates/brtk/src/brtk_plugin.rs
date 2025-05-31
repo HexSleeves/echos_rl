@@ -7,6 +7,7 @@ use crate::{grid::Grid, resources::Folders, systems::remove_resource};
 #[cfg(feature = "icon")]
 use crate::{resources::WindowIcon, systems::set_window_icon};
 
+#[derive(Clone)]
 pub struct BrtkPlugin {
     pub folders: Folders,
 
