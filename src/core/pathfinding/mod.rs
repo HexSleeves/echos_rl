@@ -178,12 +178,8 @@ pub fn euclidean_distance(a: Position, b: Position) -> u32 {
     (dx * dx + dy * dy).sqrt() as u32
 }
 
-/// Calculate actual distance (for heuristics)
-pub fn calculate_distance(a: Position, b: Position) -> f32 {
-    let dx = (a.x() - b.x()) as f32;
-    let dy = (a.y() - b.y()) as f32;
-    (dx * dx + dy * dy).sqrt()
-}
+// Removed the duplicate implementation of `calculate_distance`.
+// The function is now sourced from `utils.rs`.
 
 /// Get neighbors of a position
 pub fn get_neighbors(position: Position, allow_diagonal: bool) -> Vec<Position> {
