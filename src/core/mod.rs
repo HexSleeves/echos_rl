@@ -5,6 +5,7 @@ pub mod commands;
 pub mod components;
 pub mod constants;
 pub mod events;
+pub mod pathfinding;
 pub mod resources;
 pub mod states;
 pub mod systems;
