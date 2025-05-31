@@ -4,10 +4,7 @@ use once_cell::sync::Lazy;
 
 use crate::{
     core::states::GameState,
-    gameplay::{
-        player::components::AwaitingInput,
-        turns::components::TurnActor,
-    },
+    gameplay::{player::components::AwaitingInput, turns::components::TurnActor},
     model::{
         actions::Walk,
         types::{ActionType, BuildableGameAction, GameActionBuilder},
@@ -63,9 +60,7 @@ pub fn spawn_player(
     current_map: Res<crate::model::resources::CurrentMap>,
     spawn_point: Option<Res<crate::model::resources::SpawnPoint>>,
 ) {
-    use crate::{
-        model::{commands::SpawnEntityCommands, components::Position},
-    };
+    use crate::model::{commands::SpawnEntityCommands, components::Position};
 
     // Determine where to spawn the player
     let player_position = spawn_point
