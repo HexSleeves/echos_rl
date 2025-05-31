@@ -128,11 +128,11 @@ impl EchosInTheDark {
         app.add_plugins((
             self.brt_plugin.clone(),
             core::plugin, // New core plugin
+            gameplay::plugin, // New gameplay plugin
             controller::plugin,
             model::plugin,
             ui::plugin,
             view::plugin,
-            // gameplay::plugin,  // Will be enabled after migration
             // rendering::plugin, // Will be enabled after migration
         ));
 
