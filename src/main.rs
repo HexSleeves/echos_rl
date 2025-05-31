@@ -25,27 +25,15 @@ pub mod ui;
 pub mod utils;
 // pub mod view; // Deleted - migrated to rendering
 
-mod log;
-
+mod app;
+pub use self::app::*;
 mod app_constants;
 pub use self::app_constants::*;
 mod app_settings;
 pub use self::app_settings::*;
 
-/// High-level groupings of systems for the app in the `Update` schedule.
-/// When adding a new variant, make sure to order it in the `configure_sets`
-/// call above.
-#[derive(SystemSet, Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
-enum AppSystems {
-    /// Tick timers.
-    TickTimers,
-    /// Record player input.
-    RecordInput,
-    /// Do everything else (consider splitting this into further variants).
-    Update,
-}
-
 pub struct EchosInTheDark {
+    app: App,
     brt_plugin: BrtkPlugin,
     app_settings: AppSettings,
 }
@@ -56,6 +44,8 @@ impl Default for EchosInTheDark {
 
 impl EchosInTheDark {
     pub fn new() -> Self {
+        let app = App::new();
+
         let brt_plugin = BrtkPlugin::new(
             AppConstants::BASE,
             AppConstants::DOMAIN,
@@ -67,11 +57,11 @@ impl EchosInTheDark {
         // Load AppSettings
         let app_settings = AppSettings::load(brt_plugin.folders(), true);
 
-        Self { app_settings, brt_plugin }
+        Self { app, app_settings, brt_plugin }
     }
 
-    fn configure_sets(self, app: &mut App) -> Self {
-        app.configure_sets(
+    fn configure_sets(&mut self) -> &mut Self {
+        self.app.configure_sets(
             Update,
             (AppSystems::TickTimers, AppSystems::RecordInput, AppSystems::Update).chain(),
         );
@@ -79,7 +69,7 @@ impl EchosInTheDark {
         self
     }
 
-    fn default_plugins(self, app: &mut App) -> Self {
+    fn default_plugins(&mut self) -> &mut Self {
         let defaults = DefaultPlugins
             .set(WindowPlugin {
                 primary_window: Some(Window {
@@ -111,10 +101,10 @@ impl EchosInTheDark {
                 ..Default::default()
             })
             .set(ImagePlugin::default_nearest())
-            .set(log::log_plugin())
+            .set(app::log_plugin())
             .build();
 
-        app.add_plugins(defaults);
+        self.app.add_plugins(defaults);
 
         // #[cfg(feature = "release")]
         // {
@@ -124,37 +114,25 @@ impl EchosInTheDark {
         self
     }
 
-    fn app_plugins(self, app: &mut App) -> Self {
+    fn app_plugins(&mut self) -> &mut Self {
         #[cfg(feature = "dev")]
-        app.add_plugins(dev::plugin);
+        self.app.add_plugins(dev::plugin);
 
         // Assign plugins
-        app.add_plugins((
+        self.app.add_plugins((
             self.brt_plugin.clone(),
             core::plugin,      // New core plugin
             gameplay::plugin,  // New gameplay plugin
             rendering::plugin, // New rendering plugin (migrated from view)
-            // controller::plugin, // Disabled - migrated to gameplay modules
-            // model::plugin, // Disabled - migrated to core and gameplay modules
             ui::plugin,
-            // view::plugin, // Disabled - migrated to rendering
         ));
 
         self
     }
 
-    fn run(self, app: &mut App) {
-        app.insert_resource(self.app_settings).insert_resource(ClearColor(Color::BLACK)).run();
+    fn run(&mut self) {
+        self.app.insert_resource(self.app_settings.clone()).insert_resource(ClearColor(Color::BLACK)).run();
     }
 }
 
-fn main() {
-    let mut app = App::new();
-
-    // Default Plugins
-    EchosInTheDark::new()
-        .default_plugins(&mut app)
-        .app_plugins(&mut app)
-        .configure_sets(&mut app)
-        .run(&mut app);
-}
+fn main() { EchosInTheDark::new().default_plugins().app_plugins().configure_sets().run(); }

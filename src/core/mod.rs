@@ -16,6 +16,12 @@ pub fn plugin(app: &mut App) {
     // Initialize core states
     app.init_state::<states::GameState>();
 
+    // Initialize core resources
+    app.init_resource::<resources::CurrentMap>()
+        .init_resource::<resources::TurnQueue>()
+        .init_resource::<resources::FovMap>()
+        .init_resource::<resources::SpawnPoint>();
+
     // Register core components for reflection
     app.register_type::<components::Position>()
         .register_type::<components::Description>()

@@ -8,9 +8,6 @@ use crate::core::states::GameState;
 
 /// Player plugin that handles all player-related functionality
 pub fn plugin(app: &mut App) {
-    // Register player components
-    app.register_type::<components::PlayerTag>();
-
     // Add player events
     app.add_event::<events::PlayerMoved>().add_event::<events::PlayerDied>();
 

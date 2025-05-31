@@ -6,7 +6,7 @@ use crate::{
     core::{
         actions::Walk,
         components::{PlayerTag, Position},
-        resources::{CurrentMap, FovMap},
+        resources::{CurrentMap, FovMap, TurnQueue},
         types::{BuildableGameAction, GameActionBuilder},
     },
     gameplay::{
@@ -14,7 +14,7 @@ use crate::{
             AIAction, AIBehavior, AIBehaviorType, AIState, ChasePlayerAction, ChasePlayerScorer,
             FleeFromPlayerAction, FleeFromPlayerScorer, IdleAction, WanderAction, WanderScorer,
         },
-        turns::{components::TurnActor, resources::TurnQueue},
+        turns::components::TurnActor,
     },
 };
 

@@ -16,7 +16,7 @@ pub fn plugin(app: &mut App) {
     app.init_resource::<resources::TileMap>();
 
     // Register rendering components for reflection
-    app.register_type::<components::TileSprite>().register_type::<components::ViewShed>();
+    app.register_type::<components::TileSprite>();
 
     // Add rendering systems
     app.add_systems(Update, systems::camera_movement);

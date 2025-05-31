@@ -86,10 +86,6 @@ impl AIBehavior {
     }
 }
 
-/// Component that marks an entity as AI-controlled
-#[derive(Component, Debug)]
-pub struct AITag;
-
 // ============================================================================
 // BIG-BRAIN SCORERS (How the AI evaluates what to do)
 // ============================================================================
