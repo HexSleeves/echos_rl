@@ -3,8 +3,8 @@ use std::{cmp::Reverse, collections::BinaryHeap};
 use bevy::prelude::*;
 
 use crate::{
+    core::components::DeadTag,
     gameplay::turns::components::TurnActor,
-    model::components::DeadTag,
 };
 
 /// Resource that manages the turn-based queue system
