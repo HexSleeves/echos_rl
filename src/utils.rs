@@ -44,8 +44,8 @@ pub fn positions_in_radius(center: Position, radius: u32) -> Vec<Position> {
                 continue; // Skip center
             }
 
-            let distance = ((dx * dx + dy * dy) as f32).sqrt();
-            if distance <= radius as f32 {
+            let squared_distance = dx * dx + dy * dy;
+            if squared_distance <= (radius * radius) {
                 positions.push(Position::new(center.x() + dx, center.y() + dy));
             }
         }
