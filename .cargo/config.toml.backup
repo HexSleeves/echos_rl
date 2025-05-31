@@ -1,9 +1,11 @@
 [target.x86_64-unknown-linux-gnu]
-linker = "gcc"
+linker = "clang"
 rustflags = [
     # LLD linker
+    # "-Clink-arg=-fuse-ld=lld",
 
     # Mold linker
+    "-Clink-arg=-fuse-ld=/usr/bin/mold",
 
     # Nightly
     "-Zshare-generics=y",
@@ -20,6 +22,7 @@ rustflags = [
     #
     # Brew: `brew install llvm`
     # Manually: <https://lld.llvm.org/MachO/index.html>
+    # "-Clink-arg=-fuse-ld=/usr/local/opt/llvm/bin/ld64.lld",
 
     # Nightly
     "-Zshare-generics=y",
@@ -36,6 +39,7 @@ rustflags = [
     #
     # Brew: `brew install llvm`
     # Manually: <https://lld.llvm.org/MachO/index.html>
+    # "-Clink-arg=-fuse-ld=/opt/homebrew/opt/llvm/bin/ld64.lld",
 
     # Nightly
     "-Zshare-generics=y",
