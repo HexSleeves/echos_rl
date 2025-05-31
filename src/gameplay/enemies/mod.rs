@@ -6,6 +6,10 @@ pub mod ai;
 
 /// Enemies plugin that handles all enemy/AI functionality
 pub fn plugin(app: &mut App) {
-    // Enemy systems will be migrated here
-    // app.add_plugins(ai::plugin);
+    // Register AI components for reflection
+    app.register_type::<components::AIBehavior>()
+        .register_type::<components::AIState>();
+
+    // Add AI plugin
+    app.add_plugins(ai::plugin);
 }

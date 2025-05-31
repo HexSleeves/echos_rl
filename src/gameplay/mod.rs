@@ -9,7 +9,7 @@ pub mod world;
 pub fn plugin(app: &mut App) {
     app.add_plugins((
         player::plugin,
-        enemies::plugin,
+        enemies::plugin,  // Now includes AI systems
         turns::plugin,
         world::plugin,
     ));
