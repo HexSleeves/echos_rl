@@ -2,7 +2,7 @@ use std::{cmp::Reverse, collections::BinaryHeap};
 
 use bevy::prelude::*;
 
-use crate::model::components::{DeadTag, TurnActor};
+use crate::{core::components::DeadTag, gameplay::turns::components::TurnActor};
 
 #[derive(Resource, Default)]
 pub struct TurnQueue {
@@ -22,6 +22,8 @@ impl TurnQueue {
 
     /// Check if the turn queue is empty
     pub fn is_empty(&self) -> bool { self.turn_queue.is_empty() }
+
+    pub fn schedule_now(&mut self, entity: Entity) { self.schedule_turn(entity, 0); }
 
     /// Add actor to the queue with wrapping time calculation
     pub fn schedule_turn(&mut self, entity: Entity, next_time: u64) {

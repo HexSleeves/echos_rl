@@ -2,10 +2,7 @@ use std::{cmp::Reverse, collections::BinaryHeap};
 
 use bevy::prelude::*;
 
-use crate::{
-    core::components::DeadTag,
-    gameplay::turns::components::TurnActor,
-};
+use crate::{core::components::DeadTag, gameplay::turns::components::TurnActor};
 
 /// Resource that manages the turn-based queue system
 #[derive(Resource, Default)]
@@ -25,9 +22,7 @@ impl TurnQueue {
     }
 
     /// Check if the turn queue is empty
-    pub fn is_empty(&self) -> bool {
-        self.turn_queue.is_empty()
-    }
+    pub fn is_empty(&self) -> bool { self.turn_queue.is_empty() }
 
     /// Add actor to the queue with wrapping time calculation
     pub fn schedule_turn(&mut self, entity: Entity, next_time: u64) {
@@ -46,9 +41,7 @@ impl TurnQueue {
     }
 
     // Get current time
-    pub fn current_time(&self) -> u64 {
-        self.current_time
-    }
+    pub fn current_time(&self) -> u64 { self.current_time }
 
     // Peek at next actor without removing
     pub fn peek_next(&self) -> Option<(Entity, u64)> {
@@ -61,9 +54,7 @@ impl TurnQueue {
     }
 
     // Properly handle time comparison with wrapping
-    pub fn time_until(&self, time: u64) -> u64 {
-        time.wrapping_sub(self.current_time)
-    }
+    pub fn time_until(&self, time: u64) -> u64 { time.wrapping_sub(self.current_time) }
 
     // Compare two times accounting for wrapping
     pub fn is_before(&self, time_a: u64, time_b: u64) -> bool {

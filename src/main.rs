@@ -17,13 +17,13 @@ pub mod prelude;
 pub mod rendering;
 
 // Existing modules (to be migrated)
-pub mod controller;
+// pub mod controller; // Deleted - migrated to gameplay modules
 #[cfg(feature = "dev")]
 pub mod dev;
-pub mod model;
+// pub mod model; // Deleted - migrated to core and gameplay modules
 pub mod ui;
 pub mod utils;
-pub mod view;
+// pub mod view; // Deleted - migrated to rendering
 
 mod log;
 
@@ -48,6 +48,10 @@ enum AppSystems {
 pub struct EchosInTheDark {
     brt_plugin: BrtkPlugin,
     app_settings: AppSettings,
+}
+
+impl Default for EchosInTheDark {
+    fn default() -> Self { Self::new() }
 }
 
 impl EchosInTheDark {
@@ -127,11 +131,11 @@ impl EchosInTheDark {
         // Assign plugins
         app.add_plugins((
             self.brt_plugin.clone(),
-            core::plugin, // New core plugin
-            gameplay::plugin, // New gameplay plugin
+            core::plugin,      // New core plugin
+            gameplay::plugin,  // New gameplay plugin
             rendering::plugin, // New rendering plugin (migrated from view)
-            controller::plugin,
-            model::plugin,
+            // controller::plugin, // Disabled - migrated to gameplay modules
+            // model::plugin, // Disabled - migrated to core and gameplay modules
             ui::plugin,
             // view::plugin, // Disabled - migrated to rendering
         ));

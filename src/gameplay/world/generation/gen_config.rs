@@ -2,9 +2,9 @@ use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use brtk::grid::Grid;
 
-use crate::model::{
-    ModelConstants,
-    components::{Description, TerrainType, UndergroundType},
+use crate::{
+    core::{components::Description, constants::ModelConstants},
+    gameplay::world::components::{TerrainType, UndergroundType},
 };
 
 use super::Room;

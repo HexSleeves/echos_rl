@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::model::{ModelConstants, resources::Map};
+use crate::core::{constants::ModelConstants, resources::Map};
 
 #[derive(Resource, Reflect, Deref, DerefMut)]
 #[reflect(Resource)]

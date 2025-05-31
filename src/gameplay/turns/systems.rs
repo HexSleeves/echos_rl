@@ -1,12 +1,11 @@
 use bevy::{ecs::system::SystemState, prelude::*};
 
 use crate::{
-    core::states::GameState,
+    core::{components::PlayerTag, states::GameState},
     gameplay::{
         player::components::AwaitingInput,
         turns::{components::TurnActor, resources::TurnQueue},
     },
-    model::components::PlayerTag,
 };
 
 /// System that processes turns in the turn queue

@@ -1740,6 +1740,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "directories",
+ "fastrand",
  "image",
  "rand 0.9.1",
  "rand_pcg",

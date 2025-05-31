@@ -16,6 +16,7 @@ thiserror = { workspace = true } # This library provides a convenient derive mac
 # Randomness
 rand_pcg = { version = "0.9.0", features = ["serde"] } # Selected PCG random number generators
 rand = { workspace = true } # Random number generators and other randomness functionality.
+fastrand = { workspace = true } # Fast, small, non-cryptographic random number generator
 regex = { workspace = true } # An implementation of regular expressions for Rust.
 serde = { workspace = true } # A generic serialization/deserialization framework
 

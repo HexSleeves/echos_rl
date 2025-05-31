@@ -1,5 +1,5 @@
 mod action;
 pub use action::*;
 
-mod error;
+pub mod error;
 pub use error::*;

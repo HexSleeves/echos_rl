@@ -153,10 +153,6 @@ pub struct AIState {
 
 impl Default for AIState {
     fn default() -> Self {
-        Self {
-            current_action: AIAction::Idle,
-            target_position: None,
-            last_action_time: 0.0
-        }
+        Self { current_action: AIAction::Idle, target_position: None, last_action_time: 0.0 }
     }
 }

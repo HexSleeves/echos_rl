@@ -3,24 +3,61 @@ use brtk::prelude::Direction;
 use once_cell::sync::Lazy;
 
 use crate::{
-    core::states::GameState,
-    gameplay::{player::components::AwaitingInput, turns::components::TurnActor},
     core::{
         actions::Walk,
+        states::GameState,
         types::{ActionType, BuildableGameAction, GameActionBuilder},
     },
+    gameplay::{player::components::AwaitingInput, turns::components::TurnActor},
 };
 
-// Define action keys for player input
-static ACTION_KEYS: Lazy<HashMap<ActionType, Vec<KeyCode>>> = Lazy::new(|| {
-    HashMap::from([
-        (ActionType::Move(Direction::NORTH), vec![KeyCode::KeyW, KeyCode::ArrowUp]),
-        (ActionType::Move(Direction::SOUTH), vec![KeyCode::KeyS, KeyCode::ArrowDown]),
-        (ActionType::Move(Direction::WEST), vec![KeyCode::KeyA, KeyCode::ArrowLeft]),
-        (ActionType::Move(Direction::EAST), vec![KeyCode::KeyD, KeyCode::ArrowRight]),
-        (ActionType::Wait, vec![KeyCode::Space, KeyCode::Period]),
-    ])
-});
+// Old player input system - replaced by migrated version below
+
+/// System that spawns the player entity
+pub fn spawn_player(
+    mut commands: Commands,
+    current_map: Res<crate::core::resources::CurrentMap>,
+    spawn_point: Option<Res<crate::core::resources::SpawnPoint>>,
+) {
+    use crate::core::{commands::SpawnEntityCommands, components::Position};
+
+    // Determine where to spawn the player
+    let player_position = spawn_point
+        .and_then(|sp| sp.player_spawn)
+        .or_else(|| current_map.get_random_walkable_position())
+        .unwrap_or_else(|| {
+            warn!("No valid spawn point found, using default position");
+            Position::new(0, 0)
+        });
+
+    // Use the command-based spawning
+    commands.spawn_player(player_position);
+
+    info!("Queued player spawn at {:?}", player_position);
+}
+
+// ============================================================================
+// INPUT SYSTEMS
+// ============================================================================
+
+#[macro_export]
+macro_rules! action_keys {
+    ($(($action:expr, [$($key:expr),*])),*) => {
+        Lazy::new(|| {
+            HashMap::from([
+                $(($action, vec![$($key),*])),*
+            ])
+        })
+    }
+}
+
+static ACTION_KEYS: Lazy<HashMap<ActionType, Vec<KeyCode>>> = action_keys![
+    (ActionType::Move(Direction::NORTH), [KeyCode::KeyW, KeyCode::ArrowUp]),
+    (ActionType::Move(Direction::SOUTH), [KeyCode::KeyS, KeyCode::ArrowDown]),
+    (ActionType::Move(Direction::WEST), [KeyCode::KeyA, KeyCode::ArrowLeft]),
+    (ActionType::Move(Direction::EAST), [KeyCode::KeyD, KeyCode::ArrowRight]),
+    (ActionType::Wait, [KeyCode::Space, KeyCode::Period])
+];
 
 /// System that handles player input and converts it into game actions
 pub fn player_input_system(
@@ -52,27 +89,4 @@ pub fn player_input_system(
             next_state.set(GameState::ProcessTurns);
         }
     }
-}
-
-/// System that spawns the player entity
-pub fn spawn_player(
-    mut commands: Commands,
-    current_map: Res<crate::model::resources::CurrentMap>,
-    spawn_point: Option<Res<crate::model::resources::SpawnPoint>>,
-) {
-    use crate::model::{commands::SpawnEntityCommands, components::Position};
-
-    // Determine where to spawn the player
-    let player_position = spawn_point
-        .and_then(|sp| sp.player_spawn)
-        .or_else(|| current_map.get_random_walkable_position())
-        .unwrap_or_else(|| {
-            warn!("No valid spawn point found, using default position");
-            Position::new(0, 0)
-        });
-
-    // Use the command-based spawning
-    commands.spawn_player(player_position);
-
-    info!("Queued player spawn at {:?}", player_position);
 }

@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 
 pub mod components;
-pub mod systems;
+pub mod constants;
 pub mod resources;
 pub mod screens;
-pub mod constants;
+pub mod systems;
 
 pub use constants::RenderingConstants;
 
@@ -16,6 +16,8 @@ pub fn plugin(app: &mut App) {
     app.init_resource::<resources::TileMap>();
 
     // Register rendering components for reflection
-    app.register_type::<components::TileSprite>()
-        .register_type::<components::ViewShed>();
+    app.register_type::<components::TileSprite>().register_type::<components::ViewShed>();
+
+    // Add rendering systems
+    app.add_systems(Update, systems::camera_movement);
 }

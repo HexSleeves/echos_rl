@@ -1,7 +1,7 @@
 use bevy::{platform::collections::HashMap, prelude::*};
 use bitvec::prelude::*;
 
-use crate::model::{ModelConstants, components::Position, resources::Map};
+use crate::core::{components::Position, constants::ModelConstants, resources::Map};
 
 /// FOV algorithm selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -414,7 +414,7 @@ impl FovMap {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{components::TerrainType, resources::Map};
+    use crate::{core::resources::Map, gameplay::world::components::TerrainType};
     use std::time::Instant;
 
     fn create_test_map(width: usize, height: usize) -> Map {

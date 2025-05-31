@@ -1,10 +1,7 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
-use crate::{
-    core::states::GameState,
-    gameplay::enemies::systems,
-};
+use crate::{core::states::GameState, gameplay::enemies::systems};
 
 /// AI plugin that handles big-brain AI behavior
 pub fn plugin(app: &mut App) {

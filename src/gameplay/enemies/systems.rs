@@ -3,6 +3,12 @@ use big_brain::prelude::*;
 use brtk::prelude::Direction;
 
 use crate::{
+    core::{
+        actions::Walk,
+        components::{PlayerTag, Position},
+        resources::{CurrentMap, FovMap},
+        types::{BuildableGameAction, GameActionBuilder},
+    },
     gameplay::{
         enemies::components::{
             AIAction, AIBehavior, AIBehaviorType, AIState, ChasePlayerAction, ChasePlayerScorer,
@@ -10,12 +16,6 @@ use crate::{
         },
         turns::{components::TurnActor, resources::TurnQueue},
     },
-    core::{
-        actions::Walk,
-        components::{PlayerTag, Position},
-        types::{BuildableGameAction, GameActionBuilder},
-    },
-    model::resources::{CurrentMap, FovMap},
 };
 
 // ============================================================================
@@ -31,6 +31,7 @@ pub fn chase_player_scorer_system(
     mut ai_query: Query<(&Position, &mut AIBehavior, &TurnActor)>,
 ) {
     let Ok(player_pos) = player_query.single() else {
+        // No player found or multiple players - skip AI processing
         return;
     };
 
@@ -88,6 +89,7 @@ pub fn flee_from_player_scorer_system(
     ai_query: Query<(&Position, &AIBehavior, &TurnActor)>,
 ) {
     let Ok(player_pos) = player_query.single() else {
+        // No player found or multiple players - skip AI processing
         return;
     };
 
@@ -176,6 +178,7 @@ pub fn chase_player_action_system(
     mut ai_query: Query<(&Position, &mut TurnActor, &mut AIState)>,
 ) {
     let Ok(player_pos) = player_query.single() else {
+        // No player found or multiple players - skip AI processing
         return;
     };
 
@@ -255,6 +258,7 @@ pub fn flee_from_player_action_system(
     mut ai_query: Query<(&Position, &mut TurnActor, &mut AIState)>,
 ) {
     let Ok(player_pos) = player_query.single() else {
+        // No player found or multiple players - skip AI processing
         return;
     };
 
@@ -407,8 +411,10 @@ fn calculate_direction_to_target(from: Position, to: Position) -> Option<Directi
     // Prioritize the axis with the larger difference
     if diff.x.abs() > diff.y.abs() {
         if diff.x > 0 { Some(Direction::EAST) } else { Some(Direction::WEST) }
+    } else if diff.y > 0 {
+        Some(Direction::SOUTH)
     } else {
-        if diff.y > 0 { Some(Direction::SOUTH) } else { Some(Direction::NORTH) }
+        Some(Direction::NORTH)
     }
 }
 
@@ -425,8 +431,10 @@ fn calculate_direction_away_from_target(from: Position, away_from: Position) -> 
     // Prioritize the axis with the larger difference
     if diff.x.abs() > diff.y.abs() {
         if diff.x > 0 { Some(Direction::EAST) } else { Some(Direction::WEST) }
+    } else if diff.y > 0 {
+        Some(Direction::SOUTH)
     } else {
-        if diff.y > 0 { Some(Direction::SOUTH) } else { Some(Direction::NORTH) }
+        Some(Direction::NORTH)
     }
 }
 

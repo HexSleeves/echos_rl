@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use crate::core::components::{Description, Position};
+use bevy::prelude::*;
 
 /// Component that marks an entity as the player
 #[derive(Component, Reflect, Default)]

@@ -2,13 +2,13 @@ use bevy::{ecs::system::SystemState, prelude::*};
 use brtk::prelude::Direction;
 
 use crate::{
-    impl_debug_with_field, impl_game_action,
     core::{
         components::Position,
+        resources::CurrentMap,
         types::{GameAction, GameError},
     },
     gameplay::world::components::TerrainType,
-    model::resources::CurrentMap,
+    impl_debug_with_field, impl_game_action,
 };
 
 #[derive(Default)]

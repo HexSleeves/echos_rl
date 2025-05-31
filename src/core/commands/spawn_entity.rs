@@ -1,10 +1,14 @@
 use bevy::prelude::*;
 use echos_assets::entities::{EntityDefinition, EntityDefinitions};
 
-use crate::model::{
-    components::Position,
-    entities::{spawn_ai_from_definition, spawn_player_from_definition, spawn_random_ai_from_definition},
-    resources::{CurrentMap, TurnQueue},
+use crate::{
+    core::{
+        components::Position,
+        resources::{CurrentMap, TurnQueue},
+    },
+    gameplay::world::spawning::{
+        spawn_ai_from_definition, spawn_player_from_definition, spawn_random_ai_from_definition,
+    },
 };
 
 /// Entity command for spawning a player
@@ -62,7 +66,7 @@ pub fn process_spawn_commands(
     // Process enemy spawn commands
     for (entity, spawn_cmd) in ai_commands.iter() {
         if let (Some(entity_definitions), Some(assets)) = (entity_definitions.as_ref(), assets.as_ref()) {
-            let spawn_result = match &spawn_cmd.ai_name {
+            let spawn_result: Result<Entity, String> = match &spawn_cmd.ai_name {
                 Some(name) => {
                     // Spawn specific enemy by name
                     spawn_ai_from_definition(
