@@ -3,12 +3,12 @@ use bevy_ecs_tilemap::prelude::*;
 
 use crate::{
     core::components::Position,
-    model::{
-        ModelConstants,
+    core::{
         commands::SpawnEntityCommands,
-        generation::GenConfig,
+        constants::ModelConstants,
         resources::{CurrentMap, SpawnPoint},
     },
+    gameplay::world::generation::GenConfig,
     rendering::resources::TextureAssets,
 };
 

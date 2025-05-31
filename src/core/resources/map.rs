@@ -2,9 +2,9 @@ use bevy::{platform::collections::HashMap, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 use brtk::prelude::*;
 
-use crate::model::{
-    ModelConstants,
-    components::{Position, TerrainType},
+use crate::{
+    core::{components::Position, constants::ModelConstants},
+    gameplay::world::components::TerrainType,
 };
 
 /// Represents a single tile in the map with all its properties

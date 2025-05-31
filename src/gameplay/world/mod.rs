@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
 pub mod components;
-pub mod systems;
 pub mod generation;
+pub mod systems;
 
 /// World plugin that handles map generation and world management
 pub fn plugin(app: &mut App) {

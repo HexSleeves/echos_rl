@@ -15,7 +15,7 @@ use crate::{
         components::{PlayerTag, Position},
         types::{BuildableGameAction, GameActionBuilder},
     },
-    model::resources::{CurrentMap, FovMap},
+    core::resources::{CurrentMap, FovMap},
 };
 
 // ============================================================================

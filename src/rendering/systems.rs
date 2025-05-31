@@ -2,10 +2,10 @@ use bevy::prelude::*;
 use bevy_ecs_tilemap::tiles::{TileColor, TilePos};
 
 use crate::{
-    model::{
+    core::{
         components::{AITag, PlayerTag, Position},
+        constants::ModelConstants,
         resources::FovMap,
-        ModelConstants,
     },
     rendering::{
         components::TileSprite,
@@ -251,9 +251,9 @@ pub fn camera_movement(
             // Convert tile position to world coordinates (same calculation as
             // position_to_transform)
             let target_x = player_position.x() as f32 * RenderingConstants::TILE_SIZE
-                - (crate::model::ModelConstants::MAP_WIDTH as f32 * RenderingConstants::HALF_TILE_SIZE);
+                - (ModelConstants::MAP_WIDTH as f32 * RenderingConstants::HALF_TILE_SIZE);
             let target_y = player_position.y() as f32 * RenderingConstants::TILE_SIZE
-                - (crate::model::ModelConstants::MAP_HEIGHT as f32 * RenderingConstants::HALF_TILE_SIZE);
+                - (ModelConstants::MAP_HEIGHT as f32 * RenderingConstants::HALF_TILE_SIZE);
 
             let target_position = Vec3::new(target_x, target_y, camera_transform.translation.z);
 

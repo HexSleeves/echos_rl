@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 
-use crate::model::resources::Map;
+use crate::core::resources::Map;
 
 /// Fill a tilemap with tiles based on a level
 pub fn fill_tilemap(

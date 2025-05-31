@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use crate::{
     core::components::DeadTag,
-    model::components::TurnActor,
+    gameplay::turns::components::TurnActor,
 };
 
 #[derive(Resource, Default)]

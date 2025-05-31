@@ -3,7 +3,7 @@ use bitvec::prelude::*;
 
 use crate::{
     core::components::Position,
-    model::{ModelConstants, resources::Map},
+    core::{constants::ModelConstants, resources::Map},
 };
 
 /// FOV algorithm selection

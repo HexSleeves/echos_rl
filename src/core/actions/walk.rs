@@ -7,8 +7,8 @@ use crate::{
         components::Position,
         types::{GameAction, GameError},
     },
+    core::resources::CurrentMap,
     gameplay::world::components::TerrainType,
-    model::resources::CurrentMap,
 };
 
 #[derive(Default)]

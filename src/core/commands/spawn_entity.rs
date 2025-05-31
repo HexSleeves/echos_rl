@@ -1,10 +1,9 @@
 use bevy::prelude::*;
 use echos_assets::entities::{EntityDefinition, EntityDefinitions};
 
-use crate::model::{
-    components::Position,
-    entities::{spawn_ai_from_definition, spawn_player_from_definition, spawn_random_ai_from_definition},
-    resources::{CurrentMap, TurnQueue},
+use crate::{
+    core::{components::Position, resources::{CurrentMap, TurnQueue}},
+    // model::entities::{spawn_ai_from_definition, spawn_player_from_definition, spawn_random_ai_from_definition}, // TODO: Migrate entities
 };
 
 /// Entity command for spawning a player
@@ -33,7 +32,9 @@ pub fn process_spawn_commands(
     // Process player spawn commands
     for (entity, spawn_cmd) in player_commands.iter() {
         if let (Some(entity_definitions), Some(assets)) = (entity_definitions.as_ref(), assets.as_ref()) {
-            match spawn_player_from_definition(
+            // TODO: Migrate entity spawning functions
+            warn!("Player spawning temporarily disabled during migration");
+            /*match spawn_player_from_definition(
                 commands.reborrow(),
                 entity_definitions,
                 assets,
@@ -50,7 +51,7 @@ pub fn process_spawn_commands(
                 Err(e) => {
                     warn!("Failed to spawn player from definition: {}. Skipping player spawn.", e);
                 }
-            }
+            }*/
         } else {
             warn!("Entity definitions not available, cannot spawn player");
         }
@@ -62,10 +63,12 @@ pub fn process_spawn_commands(
     // Process enemy spawn commands
     for (entity, spawn_cmd) in ai_commands.iter() {
         if let (Some(entity_definitions), Some(assets)) = (entity_definitions.as_ref(), assets.as_ref()) {
-            let spawn_result = match &spawn_cmd.ai_name {
+            let spawn_result: Result<Entity, String> = match &spawn_cmd.ai_name {
                 Some(name) => {
                     // Spawn specific enemy by name
-                    spawn_ai_from_definition(
+                    // TODO: Migrate AI spawning
+                    warn!("AI spawning temporarily disabled during migration");
+                    /*spawn_ai_from_definition(
                         commands.reborrow(),
                         entity_definitions,
                         assets,
@@ -73,18 +76,22 @@ pub fn process_spawn_commands(
                         spawn_cmd.position,
                         &mut current_map,
                         &mut turn_queue,
-                    )
+                    )*/
+                    Ok(Entity::PLACEHOLDER)
                 }
                 None => {
                     // Spawn random enemy
-                    spawn_random_ai_from_definition(
+                    // TODO: Migrate random AI spawning
+                    warn!("Random AI spawning temporarily disabled during migration");
+                    Ok(Entity::PLACEHOLDER)
+                    /*spawn_random_ai_from_definition(
                         commands.reborrow(),
                         entity_definitions,
                         assets,
                         spawn_cmd.position,
                         &mut current_map,
                         &mut turn_queue,
-                    )
+                    )*/
                 }
             };
 

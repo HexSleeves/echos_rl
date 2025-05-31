@@ -16,12 +16,11 @@ use crate::{
 /// System that spawns the player entity
 pub fn spawn_player(
     mut commands: Commands,
-    current_map: Res<crate::model::resources::CurrentMap>,
-    spawn_point: Option<Res<crate::model::resources::SpawnPoint>>,
+    current_map: Res<crate::core::resources::CurrentMap>,
+    spawn_point: Option<Res<crate::core::resources::SpawnPoint>>,
 ) {
     use crate::{
-        core::components::Position,
-        model::commands::SpawnEntityCommands,
+        core::{components::Position, commands::SpawnEntityCommands},
     };
 
     // Determine where to spawn the player
