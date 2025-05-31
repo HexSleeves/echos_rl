@@ -411,7 +411,11 @@ fn calculate_direction_to_target(from: Position, to: Position) -> Option<Directi
     // Prioritize the axis with the larger difference
     if diff.x.abs() > diff.y.abs() {
         if diff.x > 0 { Some(Direction::EAST) } else { Some(Direction::WEST) }
-    } else if diff.y > 0 { Some(Direction::SOUTH) } else { Some(Direction::NORTH) }
+    } else if diff.y > 0 {
+        Some(Direction::SOUTH)
+    } else {
+        Some(Direction::NORTH)
+    }
 }
 
 /// Calculate the direction to move away from a target
@@ -427,7 +431,11 @@ fn calculate_direction_away_from_target(from: Position, away_from: Position) -> 
     // Prioritize the axis with the larger difference
     if diff.x.abs() > diff.y.abs() {
         if diff.x > 0 { Some(Direction::EAST) } else { Some(Direction::WEST) }
-    } else if diff.y > 0 { Some(Direction::SOUTH) } else { Some(Direction::NORTH) }
+    } else if diff.y > 0 {
+        Some(Direction::SOUTH)
+    } else {
+        Some(Direction::NORTH)
+    }
 }
 
 /// Find an alternative direction when the direct path is blocked

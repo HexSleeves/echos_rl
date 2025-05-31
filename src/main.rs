@@ -51,9 +51,7 @@ pub struct EchosInTheDark {
 }
 
 impl Default for EchosInTheDark {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 impl EchosInTheDark {

@@ -414,10 +414,7 @@ impl FovMap {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        core::resources::Map,
-        gameplay::world::components::TerrainType,
-    };
+    use crate::{core::resources::Map, gameplay::world::components::TerrainType};
     use std::time::Instant;
 
     fn create_test_map(width: usize, height: usize) -> Map {
