@@ -14,6 +14,17 @@ use crate::{
     rendering::components::TileSprite,
 };
 
+/// Configuration for entity-specific components and defaults
+struct EntitySpawnConfig {
+    default_view_radius: i32,
+    default_turn_speed: u64,
+}
+
+impl EntitySpawnConfig {
+    fn player() -> Self { Self { default_view_radius: 8, default_turn_speed: 100 } }
+    fn ai() -> Self { Self { default_view_radius: 6, default_turn_speed: 100 } }
+}
+
 /// Spawn a player entity from definition data
 pub fn spawn_player_from_definition(
     mut commands: Commands,
@@ -29,37 +40,14 @@ pub fn spawn_player_from_definition(
     let mut entity_commands =
         commands.spawn((position, PlayerTag, AwaitingInput, Description::new(&definition.name)));
 
-    // Add components based on definition
-    if let Some(turn_data) = &definition.components.turn_actor {
-        entity_commands.insert(TurnActor::new(turn_data.speed));
-    } else {
-        entity_commands.insert(TurnActor::new(100)); // Default speed
-    }
-
-    if let Some(view_data) = &definition.components.view_shed {
-        entity_commands.insert(ViewShed::new(view_data.radius as i32));
-    } else {
-        entity_commands.insert(ViewShed::new(8)); // Default radius
-    }
-
-    if let Some(sprite_data) = &definition.components.tile_sprite {
-        entity_commands.insert(TileSprite {
-            tile_coords: sprite_data.tile_coords,
-            tile_size: sprite_data.tile_size.unwrap_or((12.0, 12.0)).into(),
-            ..Default::default()
-        });
-    }
+    // Add common components using helper function
+    let config = EntitySpawnConfig::player();
+    add_common_components(&mut entity_commands, definition, &config);
 
     let player_id = entity_commands.id();
 
-    // Add to turn queue (schedule first turn immediately)
-    turn_queue.schedule_turn(player_id, 0);
-
-    // Update map with player position
-    current_map.place_actor(position, player_id).map_err(|e| format!("Failed to place player: {e}"))?;
-
-    info!("Spawned player '{}' at {:?}", definition.name, position);
-    Ok(player_id)
+    // Finalize spawn using helper function
+    finalize_entity_spawn(player_id, position, "player", &definition.name, current_map, turn_queue)
 }
 
 /// Spawn a specific AI entity from definition data
@@ -76,8 +64,7 @@ pub fn spawn_ai_from_definition(
         .get_by_name(ai_name)
         .ok_or_else(|| format!("AI definition '{ai_name}' not found"))?;
 
-    let definition =
-        assets.get(ai_handle).ok_or_else(|| format!("AI definition '{ai_name}' not loaded"))?;
+    let definition = assets.get(ai_handle).ok_or_else(|| format!("AI definition '{ai_name}' not loaded"))?;
 
     spawn_ai_entity(commands, definition, position, current_map, turn_queue)
 }
@@ -114,19 +101,37 @@ fn spawn_ai_entity(
         AIState::default(),
     ));
 
-    // Add components based on definition
+    // Add common components using helper function
+    let config = EntitySpawnConfig::ai();
+    add_common_components(&mut entity_commands, definition, &config);
+
+    let ai_id = entity_commands.id();
+
+    // Finalize spawn using helper function
+    finalize_entity_spawn(ai_id, position, "AI", &definition.name, current_map, turn_queue)
+}
+
+/// Helper function to add common components from entity definition
+fn add_common_components(
+    entity_commands: &mut EntityCommands,
+    definition: &EntityDefinition,
+    config: &EntitySpawnConfig,
+) {
+    // Add TurnActor component
     if let Some(turn_data) = &definition.components.turn_actor {
         entity_commands.insert(TurnActor::new(turn_data.speed));
     } else {
-        entity_commands.insert(TurnActor::new(100)); // Default speed
+        entity_commands.insert(TurnActor::new(config.default_turn_speed));
     }
 
+    // Add ViewShed component
     if let Some(view_data) = &definition.components.view_shed {
         entity_commands.insert(ViewShed::new(view_data.radius as i32));
     } else {
-        entity_commands.insert(ViewShed::new(6)); // Default AI radius
+        entity_commands.insert(ViewShed::new(config.default_view_radius));
     }
 
+    // Add TileSprite component
     if let Some(sprite_data) = &definition.components.tile_sprite {
         entity_commands.insert(TileSprite {
             tile_coords: sprite_data.tile_coords,
@@ -134,15 +139,25 @@ fn spawn_ai_entity(
             ..Default::default()
         });
     }
+}
 
-    let ai_id = entity_commands.id();
-
+/// Helper function to handle turn queue scheduling and map placement
+fn finalize_entity_spawn(
+    entity_id: Entity,
+    position: Position,
+    entity_type: &str,
+    entity_name: &str,
+    current_map: &mut CurrentMap,
+    turn_queue: &mut TurnQueue,
+) -> Result<Entity, String> {
     // Add to turn queue (schedule first turn immediately)
-    turn_queue.schedule_turn(ai_id, 0);
+    turn_queue.schedule_now(entity_id);
 
-    // Update map with AI position
-    current_map.place_actor(position, ai_id).map_err(|e| format!("Failed to place AI: {e}"))?;
+    // Update map with entity position
+    current_map
+        .place_actor(position, entity_id)
+        .map_err(|e| format!("Failed to place {}: {e}", entity_type))?;
 
-    info!("Spawned AI '{}' at {:?}", definition.name, position);
-    Ok(ai_id)
+    info!("Spawned {} '{}' at {:?}", entity_type, entity_name, position);
+    Ok(entity_id)
 }

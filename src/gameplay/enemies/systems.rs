@@ -31,6 +31,7 @@ pub fn chase_player_scorer_system(
     mut ai_query: Query<(&Position, &mut AIBehavior, &TurnActor)>,
 ) {
     let Ok(player_pos) = player_query.single() else {
+        // No player found or multiple players - skip AI processing
         return;
     };
 
@@ -88,6 +89,7 @@ pub fn flee_from_player_scorer_system(
     ai_query: Query<(&Position, &AIBehavior, &TurnActor)>,
 ) {
     let Ok(player_pos) = player_query.single() else {
+        // No player found or multiple players - skip AI processing
         return;
     };
 
@@ -176,6 +178,7 @@ pub fn chase_player_action_system(
     mut ai_query: Query<(&Position, &mut TurnActor, &mut AIState)>,
 ) {
     let Ok(player_pos) = player_query.single() else {
+        // No player found or multiple players - skip AI processing
         return;
     };
 
@@ -255,6 +258,7 @@ pub fn flee_from_player_action_system(
     mut ai_query: Query<(&Position, &mut TurnActor, &mut AIState)>,
 ) {
     let Ok(player_pos) = player_query.single() else {
+        // No player found or multiple players - skip AI processing
         return;
     };
 

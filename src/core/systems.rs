@@ -26,9 +26,19 @@ pub fn compute_fov(
     mut fov_map: ResMut<FovMap>,
     query: Query<(&Position, &ViewShed), With<PlayerTag>>,
 ) {
-    if let Ok((player_pos, view_shed)) = query.single() {
-        debug!("Computing FOV");
-        fov_map.compute_fov(&map, *player_pos, view_shed.radius as u8);
+    match query.single() {
+        Ok((player_pos, view_shed)) => {
+            debug!("Computing FOV for player at {:?}", player_pos);
+            fov_map.compute_fov(&map, *player_pos, view_shed.radius as u8);
+        }
+        Err(bevy::ecs::query::QuerySingleError::NoEntities(_)) => {
+            // No player entity found - this is normal during game initialization
+            debug!("No player entity found for FOV computation");
+        }
+        Err(bevy::ecs::query::QuerySingleError::MultipleEntities(_)) => {
+            // Multiple players found - this shouldn't happen in normal gameplay
+            warn!("Multiple player entities found for FOV computation - using none to avoid ambiguity");
+        }
     }
 }
 

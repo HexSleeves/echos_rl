@@ -2,7 +2,7 @@ use std::path::Path;
 
 use bevy::prelude::*;
 
-use crate::{grid::Grid, resources::Folders, systems::remove_resource};
+use crate::{grid::Grid, random::Random, resources::Folders, systems::remove_resource};
 
 #[cfg(feature = "icon")]
 use crate::{resources::WindowIcon, systems::set_window_icon};
@@ -51,6 +51,10 @@ impl Plugin for BrtkPlugin {
 
         app.register_type::<Folders>();
         app.insert_resource(self.folders.clone());
+
+        // Initialize shared Random resource
+        app.register_type::<Random>();
+        app.init_resource::<Random>();
 
         #[cfg(feature = "icon")]
         if let Some(icon) = self.icon {
