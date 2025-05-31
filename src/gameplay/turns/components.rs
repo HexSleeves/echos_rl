@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use echos_assets::entities::TurnActorData;
 use std::collections::VecDeque;
 
-use crate::model::types::GameAction;
+use crate::core::types::GameAction;
 
 /// Component for entities that participate in the turn-based system
 #[derive(Component, Debug)]

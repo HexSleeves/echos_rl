@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
-use crate::model::components::Position;
+use crate::core::components::Position;
 
 /// Component that marks an entity as having AI behavior
 #[derive(Component, Debug, Clone, Reflect)]

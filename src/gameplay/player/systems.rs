@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 use crate::{
     core::states::GameState,
     gameplay::{player::components::AwaitingInput, turns::components::TurnActor},
-    model::{
+    core::{
         actions::Walk,
         types::{ActionType, BuildableGameAction, GameActionBuilder},
     },

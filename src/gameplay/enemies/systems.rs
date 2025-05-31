@@ -10,12 +10,12 @@ use crate::{
         },
         turns::{components::TurnActor, resources::TurnQueue},
     },
-    model::{
+    core::{
         actions::Walk,
         components::{PlayerTag, Position},
-        resources::{CurrentMap, FovMap},
         types::{BuildableGameAction, GameActionBuilder},
     },
+    model::resources::{CurrentMap, FovMap},
 };
 
 // ============================================================================
