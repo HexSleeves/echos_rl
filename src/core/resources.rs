@@ -11,6 +11,15 @@ pub struct GameConfig {
 }
 
 impl Default for GameConfig {
+    /// Returns a `GameConfig` instance with both `debug_mode` and `show_fps` set to `false`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let config = GameConfig::default();
+    /// assert!(!config.debug_mode);
+    /// assert!(!config.show_fps);
+    /// ```
     fn default() -> Self {
         Self {
             debug_mode: false,

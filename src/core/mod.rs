@@ -7,7 +7,16 @@ pub mod states;
 pub mod systems;
 
 /// Core plugin that provides fundamental game systems and components
-/// used across all game features.
+/// Configures the core plugin for the Bevy app, registering essential states, components, events, and systems used throughout the game.
+///
+/// This function initializes the main game state, registers core component types for reflection, adds fundamental game events, and sets up a cleanup system to run during the update stage. It is intended to be included in every game feature to ensure consistent core functionality.
+///
+/// # Examples
+///
+/// ```
+/// let mut app = App::new();
+/// core::plugin(&mut app);
+/// ```
 pub fn plugin(app: &mut App) {
     // Initialize core states
     app.init_state::<states::GameState>();

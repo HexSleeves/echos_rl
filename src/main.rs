@@ -44,6 +44,18 @@ enum AppSystems {
     Update,
 }
 
+/// Initializes and runs the main Bevy application with configured plugins, resources, and window settings.
+///
+/// Sets up the application with core and modular plugins, loads application settings, configures the primary window and asset management, and establishes the update schedule. Exits the process with an appropriate status code upon completion.
+///
+/// # Examples
+///
+/// ```no_run
+/// fn main() {
+///     // Running this function starts the application.
+///     main();
+/// }
+/// ```
 fn main() {
     let mut app = App::new();
 
