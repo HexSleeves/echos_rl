@@ -27,5 +27,9 @@ pub fn plugin(app: &mut App) {
         .add_event::<events::GameEnded>();
     
     // Add core systems
-    app.add_systems(Update, systems::cleanup_system::<systems::CleanupOnGameExit>);
+    app.add_systems(Update, (
+        systems::cleanup_system::<systems::CleanupOnGameExit>,
+        systems::compute_fov,
+        systems::toggle_fov_algorithm,
+    ));
 }

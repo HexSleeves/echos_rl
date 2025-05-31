@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use brtk::prelude::Direction;
 
-use crate::model::types::error::GameError;
+use crate::core::types::error::GameError;
 
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum ActionType {
@@ -33,25 +33,4 @@ pub trait BuildableGameAction: GameAction {
         Self: Sized;
 }
 
-#[macro_export]
-macro_rules! impl_game_action {
-    ($action:ident, $builder:ident, $( $field:ident ),+ ) => {
-        impl $crate::model::types::GameActionBuilder for $builder {
-            type Action = $action;
-            fn build(self) -> $action {
-                $action {
-                    $(
-                        $field: self.$field.expect(concat!(stringify!($field), " must be set")),
-                    )+
-                }
-            }
-        }
-
-        impl $crate::model::types::BuildableGameAction for $action {
-            type Builder = $builder;
-            fn builder() -> Self::Builder {
-                $builder::new()
-            }
-        }
-    };
-}
+// Macro moved to core::types::action - use that version instead

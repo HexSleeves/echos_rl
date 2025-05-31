@@ -6,7 +6,7 @@ use crate::{
         player::components::AwaitingInput,
         turns::{components::TurnActor, resources::TurnQueue},
     },
-    model::components::PlayerTag,
+    core::components::PlayerTag,
 };
 
 /// System that processes turns in the turn queue

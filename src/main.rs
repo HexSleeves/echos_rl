@@ -17,13 +17,13 @@ pub mod prelude;
 pub mod rendering;
 
 // Existing modules (to be migrated)
-pub mod controller;
+// pub mod controller; // Deleted - migrated to gameplay modules
 #[cfg(feature = "dev")]
 pub mod dev;
 pub mod model;
 pub mod ui;
 pub mod utils;
-pub mod view;
+// pub mod view; // Deleted - migrated to rendering
 
 mod log;
 
@@ -130,7 +130,7 @@ impl EchosInTheDark {
             core::plugin, // New core plugin
             gameplay::plugin, // New gameplay plugin
             rendering::plugin, // New rendering plugin (migrated from view)
-            controller::plugin,
+            // controller::plugin, // Disabled - migrated to gameplay modules
             model::plugin,
             ui::plugin,
             // view::plugin, // Disabled - migrated to rendering

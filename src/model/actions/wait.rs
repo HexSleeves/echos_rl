@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     impl_debug_with_field, impl_game_action,
-    model::types::{GameAction, GameError},
+    core::types::{GameAction, GameError},
 };
 
 #[derive(Default)]

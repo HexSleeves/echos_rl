@@ -3,11 +3,12 @@ use brtk::prelude::Direction;
 
 use crate::{
     impl_debug_with_field, impl_game_action,
-    model::{
-        components::{Position, TerrainType},
-        resources::CurrentMap,
+    core::{
+        components::Position,
         types::{GameAction, GameError},
     },
+    gameplay::world::components::TerrainType,
+    model::resources::CurrentMap,
 };
 
 #[derive(Default)]

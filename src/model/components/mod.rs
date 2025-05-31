@@ -13,8 +13,8 @@ pub use self::fov::*;
 mod input;
 pub use self::input::*;
 
-mod position;
-pub use self::position::*;
+// Position moved to core::components
+pub use crate::core::components::Position;
 
 // mod renderable;
 // pub use self::renderable::*;

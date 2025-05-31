@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::model::components::Description;
+use crate::core::components::Description;
 
 /// Represents the different types of underground environments
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Reflect)]

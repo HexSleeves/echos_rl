@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::model::components::Position;
+use crate::core::components::Position;
 
 #[derive(Resource, Reflect, Default)]
 #[reflect(Resource)]

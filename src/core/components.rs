@@ -115,9 +115,11 @@ impl ViewShed {
 pub struct PlayerTag;
 
 /// Component that marks an entity as AI-controlled
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Reflect)]
+#[reflect(Component)]
 pub struct AITag;
 
 /// Component that marks an entity as dead
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Reflect)]
+#[reflect(Component)]
 pub struct DeadTag;

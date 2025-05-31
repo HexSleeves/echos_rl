@@ -10,5 +10,7 @@ pub fn plugin(app: &mut App) {
     app.register_type::<components::TerrainType>()
         .register_type::<components::UndergroundType>();
 
-    // World systems will be migrated here
+    // Add world systems
+    // Note: spawn systems are typically called from state transitions, not Update
+    // They will be registered in the appropriate state handlers
 }

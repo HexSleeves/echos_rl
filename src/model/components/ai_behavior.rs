@@ -141,4 +141,4 @@ impl Default for AIState {
     }
 }
 
-use crate::model::components::Position;
+use crate::core::components::Position;
