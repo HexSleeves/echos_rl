@@ -29,6 +29,9 @@ pub fn plugin(app: &mut App) {
             systems::flee_from_player_action_system,
             systems::wander_action_system,
             systems::idle_action_system,
+            // Enhanced pathfinding systems
+            crate::gameplay::enemies::pathfinding::enhanced_chase_player_action_system,
+            crate::gameplay::enemies::pathfinding::enhanced_flee_from_player_action_system,
         )
             .in_set(BigBrainSet::Actions)
             .run_if(in_state(GameState::GatherActions)),
