@@ -150,6 +150,8 @@ pub fn spawn_entity_from_definition(
     Ok(entity_id)
 }
 
+const DEFAULT_DETECTION_RANGE: u8 = 5;
+
 /// Determine AI behavior type from entity definition
 fn determine_ai_behavior_from_definition(definition: &EntityDefinition) -> AIBehavior {
     let behavior_type = match definition.name.to_lowercase().as_str() {
@@ -160,7 +162,8 @@ fn determine_ai_behavior_from_definition(definition: &EntityDefinition) -> AIBeh
     };
 
     // Determine detection range based on view shed or use default
-    let detection_range = definition.components.view_shed.as_ref().map(|vs| vs.radius).unwrap_or(5); // Default detection range
+    let detection_range =
+        definition.components.view_shed.as_ref().map(|vs| vs.radius).unwrap_or(DEFAULT_DETECTION_RANGE);
 
     // Create AIBehavior with appropriate turn tracking settings
     match behavior_type {

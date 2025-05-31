@@ -31,11 +31,11 @@ impl TurnActorData {
 #[derive(Serialize, Deserialize, Debug, Clone, Reflect)]
 pub struct ViewShedData {
     /// Vision radius in tiles
-    pub radius: i32,
+    pub radius: u8,
 }
 
 impl ViewShedData {
-    pub fn new(radius: i32) -> Self { Self { radius } }
+    pub fn new(radius: u8) -> Self { Self { radius } }
 }
 
 // impl From<ViewShedData> for ViewShed {

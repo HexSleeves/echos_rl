@@ -120,7 +120,6 @@ impl EchosInTheDark {
         // Assign plugins
         app.add_plugins((
             self.brt_plugin.clone(),
-            // assets::plugin,
             echos_assets::EchosAssetsPlugin,
             controller::plugin,
             model::plugin,

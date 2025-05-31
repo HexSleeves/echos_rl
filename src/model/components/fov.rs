@@ -5,22 +5,22 @@ use echos_assets::entities::ViewShedData;
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct ViewShed {
-    pub radius: i32,
+    pub radius: u8,
 }
 
 impl ViewShed {
-    pub fn new(radius: i32) -> Self {
-        debug_assert!(radius >= 0, "ViewShed radius must be non-negative");
+    pub fn new(radius: u8) -> Self {
+        debug_assert!(radius > 0, "ViewShed radius must be greater than 0");
         Self { radius }
     }
 }
 
-impl From<i32> for ViewShed {
-    fn from(radius: i32) -> Self { Self::new(radius) }
+impl From<u8> for ViewShed {
+    fn from(radius: u8) -> Self { Self::new(radius) }
 }
 
-impl From<&i32> for ViewShed {
-    fn from(radius: &i32) -> Self { Self::new(*radius) }
+impl From<&u8> for ViewShed {
+    fn from(radius: &u8) -> Self { Self::new(*radius) }
 }
 
 impl From<ViewShedData> for ViewShed {

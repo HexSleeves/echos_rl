@@ -4,7 +4,7 @@ use big_brain::prelude::*;
 /// Component that marks an entity as having AI behavior
 #[derive(Component, Debug, Clone)]
 pub struct AIBehavior {
-    pub detection_range: i32,
+    pub detection_range: u8,
     pub behavior_type: AIBehaviorType,
     pub last_known_player_position: Option<Position>,
     /// Turn number when the player was last seen
@@ -37,7 +37,7 @@ impl Default for AIBehavior {
 }
 
 impl AIBehavior {
-    pub fn hostile(detection_range: i32) -> Self {
+    pub fn hostile(detection_range: u8) -> Self {
         Self {
             behavior_type: AIBehaviorType::Hostile,
             detection_range,
@@ -47,7 +47,7 @@ impl AIBehavior {
         }
     }
 
-    pub fn passive(detection_range: i32) -> Self {
+    pub fn passive(detection_range: u8) -> Self {
         Self {
             behavior_type: AIBehaviorType::Passive,
             detection_range,
