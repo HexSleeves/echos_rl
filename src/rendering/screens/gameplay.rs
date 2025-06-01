@@ -49,9 +49,9 @@ pub fn plugin(app: &mut App) {
     );
 
     // === PRESENTATION ===
-    // Transform updates
+    // Transform updates - only updates when Position components have changed (using change detection)
     app.add_systems(
-        PostUpdate,
+        Last,
         position_to_transform.in_set(RenderingSystems::Presentation).run_if(in_state(ScreenState::Gameplay)),
     );
 }

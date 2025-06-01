@@ -1,15 +1,15 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
-use crate::{core::states::GameState, gameplay::enemies::systems};
+use crate::{core::states::GameState, gameplay::enemies::systems, rendering::screens::ScreenState};
 
 /// AI plugin that handles big-brain AI behavior
 pub fn plugin(app: &mut App) {
     // Add big-brain plugin for AI
     app.add_plugins(BigBrainPlugin::new(PreUpdate));
 
-    // AI systems should only run during GatherActions state
-    // This prevents constant re-evaluation when waiting for player input
+    // AI systems should run during both GatherActions and ProcessTurns states
+    // This allows AI to generate actions both when gathering actions and when processing turns
     app.add_systems(
         PreUpdate,
         (
@@ -18,7 +18,8 @@ pub fn plugin(app: &mut App) {
             systems::wander_scorer_system,
         )
             .in_set(BigBrainSet::Scorers)
-            .run_if(in_state(GameState::GatherActions)),
+            .run_if(in_state(GameState::GatherActions))
+            .run_if(in_state(ScreenState::Gameplay)),
     );
 
     // Add AI action systems (run in PreUpdate with BigBrainSet::Actions)
@@ -31,6 +32,7 @@ pub fn plugin(app: &mut App) {
             systems::idle_action_system,
         )
             .in_set(BigBrainSet::Actions)
-            .run_if(in_state(GameState::GatherActions)),
+            .run_if(in_state(GameState::GatherActions))
+            .run_if(in_state(ScreenState::Gameplay)),
     );
 }

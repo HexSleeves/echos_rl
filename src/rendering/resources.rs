@@ -7,7 +7,7 @@ use crate::rendering::RenderingConstants;
 #[derive(AssetCollection, Resource)]
 pub struct TextureAssets {
     #[asset(image(sampler(filter = nearest)))]
-    #[asset(path = "textures/urizen/urizen_onebit_tileset.png")]
+    #[asset(path = "textures/urizen/urizen_onebit_tileset_no_spaces.png")]
     pub urizen_tileset: Handle<Image>,
 }
 

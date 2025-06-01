@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use big_brain::prelude::*;
 use echos_assets::entities::{EntityDefinition, EntityDefinitions};
 
 use crate::{
@@ -7,7 +8,10 @@ use crate::{
         resources::{CurrentMap, TurnQueue},
     },
     gameplay::{
-        enemies::components::{AIBehavior, AIState},
+        enemies::components::{
+            AIBehavior, AIBehaviorType, AIState, ChasePlayerAction, ChasePlayerScorer, FleeFromPlayerAction,
+            FleeFromPlayerScorer, IdleAction, WanderAction, WanderScorer,
+        },
         player::components::AwaitingInput,
         turns::components::TurnActor,
     },
@@ -93,17 +97,24 @@ fn spawn_ai_entity(
     current_map: &mut CurrentMap,
     turn_queue: &mut TurnQueue,
 ) -> Result<Entity, String> {
+    // Determine AI behavior type from entity name
+    let behavior_type = determine_ai_behavior_from_name(&definition.name);
+    let ai_behavior = create_ai_behavior_for_type(behavior_type.clone());
+
     let mut entity_commands = commands.spawn((
         position,
         AITag,
         Description::new(&definition.name),
-        AIBehavior::default(),
+        ai_behavior,
         AIState::default(),
     ));
 
     // Add common components using helper function
     let config = EntitySpawnConfig::ai();
     add_common_components(&mut entity_commands, definition, &config);
+
+    // Add big-brain AI components based on behavior type
+    add_big_brain_components(&mut entity_commands, behavior_type);
 
     let ai_id = entity_commands.id();
 
@@ -160,4 +171,76 @@ fn finalize_entity_spawn(
 
     info!("Spawned {} '{}' at {:?}", entity_type, entity_name, position);
     Ok(entity_id)
+}
+
+/// Determine AI behavior type from entity name
+fn determine_ai_behavior_from_name(name: &str) -> AIBehaviorType {
+    let name_lower = name.to_lowercase();
+
+    if name_lower.contains("hostile") || name_lower.contains("guard") || name_lower.contains("aggressive") {
+        AIBehaviorType::Hostile
+    } else if name_lower.contains("passive") || name_lower.contains("critter") || name_lower.contains("flee")
+    {
+        AIBehaviorType::Passive
+    } else {
+        AIBehaviorType::Neutral
+    }
+}
+
+/// Create AI behavior component for the given type
+fn create_ai_behavior_for_type(behavior_type: AIBehaviorType) -> AIBehavior {
+    match behavior_type {
+        AIBehaviorType::Hostile => AIBehavior::hostile(6),
+        AIBehaviorType::Passive => AIBehavior::passive(5),
+        AIBehaviorType::Neutral => AIBehavior::neutral(3),
+    }
+}
+
+/// Add big-brain components to an AI entity based on its behavior type
+fn add_big_brain_components(entity_commands: &mut EntityCommands, behavior_type: AIBehaviorType) {
+    match behavior_type {
+        AIBehaviorType::Hostile => {
+            // Hostile enemies prioritize chasing when they see the player
+            let thinker = Thinker::build()
+                .picker(FirstToScore { threshold: 0.6 })
+                .when(ChasePlayerScorer, ChasePlayerAction)
+                .when(WanderScorer, WanderAction)
+                .otherwise(IdleAction);
+
+            entity_commands.insert((
+                thinker,
+                ChasePlayerScorer,
+                WanderScorer,
+                ChasePlayerAction,
+                WanderAction,
+                IdleAction,
+            ));
+        }
+        AIBehaviorType::Passive => {
+            // Passive enemies prioritize fleeing from threats
+            let thinker = Thinker::build()
+                .picker(FirstToScore { threshold: 0.5 })
+                .when(FleeFromPlayerScorer, FleeFromPlayerAction)
+                .when(WanderScorer, WanderAction)
+                .otherwise(IdleAction);
+
+            entity_commands.insert((
+                thinker,
+                FleeFromPlayerScorer,
+                WanderScorer,
+                FleeFromPlayerAction,
+                WanderAction,
+                IdleAction,
+            ));
+        }
+        AIBehaviorType::Neutral => {
+            // Neutral enemies just wander around
+            let thinker = Thinker::build()
+                .picker(FirstToScore { threshold: 0.3 })
+                .when(WanderScorer, WanderAction)
+                .otherwise(IdleAction);
+
+            entity_commands.insert((thinker, WanderScorer, WanderAction, IdleAction));
+        }
+    }
 }

@@ -36,7 +36,8 @@ pub fn add_sprite_to_entities(
 }
 
 /// System that converts position components to transform components
-pub fn position_to_transform(mut q_objects: Query<(&Position, &mut Transform)>) {
+/// Only updates transforms when positions have actually changed
+pub fn position_to_transform(mut q_objects: Query<(&Position, &mut Transform), Changed<Position>>) {
     for (position, mut transform) in &mut q_objects {
         *transform = transform_from_position(position);
     }

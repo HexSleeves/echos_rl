@@ -115,16 +115,16 @@ impl EchosInTheDark {
     }
 
     fn app_plugins(&mut self) -> &mut Self {
-        #[cfg(feature = "dev")]
-        self.app.add_plugins(dev::plugin);
-
         // Assign plugins
         self.app.add_plugins((
             self.brt_plugin.clone(),
+            echos_assets::EchosAssetsPlugin,
             core::plugin,      // New core plugin
             gameplay::plugin,  // New gameplay plugin
-            rendering::plugin, // New rendering plugin (migrated from view)
+            rendering::plugin, // New rendering plugin
             ui::plugin,
+            #[cfg(feature = "dev")]
+            dev::plugin,
         ));
 
         self

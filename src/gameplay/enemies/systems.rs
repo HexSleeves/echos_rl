@@ -4,7 +4,7 @@ use brtk::prelude::Direction;
 
 use crate::{
     core::{
-        actions::Walk,
+        actions::{Wait, Walk},
         components::{PlayerTag, Position},
         resources::{CurrentMap, FovMap, TurnQueue},
         types::{BuildableGameAction, GameActionBuilder},
@@ -190,6 +190,13 @@ pub fn chase_player_action_system(
                     *action_state = ActionState::Requested;
                 }
                 ActionState::Requested => {
+                    // Only add action if the entity doesn't already have actions queued
+                    if turn_actor.peak_next_action().is_some() {
+                        // Already has an action queued, wait for it to be processed
+                        *action_state = ActionState::Executing;
+                        continue;
+                    }
+
                     info!(
                         "AI entity {:?} performing chase action toward player at {:?}",
                         actor_entity, player_pos
@@ -208,7 +215,7 @@ pub fn chase_player_action_system(
                             turn_actor.add_action(
                                 Walk::builder().with_entity(*actor_entity).with_direction(dir).build(),
                             );
-                            *action_state = ActionState::Success;
+                            *action_state = ActionState::Executing;
                         } else {
                             // Try alternative directions if direct path is blocked
                             if let Some(alt_dir) =
@@ -220,7 +227,7 @@ pub fn chase_player_action_system(
                                         .with_direction(alt_dir)
                                         .build(),
                                 );
-                                *action_state = ActionState::Success;
+                                *action_state = ActionState::Executing;
                             } else {
                                 info!(
                                     "AI entity {:?} cannot find path to player, action failed",
@@ -235,11 +242,14 @@ pub fn chase_player_action_system(
                     }
                 }
                 ActionState::Executing => {
-                    // Action is being executed, wait for completion
+                    // Check if the action has been processed (no more actions in queue)
+                    if turn_actor.peak_next_action().is_none() {
+                        *action_state = ActionState::Success;
+                    }
                 }
                 ActionState::Success | ActionState::Failure => {
-                    // Action completed, reset for next frame
-                    *action_state = ActionState::Requested;
+                    // Action completed, reset to init and wait for next decision cycle
+                    *action_state = ActionState::Init;
                 }
                 ActionState::Cancelled => {
                     // Action was cancelled, reset to init
@@ -269,6 +279,13 @@ pub fn flee_from_player_action_system(
                     *action_state = ActionState::Requested;
                 }
                 ActionState::Requested => {
+                    // Only add action if the entity doesn't already have actions queued
+                    if turn_actor.peak_next_action().is_some() {
+                        // Already has an action queued, wait for it to be processed
+                        *action_state = ActionState::Executing;
+                        continue;
+                    }
+
                     info!(
                         "AI entity {:?} performing flee action away from player at {:?}",
                         actor_entity, player_pos
@@ -286,7 +303,7 @@ pub fn flee_from_player_action_system(
                             turn_actor.add_action(
                                 Walk::builder().with_entity(*actor_entity).with_direction(dir).build(),
                             );
-                            *action_state = ActionState::Success;
+                            *action_state = ActionState::Executing;
                         } else {
                             // Try alternative directions if direct flee path is blocked
                             if let Some(alt_dir) =
@@ -298,7 +315,7 @@ pub fn flee_from_player_action_system(
                                         .with_direction(alt_dir)
                                         .build(),
                                 );
-                                *action_state = ActionState::Success;
+                                *action_state = ActionState::Executing;
                             } else {
                                 info!("AI entity {:?} cannot find flee path, action failed", actor_entity);
                                 *action_state = ActionState::Failure;
@@ -309,11 +326,14 @@ pub fn flee_from_player_action_system(
                     }
                 }
                 ActionState::Executing => {
-                    // Action is being executed, wait for completion
+                    // Check if the action has been processed (no more actions in queue)
+                    if turn_actor.peak_next_action().is_none() {
+                        *action_state = ActionState::Success;
+                    }
                 }
                 ActionState::Success | ActionState::Failure => {
-                    // Action completed, reset for next frame
-                    *action_state = ActionState::Requested;
+                    // Action completed, reset to init and wait for next decision cycle
+                    *action_state = ActionState::Init;
                 }
                 ActionState::Cancelled => {
                     *action_state = ActionState::Init;
@@ -336,6 +356,13 @@ pub fn wander_action_system(
                     *action_state = ActionState::Requested;
                 }
                 ActionState::Requested => {
+                    // Only add action if the entity doesn't already have actions queued
+                    if turn_actor.peak_next_action().is_some() {
+                        // Already has an action queued, wait for it to be processed
+                        *action_state = ActionState::Executing;
+                        continue;
+                    }
+
                     info!("AI entity {:?} performing wander action at {:?}", actor_entity, ai_pos);
                     ai_state.current_action = AIAction::Wander;
 
@@ -344,18 +371,21 @@ pub fn wander_action_system(
                         turn_actor.add_action(
                             Walk::builder().with_entity(*actor_entity).with_direction(direction).build(),
                         );
-                        *action_state = ActionState::Success;
+                        *action_state = ActionState::Executing;
                     } else {
                         info!("AI entity {:?} cannot find walkable direction for wandering", actor_entity);
                         *action_state = ActionState::Failure;
                     }
                 }
                 ActionState::Executing => {
-                    // Action is being executed, wait for completion
+                    // Check if the action has been processed (no more actions in queue)
+                    if turn_actor.peak_next_action().is_none() {
+                        *action_state = ActionState::Success;
+                    }
                 }
                 ActionState::Success | ActionState::Failure => {
-                    // Action completed, reset for next frame
-                    *action_state = ActionState::Requested;
+                    // Action completed, reset to init and wait for next decision cycle
+                    *action_state = ActionState::Init;
                 }
                 ActionState::Cancelled => {
                     *action_state = ActionState::Init;
@@ -368,25 +398,38 @@ pub fn wander_action_system(
 /// System that handles idle behavior
 pub fn idle_action_system(
     mut action_query: Query<(&Actor, &mut ActionState), With<IdleAction>>,
-    mut ai_query: Query<&mut AIState>,
+    mut ai_query: Query<(&mut TurnActor, &mut AIState)>,
 ) {
     for (Actor(actor_entity), mut action_state) in action_query.iter_mut() {
-        if let Ok(mut ai_state) = ai_query.get_mut(*actor_entity) {
+        if let Ok((mut turn_actor, mut ai_state)) = ai_query.get_mut(*actor_entity) {
             match *action_state {
                 ActionState::Init => {
                     *action_state = ActionState::Requested;
                 }
                 ActionState::Requested => {
+                    // Only process if the entity doesn't already have actions queued
+                    if turn_actor.peak_next_action().is_some() {
+                        // Already has an action queued, wait for it to be processed
+                        *action_state = ActionState::Executing;
+                        continue;
+                    }
+
                     info!("AI entity {:?} performing idle action", actor_entity);
                     ai_state.current_action = AIAction::Idle;
-                    *action_state = ActionState::Success;
+                    // Add a wait action to the queue for idle behavior
+                    turn_actor.add_action(Wait::builder().with_entity(*actor_entity).build());
+
+                    *action_state = ActionState::Executing;
                 }
                 ActionState::Executing => {
-                    // Action is being executed, wait for completion
+                    // Check if the action has been processed (no more actions in queue)
+                    if turn_actor.peak_next_action().is_none() {
+                        *action_state = ActionState::Success;
+                    }
                 }
                 ActionState::Success | ActionState::Failure => {
-                    // Action completed, reset for next frame
-                    *action_state = ActionState::Requested;
+                    // Action completed, reset to init and wait for next decision cycle
+                    *action_state = ActionState::Init;
                 }
                 ActionState::Cancelled => {
                     *action_state = ActionState::Init;

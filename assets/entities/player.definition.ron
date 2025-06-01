@@ -11,7 +11,7 @@ EntityDefinition(
             radius: 8,
         )),
         tile_sprite: Some(TileSpriteData(
-            tile_coords: (10, 18),
+            tile_coords: (0, 16),
             tile_size: Some((12.0, 12.0)),
             tint: None,
         )),

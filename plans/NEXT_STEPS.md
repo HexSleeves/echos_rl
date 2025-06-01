@@ -3,6 +3,7 @@
 ## Current State Analysis
 
 ### ✅ What's Already Implemented
+
 - **Basic Bevy Setup**: App structure with states (Loading, Gameplay)
 - **Tilemap System**: Using `bevy_ecs_tilemap` for world representation
 - **Map Generation**: Comprehensive procedural generation for mines, caves, and dark adventure areas
@@ -12,6 +13,7 @@
 - **Settings System**: Configurable app settings with persistence
 
 ### ❌ Critical Missing Components
+
 1. **Screens Module Integration**: References to `ScreenState` and `theme::prelude` but missing actual modules
 2. **Player Entity**: No player character implementation
 3. **Core Game Loop**: Missing turn-based mechanics
@@ -24,15 +26,18 @@
 ## Phase 1: Foundation & MVP (Priority: Critical)
 
 ### 1.1 Fix Module Structure
+
 **Goal**: Get the game running without compilation errors
 
 - [ ] **Create missing modules**:
+
   - `src/screens/mod.rs` - Screen state management
   - `src/theme/mod.rs` - UI theme system (or alias to ui::utils)
   - `src/gameplay/player/mod.rs` - Player entity and systems
   - `src/gameplay/entities/mod.rs` - Game entities (enemies, items)
 
 - [ ] **Integrate screens into main.rs**:
+
   ```rust
   pub mod screens;
   pub mod gameplay;
@@ -42,6 +47,7 @@
   ```
 
 - [ ] **Define ScreenState enum**:
+
   ```rust
   #[derive(States, Debug, Hash, PartialEq, Eq, Clone, Default)]
   pub enum ScreenState {
@@ -52,9 +58,11 @@
   ```
 
 ### 1.2 Implement Player Entity
+
 **Goal**: Basic player that can exist on the map
 
 - [ ] **Player Component**:
+
   ```rust
   #[derive(Component)]
   pub struct Player {
@@ -65,6 +73,7 @@
   ```
 
 - [ ] **Position Component**:
+
   ```rust
   #[derive(Component)]
   pub struct Position {
@@ -76,9 +85,11 @@
 - [ ] **Player spawn system**: Place player on map when gameplay starts
 
 ### 1.3 Basic Input & Movement
+
 **Goal**: Player can move around the map
 
 - [ ] **Input handling system**:
+
   - Arrow keys/WASD for movement
   - Turn-based movement (one tile per keypress)
   - Collision detection with walls
@@ -93,9 +104,11 @@
 ## Phase 2: Core Gameplay Loop (Priority: High)
 
 ### 2.1 Turn-Based System
+
 **Goal**: Implement the core roguelike turn structure
 
 - [ ] **Turn Manager Resource**:
+
   ```rust
   #[derive(Resource)]
   pub struct TurnManager {
@@ -110,9 +123,11 @@
   - Turn counter and state management
 
 ### 2.2 Basic Visibility System
+
 **Goal**: Implement fog of war and basic light
 
 - [ ] **Visibility Component**:
+
   ```rust
   #[derive(Component)]
   pub struct Visibility {
@@ -127,14 +142,17 @@
   - Fog of war rendering
 
 ### 2.3 Basic Mining System
+
 **Goal**: Player can mine ores from walls
 
 - [ ] **Mining action**:
+
   - Check if adjacent tile is mineable
   - Remove ore tile, add to inventory
   - Replace with floor tile
 
 - [ ] **Basic Inventory**:
+
   ```rust
   #[derive(Component)]
   pub struct Inventory {
@@ -148,9 +166,11 @@
 ## Phase 3: Echo Mechanics (Priority: High)
 
 ### 3.1 Sound System Foundation
+
 **Goal**: Implement the core "echo" mechanic
 
 - [ ] **Sound Event System**:
+
   ```rust
   #[derive(Event)]
   pub struct SoundEvent {
@@ -173,9 +193,11 @@
   - Visual representation of sound waves
 
 ### 3.2 Echolocation System
+
 **Goal**: Player can "ping" to reveal map areas
 
 - [ ] **Echolocation ability**:
+
   - Spacebar or E key to activate
   - Raycast from player position
   - Temporarily reveal tiles in radius
@@ -190,9 +212,11 @@
 ## Phase 4: Enemies & AI (Priority: Medium)
 
 ### 4.1 Basic Enemy System
+
 **Goal**: Implement simple enemies that respond to sound
 
 - [ ] **Enemy Components**:
+
   ```rust
   #[derive(Component)]
   pub struct Enemy {
@@ -218,9 +242,10 @@
 - [ ] **Basic AI behaviors**:
   - Idle: Random movement or stationary
   - Sound response: Move toward sound events
-  - Simple pathfinding (A* or basic line-of-sight)
+  - Simple pathfinding (A\* or basic line-of-sight)
 
 ### 4.2 Combat System
+
 **Goal**: Basic turn-based combat
 
 - [ ] **Combat mechanics**:
@@ -233,9 +258,11 @@
 ## Phase 5: Items & Crafting (Priority: Medium)
 
 ### 5.1 Item System
+
 **Goal**: Implement items and basic crafting
 
 - [ ] **Item definitions**:
+
   ```rust
   pub enum ItemType {
       // Raw materials
@@ -262,9 +289,11 @@
   - Tool durability and effectiveness
 
 ### 5.2 Equipment System
+
 **Goal**: Player can equip tools and gear
 
 - [ ] **Equipment slots**:
+
   - Tool (pickaxe, weapon)
   - Light source
   - Armor (future)
@@ -279,6 +308,7 @@
 ## Phase 6: Advanced Features (Priority: Low)
 
 ### 6.1 Environmental Hazards
+
 **Goal**: Implement mine personality features
 
 - [ ] **Cave-ins**: Triggered by loud sounds
@@ -286,9 +316,11 @@
 - [ ] **Unstable walls**: Collapse over time
 
 ### 6.2 Progression System
+
 **Goal**: Player skills and upgrades
 
 - [ ] **Skill system**:
+
   - Mining Speed
   - Silent Movement
   - Echo Focus
@@ -297,6 +329,7 @@
 - [ ] **Experience and leveling**
 
 ### 6.3 Advanced AI
+
 **Goal**: More sophisticated enemy behaviors
 
 - [ ] **Complex AI states**
@@ -308,16 +341,19 @@
 ## Technical Debt & Improvements
 
 ### Code Organization
+
 - [ ] **Separate concerns**: Move map generation to dedicated module
 - [ ] **Component organization**: Group related components
 - [ ] **System organization**: Logical system sets and ordering
 
 ### Performance
+
 - [ ] **Efficient visibility calculations**
 - [ ] **Spatial indexing** for entities
 - [ ] **Sound propagation optimization**
 
 ### User Experience
+
 - [ ] **UI improvements**: Health display, inventory UI
 - [ ] **Audio integration**: Sound effects and ambient audio
 - [ ] **Visual polish**: Animations, particle effects

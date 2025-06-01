@@ -10,6 +10,8 @@ pub mod states;
 pub mod systems;
 pub mod types;
 
+use crate::rendering::screens::ScreenState;
+
 /// Core plugin that provides fundamental game systems and components
 /// used across all game features.
 pub fn plugin(app: &mut App) {
@@ -33,12 +35,19 @@ pub fn plugin(app: &mut App) {
     // Register core events
     app.add_event::<events::GameStarted>().add_event::<events::GameEnded>();
 
-    // Add core systems
+    // Add core systems organized by function
     app.add_systems(
         Update,
         (
+            // Process spawn commands during gameplay - this should run early
+            commands::process_spawn_commands
+                .run_if(in_state(ScreenState::Gameplay))
+                .in_set(crate::gameplay::GameplaySystemSet::Spawning),
+            // Always-running systems
             systems::cleanup_system::<systems::CleanupOnGameExit>,
-            systems::compute_fov,
+            systems::compute_fov
+                .run_if(in_state(ScreenState::Gameplay))
+                .in_set(crate::gameplay::GameplaySystemSet::WorldUpdate),
             systems::toggle_fov_algorithm,
         ),
     );

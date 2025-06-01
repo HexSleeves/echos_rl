@@ -11,31 +11,6 @@ use crate::{
     gameplay::{player::components::AwaitingInput, turns::components::TurnActor},
 };
 
-// Old player input system - replaced by migrated version below
-
-/// System that spawns the player entity
-pub fn spawn_player(
-    mut commands: Commands,
-    current_map: Res<crate::core::resources::CurrentMap>,
-    spawn_point: Option<Res<crate::core::resources::SpawnPoint>>,
-) {
-    use crate::core::{commands::SpawnEntityCommands, components::Position};
-
-    // Determine where to spawn the player
-    let player_position = spawn_point
-        .and_then(|sp| sp.player_spawn)
-        .or_else(|| current_map.get_random_walkable_position())
-        .unwrap_or_else(|| {
-            warn!("No valid spawn point found, using default position");
-            Position::new(0, 0)
-        });
-
-    // Use the command-based spawning
-    commands.spawn_player(player_position);
-
-    info!("Queued player spawn at {:?}", player_position);
-}
-
 // ============================================================================
 // INPUT SYSTEMS
 // ============================================================================
