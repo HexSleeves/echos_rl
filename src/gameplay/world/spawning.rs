@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 use echos_assets::entities::{AIBehaviorType, EntityDefinition, EntityDefinitions};
+use leafwing_input_manager::prelude::InputMap;
 
 use crate::{
     core::{
@@ -12,7 +13,7 @@ use crate::{
             AIBehavior, AIState, ChasePlayerAction, ChasePlayerScorer, FleeFromPlayerAction,
             FleeFromPlayerScorer, IdleAction, WanderAction, WanderScorer,
         },
-        player::components::AwaitingInput,
+        player::{actions::PlayerAction, components::AwaitingInput},
         turns::components::TurnActor,
     },
     rendering::components::TileSprite,
@@ -26,7 +27,37 @@ struct EntitySpawnConfig {
 
 impl EntitySpawnConfig {
     fn player() -> Self { Self { default_view_radius: 8, default_turn_speed: 100 } }
+
     fn ai() -> Self { Self { default_view_radius: 6, default_turn_speed: 100 } }
+
+    pub fn default_input_map() -> InputMap<PlayerAction> {
+        InputMap::new([
+            /////////////////////////////
+            // Movement
+            /////////////////////////////
+            // ArrowKeys
+            (PlayerAction::North, KeyCode::ArrowUp),
+            (PlayerAction::South, KeyCode::ArrowDown),
+            (PlayerAction::West, KeyCode::ArrowLeft),
+            (PlayerAction::East, KeyCode::ArrowRight),
+            // WSAD
+            (PlayerAction::North, KeyCode::KeyW),
+            (PlayerAction::South, KeyCode::KeyS),
+            (PlayerAction::West, KeyCode::KeyA),
+            (PlayerAction::East, KeyCode::KeyD),
+            // Diagonals
+            (PlayerAction::NorthWest, KeyCode::KeyY),
+            (PlayerAction::NorthEast, KeyCode::KeyU),
+            (PlayerAction::SouthWest, KeyCode::KeyB),
+            (PlayerAction::SouthEast, KeyCode::KeyN),
+            /////////////////////////////
+            // Actions
+            /////////////////////////////
+            // Wait
+            (PlayerAction::Wait, KeyCode::Period),
+            (PlayerAction::Wait, KeyCode::Numpad5),
+        ])
+    }
 }
 
 /// Spawn a player entity from definition data
@@ -47,6 +78,9 @@ pub fn spawn_player_from_definition(
     // Add common components using helper function
     let config = EntitySpawnConfig::player();
     add_common_components(&mut entity_commands, definition, &config);
+
+    // Add input map
+    entity_commands.insert(EntitySpawnConfig::default_input_map());
 
     let player_id = entity_commands.id();
 

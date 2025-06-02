@@ -39,7 +39,7 @@ pub fn process_turns(world: &mut World) {
             }
 
             let is_player = player.is_some();
-            let has_action = actor.peak_next_action().is_some();
+            let has_action = actor.peek_next_action().is_some();
 
             // Player is waiting for input
             if is_player && !has_action {

@@ -41,7 +41,7 @@ pub fn chase_player_scorer_system(
     for (Actor(actor_entity), mut score) in scorer_query.iter_mut() {
         if let Ok((ai_pos, mut ai_behavior, turn_actor)) = ai_query.get_mut(*actor_entity) {
             // Skip scoring if this entity already has an action queued
-            if turn_actor.peak_next_action().is_some() {
+            if turn_actor.peek_next_action().is_some() {
                 continue;
             }
 
@@ -99,7 +99,7 @@ pub fn flee_from_player_scorer_system(
     for (Actor(actor_entity), mut score) in scorer_query.iter_mut() {
         if let Ok((ai_pos, ai_behavior, turn_actor)) = ai_query.get(*actor_entity) {
             // Skip scoring if this entity already has an action queued
-            if turn_actor.peak_next_action().is_some() {
+            if turn_actor.peek_next_action().is_some() {
                 continue;
             }
 
@@ -135,7 +135,7 @@ pub fn wander_scorer_system(
     for (Actor(actor_entity), mut score) in scorer_query.iter_mut() {
         if let Ok((ai_behavior, turn_actor)) = ai_query.get(*actor_entity) {
             // Skip scoring if this entity already has an action queued
-            if turn_actor.peak_next_action().is_some() {
+            if turn_actor.peek_next_action().is_some() {
                 continue;
             }
 
@@ -194,7 +194,7 @@ pub fn chase_player_action_system(
                 }
                 ActionState::Requested => {
                     // Only add action if the entity doesn't already have actions queued
-                    if turn_actor.peak_next_action().is_some() {
+                    if turn_actor.peek_next_action().is_some() {
                         // Already has an action queued, wait for it to be processed
                         *action_state = ActionState::Executing;
                         continue;
@@ -246,7 +246,7 @@ pub fn chase_player_action_system(
                 }
                 ActionState::Executing => {
                     // Check if the action has been processed (no more actions in queue)
-                    if turn_actor.peak_next_action().is_none() {
+                    if turn_actor.peek_next_action().is_none() {
                         *action_state = ActionState::Success;
                     }
                 }
@@ -283,7 +283,7 @@ pub fn flee_from_player_action_system(
                 }
                 ActionState::Requested => {
                     // Only add action if the entity doesn't already have actions queued
-                    if turn_actor.peak_next_action().is_some() {
+                    if turn_actor.peek_next_action().is_some() {
                         // Already has an action queued, wait for it to be processed
                         *action_state = ActionState::Executing;
                         continue;
@@ -330,7 +330,7 @@ pub fn flee_from_player_action_system(
                 }
                 ActionState::Executing => {
                     // Check if the action has been processed (no more actions in queue)
-                    if turn_actor.peak_next_action().is_none() {
+                    if turn_actor.peek_next_action().is_none() {
                         *action_state = ActionState::Success;
                     }
                 }
@@ -360,7 +360,7 @@ pub fn wander_action_system(
                 }
                 ActionState::Requested => {
                     // Only add action if the entity doesn't already have actions queued
-                    if turn_actor.peak_next_action().is_some() {
+                    if turn_actor.peek_next_action().is_some() {
                         // Already has an action queued, wait for it to be processed
                         *action_state = ActionState::Executing;
                         continue;
@@ -382,7 +382,7 @@ pub fn wander_action_system(
                 }
                 ActionState::Executing => {
                     // Check if the action has been processed (no more actions in queue)
-                    if turn_actor.peak_next_action().is_none() {
+                    if turn_actor.peek_next_action().is_none() {
                         *action_state = ActionState::Success;
                     }
                 }
@@ -411,7 +411,7 @@ pub fn idle_action_system(
                 }
                 ActionState::Requested => {
                     // Only process if the entity doesn't already have actions queued
-                    if turn_actor.peak_next_action().is_some() {
+                    if turn_actor.peek_next_action().is_some() {
                         // Already has an action queued, wait for it to be processed
                         *action_state = ActionState::Executing;
                         continue;
@@ -426,7 +426,7 @@ pub fn idle_action_system(
                 }
                 ActionState::Executing => {
                     // Check if the action has been processed (no more actions in queue)
-                    if turn_actor.peak_next_action().is_none() {
+                    if turn_actor.peek_next_action().is_none() {
                         *action_state = ActionState::Success;
                     }
                 }

@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use brtk::prelude::Direction;
 
 use crate::{core::types::error::GameError, prelude::Position};
 
@@ -9,9 +10,9 @@ pub const ATTACK_TIME: u32 = 1000;
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum ActionType {
     Wait,
+    Move(Position),
+    MoveDelta(Direction),
     Attack(Position),
-    Movement(Position),
-    MovementDelta(IVec2),
 }
 
 impl ActionType {
@@ -19,8 +20,8 @@ impl ActionType {
         match self {
             Self::Wait => WAIT_TIME,
             Self::Attack(_) => ATTACK_TIME,
-            Self::Movement(_) => TURN_TIME,
-            Self::MovementDelta(_) => TURN_TIME,
+            Self::Move(_) => TURN_TIME,
+            Self::MoveDelta(_) => TURN_TIME,
         }
     }
 }
