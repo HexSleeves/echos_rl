@@ -86,10 +86,12 @@ pub fn update_sprite_visibility(
         if fov_map.is_visible(*position) {
             *visibility = Visibility::Visible;
             sprite.color.set_alpha(1.0);
-        } else if fov_map.is_revealed(*position) {
-            *visibility = Visibility::Visible;
-            sprite.color.set_alpha(0.4); // Semi-transparent for revealed areas
-        } else {
+        }
+        // else if fov_map.is_revealed(*position) {
+        //     *visibility = Visibility::Visible;
+        //     sprite.color.set_alpha(0.4); // Semi-transparent for revealed areas
+        // }
+        else {
             *visibility = Visibility::Hidden;
         }
     }

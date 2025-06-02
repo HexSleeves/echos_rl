@@ -49,12 +49,14 @@ impl Default for AIBehavior {
 
 impl AIBehavior {
     pub fn new(behavior_type: AIBehaviorType, detection_range: u8, turns_before_wander: u64) -> Self {
+        info!("AI behavior new: {:?}", behavior_type);
+
         Self {
             behavior_type,
             detection_range,
-            turns_before_wander,
             last_known_player_position: None,
             last_player_seen_turn: None,
+            turns_before_wander: turns_before_wander * 1000,
         }
     }
 
