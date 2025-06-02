@@ -7,7 +7,7 @@ pub const TURN_TIME: u32 = 1000;
 pub const WAIT_TIME: u32 = 1000;
 pub const ATTACK_TIME: u32 = 1000;
 
-#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Reflect, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ActionType {
     Wait,
     Move(Position),

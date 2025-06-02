@@ -15,6 +15,7 @@ pub enum PlayerAction {
     SouthWest,
     West,
 
+    // Actions
     Wait,
 }
 

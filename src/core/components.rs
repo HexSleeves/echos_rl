@@ -77,6 +77,10 @@ pub struct ViewShed {
     pub radius: i32,
 }
 
+impl Default for ViewShed {
+    fn default() -> Self { Self::new(4) }
+}
+
 impl ViewShed {
     pub fn new(radius: i32) -> Self {
         debug_assert!(radius >= 0, "ViewShed radius must be non-negative");
@@ -99,3 +103,7 @@ pub struct AITag;
 #[derive(Component, Debug, Reflect)]
 #[reflect(Component)]
 pub struct DeadTag;
+
+#[derive(Reflect, Component, Default)]
+#[reflect(Component)]
+pub struct Mob;

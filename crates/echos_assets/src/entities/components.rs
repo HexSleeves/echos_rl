@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// Different types of AI behavior patterns
-#[derive(Debug, Clone, PartialEq, Reflect, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Reflect, Serialize, Deserialize, Copy)]
 pub enum AIBehaviorType {
     /// Hostile enemies that chase and attack the player
     Hostile,

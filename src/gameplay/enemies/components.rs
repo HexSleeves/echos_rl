@@ -2,7 +2,25 @@ use bevy::prelude::*;
 use big_brain::prelude::*;
 use echos_assets::entities::AIBehaviorType;
 
-use crate::core::components::Position;
+use crate::core::{components::Position, types::ActionType};
+
+#[derive(Reflect, Component, Default, Clone, Copy)]
+#[reflect(Component)]
+pub struct AIComponent {
+    pub(crate) ai_type: AIBehaviorType,
+    pub preferred_action: Option<ActionType>,
+}
+
+impl AIComponent {
+    #[inline]
+    pub const fn new(ai_type: AIBehaviorType) -> Self { Self { ai_type, preferred_action: None } }
+}
+
+impl AIComponent {
+    pub const fn passive() -> Self { Self { ai_type: AIBehaviorType::Passive, preferred_action: None } }
+    pub const fn hostile() -> Self { Self { ai_type: AIBehaviorType::Hostile, preferred_action: None } }
+    pub const fn neutral() -> Self { Self { ai_type: AIBehaviorType::Neutral, preferred_action: None } }
+}
 
 /// Component that marks an entity as having AI behavior
 #[derive(Component, Debug, Clone, Reflect)]
@@ -30,35 +48,19 @@ impl Default for AIBehavior {
 }
 
 impl AIBehavior {
-    pub fn hostile(detection_range: u8) -> Self {
+    pub fn new(behavior_type: AIBehaviorType, detection_range: u8, turns_before_wander: u64) -> Self {
         Self {
-            behavior_type: AIBehaviorType::Hostile,
+            behavior_type,
             detection_range,
+            turns_before_wander,
             last_known_player_position: None,
             last_player_seen_turn: None,
-            turns_before_wander: 5, // Hostile enemies give up chase after 5 turns
         }
     }
 
-    pub fn passive(detection_range: u8) -> Self {
-        Self {
-            behavior_type: AIBehaviorType::Passive,
-            detection_range,
-            last_known_player_position: None,
-            last_player_seen_turn: None,
-            turns_before_wander: 3, // Passive enemies give up faster
-        }
-    }
-
-    pub fn neutral(detection_range: u8) -> Self {
-        Self {
-            behavior_type: AIBehaviorType::Neutral,
-            detection_range,
-            last_known_player_position: None,
-            last_player_seen_turn: None,
-            turns_before_wander: 10, // Neutral entities don't really chase
-        }
-    }
+    pub fn hostile(detection_range: u8) -> Self { Self::new(AIBehaviorType::Hostile, detection_range, 5) }
+    pub fn passive(detection_range: u8) -> Self { Self::new(AIBehaviorType::Passive, detection_range, 3) }
+    pub fn neutral(detection_range: u8) -> Self { Self::new(AIBehaviorType::Neutral, detection_range, 10) }
 
     /// Check if the AI should switch from chase to wander behavior
     pub fn should_switch_to_wander(&self, current_turn: u64) -> bool {

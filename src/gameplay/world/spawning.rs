@@ -1,19 +1,18 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 use echos_assets::entities::{AIBehaviorType, EntityDefinition, EntityDefinitions};
-use leafwing_input_manager::prelude::InputMap;
 
 use crate::{
     core::{
-        components::{AITag, Description, PlayerTag, Position, ViewShed},
+        bundles::{EnemyBundle, PlayerBundle},
+        components::{Position, ViewShed},
         resources::{CurrentMap, TurnQueue},
     },
     gameplay::{
         enemies::components::{
-            AIBehavior, AIState, ChasePlayerAction, ChasePlayerScorer, FleeFromPlayerAction,
-            FleeFromPlayerScorer, IdleAction, WanderAction, WanderScorer,
+            ChasePlayerAction, ChasePlayerScorer, FleeFromPlayerAction, FleeFromPlayerScorer, IdleAction,
+            WanderAction, WanderScorer,
         },
-        player::{actions::PlayerAction, components::AwaitingInput},
         turns::components::TurnActor,
     },
     rendering::components::TileSprite,
@@ -26,38 +25,8 @@ struct EntitySpawnConfig {
 }
 
 impl EntitySpawnConfig {
-    fn player() -> Self { Self { default_view_radius: 8, default_turn_speed: 100 } }
-
-    fn ai() -> Self { Self { default_view_radius: 6, default_turn_speed: 100 } }
-
-    pub fn default_input_map() -> InputMap<PlayerAction> {
-        InputMap::new([
-            /////////////////////////////
-            // Movement
-            /////////////////////////////
-            // ArrowKeys
-            (PlayerAction::North, KeyCode::ArrowUp),
-            (PlayerAction::South, KeyCode::ArrowDown),
-            (PlayerAction::West, KeyCode::ArrowLeft),
-            (PlayerAction::East, KeyCode::ArrowRight),
-            // WSAD
-            (PlayerAction::North, KeyCode::KeyW),
-            (PlayerAction::South, KeyCode::KeyS),
-            (PlayerAction::West, KeyCode::KeyA),
-            (PlayerAction::East, KeyCode::KeyD),
-            // Diagonals
-            (PlayerAction::NorthWest, KeyCode::KeyY),
-            (PlayerAction::NorthEast, KeyCode::KeyU),
-            (PlayerAction::SouthWest, KeyCode::KeyB),
-            (PlayerAction::SouthEast, KeyCode::KeyN),
-            /////////////////////////////
-            // Actions
-            /////////////////////////////
-            // Wait
-            (PlayerAction::Wait, KeyCode::Period),
-            (PlayerAction::Wait, KeyCode::Numpad5),
-        ])
-    }
+    fn player() -> Self { Self { default_view_radius: 8, default_turn_speed: 1000 } }
+    fn ai() -> Self { Self { default_view_radius: 6, default_turn_speed: 1000 } }
 }
 
 /// Spawn a player entity from definition data
@@ -72,15 +41,11 @@ pub fn spawn_player_from_definition(
     let player_handle = entity_definitions.get_player();
     let definition = assets.get(player_handle).ok_or("Player definition not loaded")?;
 
-    let mut entity_commands =
-        commands.spawn((position, PlayerTag, AwaitingInput, Description::new(&definition.name)));
+    let mut entity_commands = commands.spawn(PlayerBundle::new(&definition.name, position));
 
     // Add common components using helper function
     let config = EntitySpawnConfig::player();
     add_common_components(&mut entity_commands, definition, &config);
-
-    // Add input map
-    entity_commands.insert(EntitySpawnConfig::default_input_map());
 
     let player_id = entity_commands.id();
 
@@ -103,7 +68,6 @@ pub fn spawn_ai_from_definition(
         .ok_or_else(|| format!("AI definition '{ai_name}' not found"))?;
 
     let definition = assets.get(ai_handle).ok_or_else(|| format!("AI definition '{ai_name}' not loaded"))?;
-
     spawn_ai_entity(commands, definition, position, current_map, turn_queue)
 }
 
@@ -119,7 +83,6 @@ pub fn spawn_random_ai_from_definition(
     let random_handle = entity_definitions.get_random_enemy().ok_or("No enemy definitions available")?;
 
     let definition = assets.get(random_handle).ok_or("Random enemy definition not loaded")?;
-
     spawn_ai_entity(commands, definition, position, current_map, turn_queue)
 }
 
@@ -133,20 +96,13 @@ fn spawn_ai_entity(
 ) -> Result<Entity, String> {
     // Get AI behavior type directly from entity definition
     let behavior_type = definition.ai_behavior_type();
-    let ai_behavior = create_ai_behavior_for_type(behavior_type.clone());
-
-    let mut entity_commands = commands.spawn((
-        position,
-        AITag,
-        Description::new(&definition.name),
-        ai_behavior,
-        AIState::default(),
-    ));
+    let enemy_bundle = EnemyBundle::new(&definition.name, position, behavior_type);
+    let mut entity_commands = commands.spawn(enemy_bundle);
 
     // Add common components using helper function
     let config = EntitySpawnConfig::ai();
+    // Add common components
     add_common_components(&mut entity_commands, definition, &config);
-
     // Add big-brain AI components based on behavior type
     add_big_brain_components(&mut entity_commands, behavior_type);
 
@@ -205,15 +161,6 @@ fn finalize_entity_spawn(
 
     info!("Spawned {} '{}' at {:?}", entity_type, entity_name, position);
     Ok(entity_id)
-}
-
-/// Create AI behavior component for the given type
-fn create_ai_behavior_for_type(behavior_type: AIBehaviorType) -> AIBehavior {
-    match behavior_type {
-        AIBehaviorType::Hostile => AIBehavior::hostile(6),
-        AIBehaviorType::Passive => AIBehavior::passive(5),
-        AIBehaviorType::Neutral => AIBehavior::neutral(3),
-    }
 }
 
 /// Add big-brain components to an AI entity based on its behavior type
