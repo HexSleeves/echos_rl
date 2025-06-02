@@ -27,7 +27,7 @@ bevy_ecs_tilemap = { version = "0.16", features = ["atlas"] }
 bevy_kira_audio = { version = "0.23.0", features = ["android_shared_stdcxx"] }
 big-brain = { git = "https://github.com/zkat/big-brain", branch = "main" }
 iyes_progress = { version = "0.14.0" }
-leafwing-input-manager = { version = "0.17" }
+leafwing-input-manager = { version = "0.17", features = ["timing"] }
 
 ### Error handling ###
 anyhow    = { version = "1" } # A library for convenient error handling in Rust.

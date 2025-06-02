@@ -17,7 +17,7 @@ pub mod core {
 
 pub mod gameplay {
     pub mod player {
-        pub use crate::gameplay::player::{components::*, events::*, systems::*};
+        pub use crate::gameplay::player::{actions::*, components::*, events::*, systems::*};
     }
 
     pub mod enemies {

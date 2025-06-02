@@ -6,11 +6,14 @@ use std::time::Duration;
 
 use crate::{
     core::{
-        actions::Walk,
+        actions::{WaitBuilder, Walk},
         states::GameState,
         types::{ActionType, BuildableGameAction, GameActionBuilder},
     },
-    gameplay::{player::components::AwaitingInput, turns::components::TurnActor},
+    gameplay::{
+        player::{actions::PlayerAction, components::AwaitingInput},
+        turns::components::TurnActor,
+    },
     prelude::core::PlayerTag,
 };
 
@@ -30,15 +33,15 @@ impl Default for PlayerTimer {
 
 /// System that handles player input and converts it into game actions
 pub fn player_input_system(
-    mut commands: Commands,
     time: Res<Time>,
     mut timer: Local<PlayerTimer>,
-    input: Res<ButtonInput<KeyCode>>,
-    mut next_state: ResMut<NextState<GameState>>,
-    mut player_query: Query<&ActionState<PlayerAction>>,
 
-    action_state: Single<(Entity, &ActionState<PlayerAction>), With<PlayerTag>>,
-    q_awaiting_input: Option<Single<(Entity, &mut TurnActor), With<AwaitingInput>>>,
+    mut commands: Commands,
+    // input: Res<ButtonInput<KeyCode>>,
+    mut next_state: ResMut<NextState<GameState>>,
+
+    player_query: Single<(Entity, &ActionState<PlayerAction>, &mut TurnActor), With<PlayerTag>>,
+    // q_awaiting_input: Option<Single<(Entity, &mut TurnActor), With<AwaitingInput>>>,
 ) {
     // Tick timer until duration is met.
     if !timer.finished() {
@@ -69,38 +72,41 @@ pub fn player_input_system(
     //     }
     // }
 
-    for action_state in player_query.iter_mut() {
-        let did_action = false;
+    let mut did_action = false;
+    let (entity, action_state, mut p_actor) = player_query.into_inner();
 
-        // Actions
-        if action_state.just_pressed(PlayerAction::Wait) {
-            action_queue.add_action(ActionType::Wait);
-            did_action = true;
-            info!("Player gave input: WAIT");
-        }
+    // Actions
+    if action_state.just_pressed(&PlayerAction::Wait) {
+        // action_queue.add_action(ActionType::Wait);
+        p_actor.add_action(WaitBuilder::new().with_entity(entity).build());
+        did_action = true;
+        info!("Player gave input: WAIT");
+    }
 
-        // Movement
-        for input_direction in PlayerAction::DIRECTIONS {
-            if action_state.just_pressed(input_direction)
-                || (action_state.pressed(input_direction)
-                    && action_state.current_duration(input_direction) > PRESSED_DURATION)
-                    && timer.finished()
-            {
-                if let Some(direction) = input_direction.direction() {
-                    timer.reset();
-                    action_queue.add_action(ActionType::Movement(*player_position + direction));
-                    did_action = true;
+    // Movement
+    for input_direction in PlayerAction::DIRECTIONS {
+        if action_state.just_pressed(&input_direction)
+            || (action_state.pressed(&input_direction)
+                && action_state.current_duration(&input_direction) > PRESSED_DURATION)
+                && timer.finished()
+        {
+            if let Some(direction) = input_direction.direction() {
+                timer.reset();
+                // action_queue.add_action(ActionType::Movement(*player_position + direction));
+                p_actor.add_action(Walk::builder().with_entity(entity).with_direction(direction).build());
+                did_action = true;
 
-                    info!("Player gave input: MOVE");
-                }
+                info!("Player gave input: MOVE");
             }
         }
+    }
 
-        if did_action {
-            commands.entity(entity).remove::<AwaitingInput>();
+    if did_action {
+        info!("Player gave input: {:?}", p_actor.actions);
 
-            // After player action is gathered, move to ProcessTurns to execute all actions in order
-            next_state.set(GameState::ProcessTurns);
-        }
+        commands.entity(entity).remove::<AwaitingInput>();
+
+        // After player action is gathered, move to ProcessTurns to execute all actions in order
+        next_state.set(GameState::ProcessTurns);
     }
 }
