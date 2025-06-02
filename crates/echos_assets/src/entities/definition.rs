@@ -26,6 +26,9 @@ pub struct EntityComponents {
     pub is_player: Option<bool>,
     pub is_ai: Option<bool>,
 
+    // AI-specific components
+    pub ai_behavior_type: Option<AIBehaviorType>,
+
     // Spawning and gameplay properties
     pub spawn_weight: Option<f32>,
     pub level_range: Option<(u32, u32)>,
@@ -57,6 +60,11 @@ impl EntityDefinition {
 
     /// Get spawn weight for random selection
     pub fn spawn_weight(&self) -> f32 { self.components.spawn_weight.unwrap_or(1.0) }
+
+    /// Get AI behavior type (defaults to Neutral if not specified)
+    pub fn ai_behavior_type(&self) -> AIBehaviorType {
+        self.components.ai_behavior_type.clone().unwrap_or_default()
+    }
 }
 
 impl EntityComponents {
@@ -92,6 +100,12 @@ impl EntityComponents {
     pub fn as_ai(mut self) -> Self {
         self.is_ai = Some(true);
         self.is_player = Some(false);
+        self
+    }
+
+    /// Set AI behavior type
+    pub fn with_ai_behavior_type(mut self, behavior_type: AIBehaviorType) -> Self {
+        self.ai_behavior_type = Some(behavior_type);
         self
     }
 

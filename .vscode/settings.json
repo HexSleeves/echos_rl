@@ -6,4 +6,5 @@
     "workbench.editor.customLabels.patterns": {
         "**/mod.rs": "${dirname}/mod.rs"
     },
+    "makefile.configureOnOpen": false,
 }

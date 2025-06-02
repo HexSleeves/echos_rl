@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
-use echos_assets::entities::{EntityDefinition, EntityDefinitions};
+use echos_assets::entities::{AIBehaviorType, EntityDefinition, EntityDefinitions};
 
 use crate::{
     core::{
@@ -9,7 +9,7 @@ use crate::{
     },
     gameplay::{
         enemies::components::{
-            AIBehavior, AIBehaviorType, AIState, ChasePlayerAction, ChasePlayerScorer, FleeFromPlayerAction,
+            AIBehavior, AIState, ChasePlayerAction, ChasePlayerScorer, FleeFromPlayerAction,
             FleeFromPlayerScorer, IdleAction, WanderAction, WanderScorer,
         },
         player::components::AwaitingInput,
@@ -97,8 +97,8 @@ fn spawn_ai_entity(
     current_map: &mut CurrentMap,
     turn_queue: &mut TurnQueue,
 ) -> Result<Entity, String> {
-    // Determine AI behavior type from entity name
-    let behavior_type = determine_ai_behavior_from_name(&definition.name);
+    // Get AI behavior type directly from entity definition
+    let behavior_type = definition.ai_behavior_type();
     let ai_behavior = create_ai_behavior_for_type(behavior_type.clone());
 
     let mut entity_commands = commands.spawn((
@@ -171,20 +171,6 @@ fn finalize_entity_spawn(
 
     info!("Spawned {} '{}' at {:?}", entity_type, entity_name, position);
     Ok(entity_id)
-}
-
-/// Determine AI behavior type from entity name
-fn determine_ai_behavior_from_name(name: &str) -> AIBehaviorType {
-    let name_lower = name.to_lowercase();
-
-    if name_lower.contains("hostile") || name_lower.contains("guard") || name_lower.contains("aggressive") {
-        AIBehaviorType::Hostile
-    } else if name_lower.contains("passive") || name_lower.contains("critter") || name_lower.contains("flee")
-    {
-        AIBehaviorType::Passive
-    } else {
-        AIBehaviorType::Neutral
-    }
 }
 
 /// Create AI behavior component for the given type

@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
+use echos_assets::entities::AIBehaviorType;
+use serde::{Deserialize, Serialize};
 
 use crate::core::components::Position;
 
@@ -14,17 +16,6 @@ pub struct AIBehavior {
     pub last_player_seen_turn: Option<u64>,
     /// Number of turns to wait before switching from chase to wander
     pub turns_before_wander: u64,
-}
-
-/// Different types of AI behavior patterns
-#[derive(Debug, Clone, PartialEq, Reflect)]
-pub enum AIBehaviorType {
-    /// Hostile enemies that chase and attack the player
-    Hostile,
-    /// Passive entities that flee when threatened
-    Passive,
-    /// Neutral entities that ignore the player unless provoked
-    Neutral,
 }
 
 impl Default for AIBehavior {
