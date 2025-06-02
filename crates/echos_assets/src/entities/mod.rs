@@ -15,5 +15,6 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<definition::EntityComponents>()
         .register_type::<components::TurnActorData>()
         .register_type::<components::ViewShedData>()
-        .register_type::<components::TileSpriteData>();
+        .register_type::<components::TileSpriteData>()
+        .register_type::<components::AIBehaviorType>();
 }

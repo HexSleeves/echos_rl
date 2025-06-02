@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 use echos_assets::entities::AIBehaviorType;
-use serde::{Deserialize, Serialize};
 
 use crate::core::components::Position;
 

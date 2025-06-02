@@ -12,10 +12,10 @@ impl RenderingConstants {
     pub const TILEMAP_TEXTURE_PATH: &'static str = "textures/urizen/urizen_onebit_tileset_no_spaces.png";
 
     /// Number of columns in the tilemap
-    pub const TILEMAP_COLUMNS: usize = 16;
+    pub const TILEMAP_COLUMNS: usize = 102;
 
     /// Number of rows in the tilemap
-    pub const TILEMAP_ROWS: usize = 102;
+    pub const TILEMAP_ROWS: usize = 49;
 
     /// Debug colors for FOV visualization
     pub const DEBUG_VISIBLE_COLOR: (f32, f32, f32, f32) = (0.8, 1.0, 0.8, 1.0);

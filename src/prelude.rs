@@ -41,9 +41,9 @@ pub mod ui {
     pub use crate::ui::{components::*, systems::*};
 }
 
-// pub mod assets {
-//     pub use crate::assets::entities::*;
-// }
+pub mod assets {
+    pub use echos_assets::entities::*;
+}
 
 pub mod utils {
     pub use crate::utils::*;

@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{platform::collections::HashSet, prelude::*};
 
 pub mod enemies;
 pub mod player;
@@ -83,22 +83,22 @@ fn spawn_initial_entities(
     info!("Queued player spawn at {:?}", player_position);
 
     let mut occupied: HashSet<Position> = HashSet::from([player_position]);
-    for _ in 0..3 {
-        if let Some(enemy_pos) = current_map.get_random_walkable_position().filter(|p| occupied.insert(*p))
-        // only accept if not already taken
-        {
-            commands.spawn_random_enemy(enemy_pos);
-            info!("Queued enemy spawn at {:?}", enemy_pos);
-        }
+    if let Some(enemy_pos) = current_map.get_random_walkable_position().filter(|p| occupied.insert(*p))
+    // only accept if not already taken
+    {
+        commands.spawn_ai("hostile_guard", enemy_pos);
+        info!("Queued enemy spawn at {:?}", enemy_pos);
     }
 
-    // Spawn some initial enemies
-    for _ in 0..3 {
-        if let Some(enemy_position) = current_map.get_random_walkable_position() {
-            commands.spawn_random_enemy(enemy_position);
-            info!("Queued enemy spawn at {:?}", enemy_position);
-        }
-    }
+    // let mut occupied: HashSet<Position> = HashSet::from([player_position]);
+    // for _ in 0..3 {
+    //     if let Some(enemy_pos) = current_map.get_random_walkable_position().filter(|p|
+    // occupied.insert(*p))     // only accept if not already taken
+    //     {
+    //         commands.spawn_random_enemy(enemy_pos);
+    //         info!("Queued enemy spawn at {:?}", enemy_pos);
+    //     }
+    // }
 }
 
 /// System to start the first turn after initialization

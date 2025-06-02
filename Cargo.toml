@@ -18,16 +18,16 @@ echos_assets = { path = "crates/echos_assets" }
 ### BEVY ###
 bevy = { version = "0.16.1", default-features = false, features = [] }
 bevy_asset_loader = { version = "0.23.0", features = [
-    "2d",
-    "standard_dynamic_assets",
-    "progress_tracking",
+  "2d",
+  "standard_dynamic_assets",
+  "progress_tracking",
 ] }
 bevy_common_assets = { version = "0.13.0", features = ["ron"] }
 bevy_ecs_tilemap = { version = "0.16", features = ["atlas"] }
 bevy_kira_audio = { version = "0.23.0", features = ["android_shared_stdcxx"] }
 big-brain = { git = "https://github.com/zkat/big-brain", branch = "main" }
 iyes_progress = { version = "0.14.0" }
-
+leafwing-input-manager = { version = "0.17" }
 
 ### Error handling ###
 anyhow    = { version = "1" } # A library for convenient error handling in Rust.
@@ -40,9 +40,9 @@ rand     = { version = "0.9" } # Random number generators and other randomness f
 ### Serialization ###
 ron = "0.10" # Rusty Object Notation
 serde = { version = "1", features = [
-    "derive",
-    "rc",
-    "alloc",
+  "derive",
+  "rc",
+  "alloc",
 ] } # A generic serialization/deserialization framework
 toml = "0.8.22" # A TOML-formatted file and stream encoder/decoder.
 
@@ -54,13 +54,13 @@ regex     = "1.0"             # An implementation of regular expressions for Rus
 ### Logging ###
 # Compile low-severity logs out of native builds for performance.
 log = { version = "0.4", features = [
-    "max_level_debug",
-    "release_max_level_warn",
+  "max_level_debug",
+  "release_max_level_warn",
 ] }
 # Compile low-severity logs out of web builds for performance.
 tracing = { version = "0.1", features = [
-    "max_level_debug",
-    "release_max_level_warn",
+  "max_level_debug",
+  "release_max_level_warn",
 ] }
 
 ### Platform dependencies ###
@@ -70,21 +70,21 @@ image = { version = "0.25", default-features = false }
 
 [features]
 default = [
-    # Default to a native dev build.
-    "dev_native",
+  # Default to a native dev build.
+  "dev_native",
 ]
 dev = [
-    # Improve compile times for dev builds by linking Bevy as a dynamic library.
-    "bevy/dynamic_linking",
-    "bevy/bevy_dev_tools",
-    "bevy/bevy_ui_debug",
+  # Improve compile times for dev builds by linking Bevy as a dynamic library.
+  "bevy/dynamic_linking",
+  "bevy/bevy_dev_tools",
+  "bevy/bevy_ui_debug",
 ]
 dev_native = [
-    "dev",
-    # Enable asset hot reloading for native dev builds.
-    "bevy/file_watcher",
-    # Enable embedded asset hot reloading for native dev builds.
-    "bevy/embedded_watcher",
+  "dev",
+  # Enable asset hot reloading for native dev builds.
+  "bevy/file_watcher",
+  # Enable embedded asset hot reloading for native dev builds.
+  "bevy/embedded_watcher",
 ]
 
 # configuration for debugging information
@@ -109,38 +109,38 @@ brtk         = { workspace = true }
 echos_assets = { workspace = true }
 
 bevy = { workspace = true, default-features = false, features = [
-    "animation",
-    "bevy_asset",
-    "bevy_color",
-    "bevy_core_pipeline",
-    "bevy_gilrs",
-    "bevy_gizmos",
-    "bevy_gltf",
-    "bevy_log",
-    "bevy_mesh_picking_backend",
-    "bevy_pbr",
-    "bevy_picking",
-    "bevy_render",
-    "bevy_scene",
-    "bevy_sprite_picking_backend",
-    "bevy_sprite",
-    "bevy_state",
-    "bevy_text",
-    "bevy_ui_picking_backend",
-    "bevy_ui",
-    "bevy_window",
-    "bevy_winit",
-    "custom_cursor",
-    "default_font",
-    "hdr",
-    "multi_threaded",
-    "png",
-    "smaa_luts",
-    "sysinfo_plugin",
-    "tonemapping_luts",
-    # "wayland",
-    "webgl2",
-    "x11",
+  "animation",
+  "bevy_asset",
+  "bevy_color",
+  "bevy_core_pipeline",
+  "bevy_gilrs",
+  "bevy_gizmos",
+  "bevy_gltf",
+  "bevy_log",
+  "bevy_mesh_picking_backend",
+  "bevy_pbr",
+  "bevy_picking",
+  "bevy_render",
+  "bevy_scene",
+  "bevy_sprite_picking_backend",
+  "bevy_sprite",
+  "bevy_state",
+  "bevy_text",
+  "bevy_ui_picking_backend",
+  "bevy_ui",
+  "bevy_window",
+  "bevy_winit",
+  "custom_cursor",
+  "default_font",
+  "hdr",
+  "multi_threaded",
+  "png",
+  "smaa_luts",
+  "sysinfo_plugin",
+  "tonemapping_luts",
+  # "wayland",
+  "webgl2",
+  "x11",
 ] }
 bevy_ecs_tilemap = { workspace = true }
 bevy_common_assets = { workspace = true }
@@ -148,6 +148,7 @@ bevy_asset_loader = { workspace = true }
 bevy_kira_audio = { workspace = true }
 big-brain = { workspace = true }
 iyes_progress = { workspace = true }
+leafwing-input-manager = { workspace = true }
 
 # Error handling
 anyhow    = { workspace = true }

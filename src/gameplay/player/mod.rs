@@ -1,5 +1,7 @@
 use bevy::prelude::*;
+use leafwing_input_manager::prelude::*;
 
+pub mod actions;
 pub mod components;
 pub mod events;
 pub mod systems;
@@ -8,6 +10,8 @@ use crate::{core::states::GameState, rendering::screens::ScreenState};
 
 /// Player plugin that handles all player-related functionality
 pub fn plugin(app: &mut App) {
+    app.add_plugins(InputManagerPlugin::<actions::PlayerAction>::default());
+
     // Add player events
     app.add_event::<events::PlayerMoved>().add_event::<events::PlayerDied>();
 

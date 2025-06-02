@@ -11,7 +11,7 @@ EntityDefinition(
             radius: 6, // Good vision range for detection
         )),
         tile_sprite: Some(TileSpriteData(
-            tile_coords: (1, 16), // Different sprite from whale
+            tile_coords: (26, 5), // Different sprite from whale
             tile_size: Some((12.0, 12.0)),
             tint: Some((1.0, 0.8, 0.8, 1.0)), // Slight red tint for hostility
         )),
@@ -19,6 +19,7 @@ EntityDefinition(
         // Entity type tags
         is_player: Some(false),
         is_ai: Some(true),
+        ai_behavior_type: Some(Hostile),
 
         // Spawning properties
         spawn_weight: Some(3.0), // Common enemy

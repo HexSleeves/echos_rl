@@ -11,7 +11,7 @@ EntityDefinition(
             radius: 5, // Moderate vision range
         )),
         tile_sprite: Some(TileSpriteData(
-            tile_coords: (2, 16), // Different sprite
+            tile_coords: (26, 6), // Different sprite
             tile_size: Some((12.0, 12.0)),
             tint: Some((0.8, 1.0, 0.8, 1.0)), // Slight green tint for peaceful
         )),

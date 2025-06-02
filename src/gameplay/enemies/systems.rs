@@ -11,11 +11,12 @@ use crate::{
     },
     gameplay::{
         enemies::components::{
-            AIAction, AIBehavior, AIBehaviorType, AIState, ChasePlayerAction, ChasePlayerScorer,
-            FleeFromPlayerAction, FleeFromPlayerScorer, IdleAction, WanderAction, WanderScorer,
+            AIAction, AIBehavior, AIState, ChasePlayerAction, ChasePlayerScorer, FleeFromPlayerAction,
+            FleeFromPlayerScorer, IdleAction, WanderAction, WanderScorer,
         },
         turns::components::TurnActor,
     },
+    prelude::assets::AIBehaviorType,
 };
 
 // ============================================================================
@@ -57,8 +58,10 @@ pub fn chase_player_scorer_system(
                         ai_behavior.update_player_sighting(*player_pos, current_turn);
 
                         // Higher score for closer players
-                        chase_score = 1.0 - (distance / ai_behavior.detection_range as f32);
-                        chase_score = chase_score.clamp(0.0, 1.0);
+                        // chase_score = 1.0 - (distance / ai_behavior.detection_range as f32);
+                        // chase_score = chase_score.clamp(0.0, 1.0);
+
+                        chase_score = 1.0;
 
                         info!(
                             "AI entity {:?} can see player at distance {:.1}, chase score: {:.2}",

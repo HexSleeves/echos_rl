@@ -3,12 +3,27 @@ use brtk::prelude::Direction;
 
 use crate::core::types::error::GameError;
 
+pub const TURN_TIME: u32 = 1000;
+pub const WAIT_TIME: u32 = 1000;
+pub const ATTACK_TIME: u32 = 1000;
+
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 pub enum ActionType {
-    Move(Direction),
-    Attack(Entity),
     Wait,
-    // Other actions
+    Attack(Position),
+    Movement(Position),
+    MovementDelta(IVec2),
+}
+
+impl ActionType {
+    pub const fn get_base_time_to_perform(&self) -> u32 {
+        match self {
+            Self::Wait => WAIT_TIME,
+            Self::Attack(_) => ATTACK_TIME,
+            Self::Movement(_) => TURN_TIME,
+            Self::MovementDelta(_) => TURN_TIME,
+        }
+    }
 }
 
 pub trait GameAction: Send + Sync + 'static + std::fmt::Debug {
