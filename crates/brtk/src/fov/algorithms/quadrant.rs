@@ -4,6 +4,7 @@ use crate::{
     direction::Direction,
     fov::traits::{FovProvider, FovReceiver},
 };
+use bevy::prelude::error;
 
 /// Represents one quadrant/octant in the shadowcasting algorithm
 pub struct Quadrant<'a, P: FovProvider, R: FovReceiver> {
@@ -60,7 +61,8 @@ impl<'a, P: FovProvider, R: FovReceiver> Quadrant<'a, P, R> {
                 }
             }
             _ => {
-                println!("Invalid direction: {:?}", self.direction);
+                error!("Invalid direction: {:?}", self.direction);
+                // Return origin to avoid silent failures
                 (0, 0)
             }
         };

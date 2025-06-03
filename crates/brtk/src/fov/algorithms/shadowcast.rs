@@ -37,7 +37,7 @@ impl Shadowcast {
         origin: (i32, i32),
         vision_type: u8,
         range: u32,
-        provider: &mut P,
+        provider: &P,
         receiver: &mut R,
         direction: Direction,
     ) {
@@ -144,12 +144,12 @@ mod tests {
 
     #[test]
     fn test_shadowcast_range_calculation() {
-        let mut provider = TestProvider::new();
+        let provider = TestProvider::new();
         let mut receiver = TestReceiver::new();
 
         // Test with range 5 - should see tiles up to distance 5
         let range = 5;
-        Shadowcast::compute_fov((0, 0), 0, range, &mut provider, &mut receiver);
+        Shadowcast::compute_fov((0, 0), 0, range, &provider, &mut receiver);
 
         // Origin should be visible
         assert!(receiver.get_visible((0, 0)));
@@ -175,11 +175,11 @@ mod tests {
 
     #[test]
     fn test_shadowcast_basic() {
-        let mut provider = TestProvider::new();
+        let provider = TestProvider::new();
         let mut receiver = TestReceiver::new();
 
         // Compute FOV from origin with range 3
-        Shadowcast::compute_fov((0, 0), 0, 3, &mut provider, &mut receiver);
+        Shadowcast::compute_fov((0, 0), 0, 3, &provider, &mut receiver);
 
         // Origin should be visible
         assert!(receiver.get_visible((0, 0)));

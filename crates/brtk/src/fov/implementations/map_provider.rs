@@ -5,7 +5,7 @@ use crate::fov::traits::FovProvider;
 /// A generic map provider that wraps a map and provides opacity information
 pub struct MapProvider<M, F>
 where
-    F: FnMut(&M, (i32, i32), u8) -> bool,
+    F: Fn(&M, (i32, i32), u8) -> bool,
 {
     map: M,
     opacity_fn: F,
@@ -13,7 +13,7 @@ where
 
 impl<M, F> MapProvider<M, F>
 where
-    F: FnMut(&M, (i32, i32), u8) -> bool,
+    F: Fn(&M, (i32, i32), u8) -> bool,
 {
     pub fn new(map: M, opacity_fn: F) -> Self { Self { map, opacity_fn } }
 
