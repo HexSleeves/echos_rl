@@ -13,20 +13,21 @@ use crate::{
 #[derive(Bundle, Default)]
 pub struct ActorBundle {
     pub mob: Mob,
-    // pub fov: ViewShed,
+    pub name: Name,
     pub position: Position,
     pub description: Description,
+    // pub fov: ViewShed,
 }
 
 impl ActorBundle {
     /// Create a new actor bundle with a name and position
-    pub fn new(name: impl ToString, position: Position) -> Self {
+    pub fn new(name: impl ToString, description: impl ToString, position: Position) -> Self {
         Self {
             mob: Mob,
             position,
-            // name: Name::new(name),
+            name: Name::new(name.to_string()),
+            description: Description::new(description.to_string()),
             // fov: ViewShed::new(radius),
-            description: Description::new(name.to_string()),
         }
     }
 }
@@ -93,13 +94,19 @@ pub struct EnemyBundle {
 }
 
 impl EnemyBundle {
-    pub fn new(name: impl ToString, position: Position, behavior_type: AIBehaviorType) -> Self {
+    pub fn new(
+        name: impl ToString,
+        description: impl ToString,
+        position: Position,
+        behavior_type: AIBehaviorType,
+    ) -> Self {
+        let ai_tag = AITag;
         let ai_state = AIState::default();
         let ai = AIComponent::new(behavior_type);
-        let actor = ActorBundle::new(name, position);
+        let actor = ActorBundle::new(name, description, position);
         let ai_behavior = Self::create_ai_behavior_for_type(behavior_type);
 
-        Self { ai_tag: AITag, ai_state, ai_behavior, ai, actor }
+        Self { ai_tag, ai_state, ai_behavior, ai, actor }
     }
 
     fn create_ai_behavior_for_type(behavior_type: AIBehaviorType) -> AIBehavior {

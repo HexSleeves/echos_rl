@@ -5,7 +5,7 @@ use echos_assets::entities::{AIBehaviorType, EntityDefinition, EntityDefinitions
 use crate::{
     core::{
         bundles::{EnemyBundle, PlayerBundle},
-        components::{Position, ViewShed},
+        components::{FieldOfView, Position},
         resources::{CurrentMap, TurnQueue},
     },
     gameplay::{
@@ -20,7 +20,7 @@ use crate::{
 
 /// Configuration for entity-specific components and defaults
 struct EntitySpawnConfig {
-    default_view_radius: i32,
+    default_view_radius: u8,
     default_turn_speed: u64,
 }
 
@@ -96,7 +96,7 @@ fn spawn_ai_entity(
 ) -> Result<Entity, String> {
     // Get AI behavior type directly from entity definition
     let behavior_type = definition.ai_behavior_type();
-    let enemy_bundle = EnemyBundle::new(&definition.name, position, behavior_type);
+    let enemy_bundle = EnemyBundle::new(&definition.name, &definition.description, position, behavior_type);
     let mut entity_commands = commands.spawn(enemy_bundle);
 
     // Add common components using helper function
@@ -119,18 +119,14 @@ fn add_common_components(
     config: &EntitySpawnConfig,
 ) {
     // Add TurnActor component
-    if let Some(turn_data) = &definition.components.turn_actor {
-        entity_commands.insert(TurnActor::new(turn_data.speed));
-    } else {
-        entity_commands.insert(TurnActor::new(config.default_turn_speed));
-    }
+    entity_commands.insert(TurnActor::new(
+        definition.components.turn_actor.as_ref().map(|data| data.speed).unwrap_or(config.default_turn_speed),
+    ));
 
-    // Add ViewShed component
-    if let Some(view_data) = &definition.components.view_shed {
-        entity_commands.insert(ViewShed::new(view_data.radius as i32));
-    } else {
-        entity_commands.insert(ViewShed::new(config.default_view_radius));
-    }
+    // Add FieldOfView component
+    entity_commands.insert(FieldOfView::new(
+        definition.components.field_of_view.as_ref().map(|data| data.0).unwrap_or(config.default_view_radius),
+    ));
 
     // Add TileSprite component
     if let Some(sprite_data) = &definition.components.tile_sprite {

@@ -9,7 +9,7 @@ pub struct EntityDefinition {
     /// Human-readable name for the entity
     pub name: String,
     /// Optional description for documentation
-    pub description: Option<String>,
+    pub description: String,
     /// All component data for this entity
     pub components: EntityComponents,
 }
@@ -19,7 +19,7 @@ pub struct EntityDefinition {
 pub struct EntityComponents {
     // Core gameplay components
     pub turn_actor: Option<TurnActorData>,
-    pub view_shed: Option<ViewShedData>,
+    pub field_of_view: Option<FieldOfViewData>,
     pub tile_sprite: Option<TileSpriteData>,
 
     // Entity type tags
@@ -36,14 +36,8 @@ pub struct EntityComponents {
 
 impl EntityDefinition {
     /// Create a new entity definition
-    pub fn new(name: impl Into<String>) -> Self {
-        Self { name: name.into(), description: None, components: EntityComponents::default() }
-    }
-
-    /// Set the description
-    pub fn with_description(mut self, description: impl Into<String>) -> Self {
-        self.description = Some(description.into());
-        self
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
+        Self { name: name.into(), description: description.into(), components: EntityComponents::default() }
     }
 
     /// Set the components
@@ -78,8 +72,8 @@ impl EntityComponents {
     }
 
     /// Set view shed data
-    pub fn with_view_shed(mut self, data: ViewShedData) -> Self {
-        self.view_shed = Some(data);
+    pub fn with_field_of_view(mut self, data: FieldOfViewData) -> Self {
+        self.field_of_view = Some(data);
         self
     }
 

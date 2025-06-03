@@ -4,11 +4,7 @@ pub use bevy::prelude::*;
 // Re-export commonly used external crate types
 pub use brtk::prelude::*;
 
-// Common game components available at the root of the prelude
-pub use crate::core::{
-    components::{Description, Position},
-    states::GameState,
-};
+pub use crate::core::states::{GameState, ScreenState};
 
 // Specific areas nested within their own module for self-documenting use
 pub mod core {
@@ -21,7 +17,7 @@ pub mod gameplay {
     }
 
     pub mod enemies {
-        pub use crate::gameplay::enemies::{ai::*, components::*, systems::*};
+        pub use crate::gameplay::enemies::{components::*, systems::*};
     }
 
     pub mod turns {

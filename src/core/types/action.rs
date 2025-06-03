@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use brtk::prelude::Direction;
 
-use crate::{core::types::error::GameError, prelude::Position};
+use crate::core::{components::Position, types::error::GameError};
 
 pub const TURN_TIME: u32 = 1000;
 pub const WAIT_TIME: u32 = 1000;

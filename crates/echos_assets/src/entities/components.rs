@@ -35,14 +35,11 @@ impl TurnActorData {
 }
 
 /// Data representation of ViewShed component for serialization
-#[derive(Serialize, Deserialize, Debug, Clone, Reflect)]
-pub struct ViewShedData {
-    /// Vision radius in tiles
-    pub radius: u8,
-}
+#[derive(Serialize, Deserialize, Debug, Clone, Reflect, Deref, DerefMut)]
+pub struct FieldOfViewData(pub u8);
 
-impl ViewShedData {
-    pub fn new(radius: u8) -> Self { Self { radius } }
+impl FieldOfViewData {
+    pub fn new(radius: u8) -> Self { Self(radius) }
 }
 
 /// Data representation of TileSprite component for serialization

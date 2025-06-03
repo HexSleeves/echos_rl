@@ -1,15 +1,13 @@
 EntityDefinition(
     name: "Neutral Wanderer",
-    description: Some("A creature that minds its own business and wanders aimlessly"),
+    description: "A creature that minds its own business and wanders aimlessly",
     components: EntityComponents(
         // Core gameplay components
         turn_actor: Some(TurnActorData(
             speed: 80, // Slow wandering pace
             action_queue_size: Some(1),
         )),
-        view_shed: Some(ViewShedData(
-            radius: 3, // Limited vision range
-        )),
+        field_of_view: Some(FieldOfViewData(3)),
         tile_sprite: Some(TileSpriteData(
             tile_coords: (26, 2), // Different sprite
             tile_size: Some((12.0, 12.0)),

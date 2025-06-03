@@ -1,15 +1,13 @@
 EntityDefinition(
     name: "Passive Critter",
-    description: Some("A harmless creature that flees when threatened"),
+    description: "A harmless creature that flees when threatened",
     components: EntityComponents(
         // Core gameplay components
         turn_actor: Some(TurnActorData(
             speed: 90, // faster than player but tries to flee
             action_queue_size: Some(2),
         )),
-        view_shed: Some(ViewShedData(
-            radius: 5, // Moderate vision range
-        )),
+        field_of_view: Some(FieldOfViewData(5)),
         tile_sprite: Some(TileSpriteData(
             tile_coords: (26, 6), // Different sprite
             tile_size: Some((12.0, 12.0)),

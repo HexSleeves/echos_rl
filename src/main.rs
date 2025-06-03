@@ -2,7 +2,6 @@
 #![cfg_attr(not(feature = "dev"), windows_subsystem = "windows")]
 // Support configuring Bevy lints within code.
 #![cfg_attr(bevy_lint, feature(register_tool), register_tool(bevy))]
-
 use bevy::{
     asset::AssetMetaCheck,
     prelude::*,
@@ -119,9 +118,9 @@ impl EchosInTheDark {
         self.app.add_plugins((
             self.brt_plugin.clone(),
             echos_assets::EchosAssetsPlugin,
-            core::plugin,      // New core plugin
-            gameplay::plugin,  // New gameplay plugin
-            rendering::plugin, // New rendering plugin
+            core::plugin,
+            gameplay::plugin,
+            rendering::plugin,
             ui::plugin,
             #[cfg(feature = "dev")]
             dev::plugin,

@@ -89,16 +89,6 @@ fn spawn_initial_entities(
         commands.spawn_ai("hostile_guard", enemy_pos);
         info!("Queued enemy spawn at {:?}", enemy_pos);
     }
-
-    // let mut occupied: HashSet<Position> = HashSet::from([player_position]);
-    // for _ in 0..3 {
-    //     if let Some(enemy_pos) = current_map.get_random_walkable_position().filter(|p|
-    // occupied.insert(*p))     // only accept if not already taken
-    //     {
-    //         commands.spawn_random_enemy(enemy_pos);
-    //         info!("Queued enemy spawn at {:?}", enemy_pos);
-    //     }
-    // }
 }
 
 /// System to start the first turn after initialization

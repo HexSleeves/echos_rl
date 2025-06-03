@@ -6,6 +6,7 @@ pub mod commands;
 pub mod components;
 pub mod constants;
 pub mod events;
+pub mod pathfinding;
 pub mod resources;
 pub mod states;
 pub mod systems;
@@ -16,6 +17,8 @@ use crate::rendering::screens::ScreenState;
 /// Core plugin that provides fundamental game systems and components
 /// used across all game features.
 pub fn plugin(app: &mut App) {
+    info!("[SYSTEM] Adding core plugin");
+
     // Initialize core states
     app.init_state::<states::GameState>();
 
@@ -28,7 +31,7 @@ pub fn plugin(app: &mut App) {
     // Register core components for reflection
     app.register_type::<components::Position>()
         .register_type::<components::Description>()
-        .register_type::<components::ViewShed>()
+        .register_type::<components::FieldOfView>()
         .register_type::<components::PlayerTag>()
         .register_type::<components::AITag>()
         .register_type::<components::DeadTag>();

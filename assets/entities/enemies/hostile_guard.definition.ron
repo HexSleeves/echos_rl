@@ -1,15 +1,15 @@
 EntityDefinition(
     name: "Hostile Guard",
-    description: Some("An aggressive guard that will chase and attack intruders on sight"),
+    description: "An aggressive guard that will chase and attack intruders on sight",
     components: EntityComponents(
         // Core gameplay components
         turn_actor: Some(TurnActorData(
             speed: 110, // Slightly faster than player
             action_queue_size: Some(3),
         )),
-        view_shed: Some(ViewShedData(
-            radius: 6, // Good vision range for detection
-        )),
+
+        field_of_view: Some(FieldOfViewData(8)),
+
         tile_sprite: Some(TileSpriteData(
             tile_coords: (26, 5), // Different sprite from whale
             tile_size: Some((12.0, 12.0)),

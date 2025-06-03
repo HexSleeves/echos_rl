@@ -54,4 +54,6 @@ impl Random {
         let seed = self.random.random::<u64>();
         fastrand::Rng::with_seed(seed)
     }
+
+    pub fn as_rngcore(&mut self) -> &mut Pcg64 { &mut self.random }
 }

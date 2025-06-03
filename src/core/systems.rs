@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::core::{
-    components::{PlayerTag, Position, ViewShed},
+    components::{FieldOfView, PlayerTag, Position},
     resources::{CurrentMap, FovMap},
 };
 
@@ -24,12 +24,12 @@ pub struct CleanupOnGameExit;
 pub fn compute_fov(
     map: Res<CurrentMap>,
     mut fov_map: ResMut<FovMap>,
-    query: Query<(&Position, &ViewShed), With<PlayerTag>>,
+    query: Query<(&Position, &FieldOfView), With<PlayerTag>>,
 ) {
     match query.single() {
         Ok((player_pos, view_shed)) => {
             debug!("Computing FOV for player at {:?}", player_pos);
-            fov_map.compute_fov(&map, *player_pos, view_shed.radius as u8);
+            fov_map.compute_fov(&map, *player_pos, **view_shed);
         }
         Err(bevy::ecs::query::QuerySingleError::NoEntities(_)) => {
             // No player entity found - this is normal during game initialization

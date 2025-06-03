@@ -10,10 +10,12 @@ pub struct Position(pub IVec2);
 
 impl Position {
     pub fn new(x: i32, y: i32) -> Self { Self(IVec2::new(x, y)) }
-
     pub fn x(&self) -> i32 { self.0.x }
-
     pub fn y(&self) -> i32 { self.0.y }
+
+    pub fn distance_squared(&self, other: &Position) -> i32 { self.0.distance_squared(other.0) }
+
+    pub fn distance(&self, other: &Position) -> f32 { self.0.as_vec2().distance(other.0.as_vec2()) }
 }
 
 impl From<IVec2> for Position {
@@ -70,22 +72,16 @@ impl Description {
     pub fn new(description: impl ToString) -> Self { Self(description.to_string()) }
 }
 
-/// Component for entities that can see (field of view)
-#[derive(Component, Reflect)]
+#[derive(Reflect, Component, Deref, DerefMut)]
 #[reflect(Component)]
-pub struct ViewShed {
-    pub radius: i32,
+pub struct FieldOfView(pub u8);
+
+impl Default for FieldOfView {
+    fn default() -> Self { Self(4) }
 }
 
-impl Default for ViewShed {
-    fn default() -> Self { Self::new(4) }
-}
-
-impl ViewShed {
-    pub fn new(radius: i32) -> Self {
-        debug_assert!(radius >= 0, "ViewShed radius must be non-negative");
-        Self { radius }
-    }
+impl FieldOfView {
+    pub fn new(radius: u8) -> Self { Self(radius) }
 }
 
 /// Component that marks an entity as the player

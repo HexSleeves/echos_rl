@@ -104,6 +104,22 @@ impl Map {
         self.actor_positions.get(&entity).copied()
     }
 
+    pub fn can_place_actor(&self, position: Position) -> bool {
+        if !self.in_bounds(position) {
+            return false;
+        }
+
+        if !self.is_walkable(position) {
+            return false;
+        }
+
+        if self.get_actor(position).is_some() {
+            return false;
+        }
+
+        true
+    }
+
     pub fn place_actor(&mut self, position: Position, actor: Entity) -> Result<(), String> {
         if !self.in_bounds(position) {
             return Err("Position out of bounds".to_string());

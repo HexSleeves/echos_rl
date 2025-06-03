@@ -1,15 +1,13 @@
 EntityDefinition(
     name: "Player",
-    description: Some("The main character controlled by the player"),
+    description: "The main character controlled by the player",
     components: EntityComponents(
         // Core gameplay components matching current hardcoded values
         turn_actor: Some(TurnActorData(
             speed: 100,
             action_queue_size: Some(5),
         )),
-        view_shed: Some(ViewShedData(
-            radius: 8,
-        )),
+        field_of_view: Some(FieldOfViewData(8)),
         tile_sprite: Some(TileSpriteData(
             tile_coords: (0, 16),
             tile_size: Some((12.0, 12.0)),
