@@ -48,7 +48,8 @@ pub fn toggle_fov_algorithm(keyboard_input: Res<ButtonInput<KeyCode>>, mut fov_m
         let current_algorithm = fov_map.get_algorithm();
         let new_algorithm = match current_algorithm {
             FovAlgorithm::Raycasting => FovAlgorithm::Shadowcasting,
-            FovAlgorithm::Shadowcasting => FovAlgorithm::Raycasting,
+            FovAlgorithm::Shadowcasting => FovAlgorithm::AdvancedShadowcasting,
+            FovAlgorithm::AdvancedShadowcasting => FovAlgorithm::Raycasting,
         };
 
         fov_map.set_algorithm(new_algorithm);
