@@ -1,13 +1,16 @@
 //! Quadrant handling for shadowcasting algorithm
 
-use crate::{direction::Direction, fov::traits::{FovProvider, FovReceiver}};
+use crate::{
+    direction::Direction,
+    fov::traits::{FovProvider, FovReceiver},
+};
 
 /// Represents one quadrant/octant in the shadowcasting algorithm
 pub struct Quadrant<'a, P: FovProvider, R: FovReceiver> {
     direction: Direction,
     origin: (i32, i32),
     vision_type: u8,
-    provider: &'a mut P,
+    provider: &'a P,
     receiver: &'a mut R,
 }
 
@@ -16,51 +19,49 @@ impl<'a, P: FovProvider, R: FovReceiver> Quadrant<'a, P, R> {
         direction: Direction,
         origin: (i32, i32),
         vision_type: u8,
-        provider: &'a mut P,
+        provider: &'a P,
         receiver: &'a mut R,
     ) -> Self {
-        Self {
-            direction,
-            origin,
-            vision_type,
-            provider,
-            receiver,
-        }
+        Self { direction, origin, vision_type, provider, receiver }
     }
 
     fn transform(&self, tile: (i32, i32)) -> (i32, i32) {
         let offset = match self.direction {
-            Direction::North => (tile.1, -tile.0),
-            Direction::South => (tile.1, tile.0),
-            Direction::East => (tile.0, tile.1),
-            Direction::West => (-tile.0, tile.1),
-            Direction::NorthEast => {
+            Direction::NORTH => (tile.1, -tile.0),
+            Direction::SOUTH => (tile.1, tile.0),
+            Direction::EAST => (tile.0, tile.1),
+            Direction::WEST => (-tile.0, tile.1),
+            Direction::NORTH_EAST => {
                 if tile.0 >= tile.1 {
                     (tile.0, -tile.1)
                 } else {
                     (tile.1, -tile.0)
                 }
             }
-            Direction::NorthWest => {
+            Direction::NORTH_WEST => {
                 if tile.0 >= tile.1 {
                     (-tile.0, -tile.1)
                 } else {
                     (-tile.1, -tile.0)
                 }
             }
-            Direction::SouthEast => {
+            Direction::SOUTH_EAST => {
                 if tile.0 >= tile.1 {
                     (tile.0, tile.1)
                 } else {
                     (tile.1, tile.0)
                 }
             }
-            Direction::SouthWest => {
+            Direction::SOUTH_WEST => {
                 if tile.0 >= tile.1 {
                     (-tile.0, tile.1)
                 } else {
                     (-tile.1, tile.0)
                 }
+            }
+            _ => {
+                println!("Invalid direction: {:?}", self.direction);
+                (0, 0)
             }
         };
 
@@ -77,7 +78,5 @@ impl<'a, P: FovProvider, R: FovReceiver> Quadrant<'a, P, R> {
         self.provider.is_opaque(global_pos, self.vision_type)
     }
 
-    pub fn is_clear(&mut self, tile: (i32, i32)) -> bool {
-        !self.is_opaque(tile)
-    }
+    pub fn is_clear(&mut self, tile: (i32, i32)) -> bool { !self.is_opaque(tile) }
 }

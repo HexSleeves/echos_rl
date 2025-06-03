@@ -1,17 +1,12 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
-use crate::{
-    core::states::GameState,
-    gameplay::{enemies::systems, turns::components::TurnActor},
-    prelude::gameplay::enemies::AIBehavior,
-    rendering::screens::ScreenState,
-};
+use crate::{core::states::GameState, gameplay::enemies::systems, rendering::screens::ScreenState};
 
 /// System condition to check if any AI entities need to make decisions
-fn ai_needs_decisions(ai_query: Query<&TurnActor, With<AIBehavior>>) -> bool {
-    ai_query.iter().any(|turn_actor| turn_actor.peek_next_action().is_none())
-}
+// fn ai_needs_decisions(ai_query: Query<&TurnActor, With<AIBehavior>>) -> bool {
+//     ai_query.iter().any(|turn_actor| turn_actor.peek_next_action().is_none())
+// }
 
 /// AI plugin that handles big-brain AI behavior
 pub fn plugin(app: &mut App) {

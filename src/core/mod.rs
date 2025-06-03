@@ -49,7 +49,6 @@ pub fn plugin(app: &mut App) {
             systems::compute_fov
                 .run_if(in_state(ScreenState::Gameplay))
                 .in_set(crate::gameplay::GameplaySystemSet::WorldUpdate),
-            systems::toggle_fov_algorithm,
         ),
     );
 }

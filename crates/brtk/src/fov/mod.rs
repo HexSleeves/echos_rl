@@ -1,19 +1,19 @@
 //! Field of View (FOV) system for roguelike games
-//! 
+//!
 //! This module provides a trait-based FOV system that supports multiple algorithms
 //! and can be adapted to different game architectures. The design is inspired by
 //! modern shadowcasting techniques and provides both flexibility and performance.
 
-pub mod traits;
 pub mod algorithms;
-pub mod utils;
 pub mod implementations;
+pub mod traits;
+pub mod utils;
 
 // Re-export main types for convenience
-pub use traits::{FovProvider, FovReceiver, FovAlgorithm};
 pub use algorithms::shadowcast::Shadowcast;
+pub use implementations::{map_provider::MapProvider, visibility_map::VisibilityMap};
+pub use traits::{FovAlgorithm, FovProvider, FovReceiver};
 pub use utils::slope::Slope;
-pub use implementations::{visibility_map::VisibilityMap, map_provider::MapProvider};
 
 /// Main FOV algorithm selector
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -25,9 +25,7 @@ pub enum FovAlgorithmType {
 }
 
 impl Default for FovAlgorithmType {
-    fn default() -> Self {
-        Self::Shadowcast
-    }
+    fn default() -> Self { Self::Shadowcast }
 }
 
 impl FovAlgorithmType {
@@ -64,8 +62,8 @@ mod tests {
     #[test]
     fn test_fov_algorithm_type_variants() {
         let shadowcast = FovAlgorithmType::Shadowcast;
-        let directional = FovAlgorithmType::ShadowcastDirection(Direction::North);
-        
+        let directional = FovAlgorithmType::ShadowcastDirection(Direction::NORTH);
+
         assert_ne!(shadowcast, directional);
     }
 }

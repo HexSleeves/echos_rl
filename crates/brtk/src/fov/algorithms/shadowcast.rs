@@ -17,25 +17,14 @@ impl FovAlgorithm for Shadowcast {
         origin: (i32, i32),
         vision_type: u8,
         range: u32,
-        provider: &mut P,
+        provider: &P,
         receiver: &mut R,
     ) {
         receiver.clear_visible();
         receiver.set_visible(origin);
 
         // Process all 8 cardinal and diagonal directions
-        let directions = [
-            Direction::North,
-            Direction::NorthEast,
-            Direction::East,
-            Direction::SouthEast,
-            Direction::South,
-            Direction::SouthWest,
-            Direction::West,
-            Direction::NorthWest,
-        ];
-
-        for direction in directions {
+        for direction in Direction::iter_cardinal_ordinal() {
             let mut quadrant = Quadrant::new(direction, origin, vision_type, provider, receiver);
             let mut first_row = Row::new(1, Slope::new(-1, 1), Slope::new(1, 1));
             Self::scan_recursive(range, &mut quadrant, &mut first_row);
@@ -76,7 +65,7 @@ impl Shadowcast {
 
             // Determine if we should reveal this tile
             let should_reveal = quadrant.is_opaque(tile) || row.is_symmetric(tile);
-            
+
             if should_reveal {
                 quadrant.set_visible(tile);
             }
@@ -87,7 +76,7 @@ impl Shadowcast {
                 if quadrant.is_opaque(prev_tile) && quadrant.is_clear(tile) {
                     row.calc_starting_slope(tile);
                 }
-                
+
                 // Transition from clear to opaque: end of visible area, start recursion
                 if quadrant.is_clear(prev_tile) && quadrant.is_opaque(tile) {
                     let mut next_row = row.next();
@@ -120,19 +109,13 @@ mod tests {
     }
 
     impl TestProvider {
-        fn new() -> Self {
-            Self {
-                opaque_positions: HashSet::new(),
-            }
-        }
+        fn new() -> Self { Self { opaque_positions: HashSet::new() } }
 
-        fn add_opaque(&mut self, position: (i32, i32)) {
-            self.opaque_positions.insert(position);
-        }
+        fn add_opaque(&mut self, position: (i32, i32)) { self.opaque_positions.insert(position); }
     }
 
     impl FovProvider for TestProvider {
-        fn is_opaque(&mut self, position: (i32, i32), _vision_type: u8) -> bool {
+        fn is_opaque(&self, position: (i32, i32), _vision_type: u8) -> bool {
             self.opaque_positions.contains(&position)
         }
     }
@@ -142,36 +125,21 @@ mod tests {
     }
 
     impl TestReceiver {
-        fn new() -> Self {
-            Self {
-                visible_positions: HashSet::new(),
-            }
-        }
+        fn new() -> Self { Self { visible_positions: HashSet::new() } }
 
-        fn get_visible_count(&self) -> usize {
-            self.visible_positions.len()
-        }
+        fn get_visible_count(&self) -> usize { self.visible_positions.len() }
 
         fn get_max_distance_from_origin(&self) -> f32 {
-            self.visible_positions
-                .iter()
-                .map(|&(x, y)| ((x * x + y * y) as f32).sqrt())
-                .fold(0.0, f32::max)
+            self.visible_positions.iter().map(|&(x, y)| ((x * x + y * y) as f32).sqrt()).fold(0.0, f32::max)
         }
     }
 
     impl FovReceiver for TestReceiver {
-        fn set_visible(&mut self, position: (i32, i32)) {
-            self.visible_positions.insert(position);
-        }
+        fn set_visible(&mut self, position: (i32, i32)) { self.visible_positions.insert(position); }
 
-        fn get_visible(&self, position: (i32, i32)) -> bool {
-            self.visible_positions.contains(&position)
-        }
+        fn get_visible(&self, position: (i32, i32)) -> bool { self.visible_positions.contains(&position) }
 
-        fn clear_visible(&mut self) {
-            self.visible_positions.clear();
-        }
+        fn clear_visible(&mut self) { self.visible_positions.clear(); }
     }
 
     #[test]
@@ -197,9 +165,12 @@ mod tests {
 
         // Check that the maximum distance is approximately the range
         let max_distance = receiver.get_max_distance_from_origin();
-        assert!(max_distance <= range as f32 + 0.1,
-                "Maximum visible distance {} should not exceed range {}",
-                max_distance, range);
+        assert!(
+            max_distance <= range as f32 + 0.1,
+            "Maximum visible distance {} should not exceed range {}",
+            max_distance,
+            range
+        );
     }
 
     #[test]

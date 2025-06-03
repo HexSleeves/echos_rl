@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::core::{
     components::{PlayerTag, Position, ViewShed},
-    resources::{CurrentMap, FovAlgorithm, FovMap},
+    resources::{CurrentMap, FovMap},
 };
 
 /// Generic cleanup system for removing entities with a specific component
@@ -39,20 +39,5 @@ pub fn compute_fov(
             // Multiple players found - this shouldn't happen in normal gameplay
             warn!("Multiple player entities found for FOV computation - using none to avoid ambiguity");
         }
-    }
-}
-
-/// System that allows toggling between FOV algorithms using the F key
-pub fn toggle_fov_algorithm(keyboard_input: Res<ButtonInput<KeyCode>>, mut fov_map: ResMut<FovMap>) {
-    if keyboard_input.just_pressed(KeyCode::KeyF) {
-        let current_algorithm = fov_map.get_algorithm();
-        let new_algorithm = match current_algorithm {
-            FovAlgorithm::Raycasting => FovAlgorithm::Shadowcasting,
-            FovAlgorithm::Shadowcasting => FovAlgorithm::AdvancedShadowcasting,
-            FovAlgorithm::AdvancedShadowcasting => FovAlgorithm::Raycasting,
-        };
-
-        fov_map.set_algorithm(new_algorithm);
-        info!("FOV algorithm changed from {:?} to {:?}", current_algorithm, new_algorithm);
     }
 }

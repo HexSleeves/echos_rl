@@ -41,6 +41,20 @@ impl FromWorld for Map {
     }
 }
 
+impl FovProvider for Map {
+    fn is_opaque(&self, position: (i32, i32), _vision_type: u8) -> bool {
+        let pos = Position::new(position.0, position.1);
+
+        // Out of bounds is opaque
+        if !self.in_bounds(pos) {
+            return true;
+        }
+
+        // Check if terrain blocks vision
+        self.get_terrain(pos).map(|terrain| terrain.blocks_vision()).unwrap_or(true)
+    }
+}
+
 impl Map {
     pub fn new(size: (u32, u32)) -> Self {
         let tiles = Grid::new_fill(size, Tile::default());
