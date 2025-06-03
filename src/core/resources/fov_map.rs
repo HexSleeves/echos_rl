@@ -1,5 +1,6 @@
 use bevy::{platform::collections::HashMap, prelude::*};
 use bitvec::prelude::*;
+use brtk::fov::{FovAlgorithmType, FovProvider, FovReceiver, Shadowcast};
 
 use crate::core::{components::Position, constants::ModelConstants, resources::Map};
 
@@ -8,9 +9,11 @@ use crate::core::{components::Position, constants::ModelConstants, resources::Ma
 pub enum FovAlgorithm {
     /// Simple raycasting using Bresenham's line algorithm - more reliable for wall blocking
     Raycasting,
-    #[default]
     /// Traditional shadowcasting algorithm - more efficient for large view distances
     Shadowcasting,
+    #[default]
+    /// Advanced shadowcasting algorithm with precise slope calculations
+    AdvancedShadowcasting,
 }
 
 /// Field of view map using bit-level storage for memory efficiency.
@@ -106,6 +109,7 @@ impl FovMap {
         match self.algorithm {
             FovAlgorithm::Raycasting => self.compute_fov_raycasting(map, origin, radius as i32),
             FovAlgorithm::Shadowcasting => self.compute_fov_shadowcasting(map, origin, radius as i32),
+            FovAlgorithm::AdvancedShadowcasting => self.compute_fov_advanced_shadowcasting(map, origin, radius as u32),
         }
     }
 }
@@ -411,6 +415,74 @@ impl FovMap {
     }
 }
 
+// ADVANCED SHADOWCASTING
+impl FovMap {
+    /// Advanced shadowcasting FOV implementation using the brtk FOV system
+    fn compute_fov_advanced_shadowcasting(&mut self, map: &Map, origin: Position, radius: u32) {
+        // Create provider and receiver adapters
+        let mut provider = EchosMapProvider::new(map);
+        let mut receiver = EchosFovReceiver::new(self);
+
+        // Use the advanced shadowcasting algorithm from brtk
+        let origin_coords = (origin.x(), origin.y());
+        Shadowcast::compute_fov(origin_coords, 0, radius, &mut provider, &mut receiver);
+    }
+}
+
+/// Adapter to make echos_rl Map work with brtk FovProvider trait
+struct EchosMapProvider<'a> {
+    map: &'a Map,
+}
+
+impl<'a> EchosMapProvider<'a> {
+    fn new(map: &'a Map) -> Self {
+        Self { map }
+    }
+}
+
+impl<'a> FovProvider for EchosMapProvider<'a> {
+    fn is_opaque(&mut self, position: (i32, i32), _vision_type: u8) -> bool {
+        let pos = Position::new(position.0, position.1);
+
+        // Out of bounds is opaque
+        if !self.map.in_bounds(pos) {
+            return true;
+        }
+
+        // Check if terrain blocks vision
+        self.map.get_terrain(pos)
+            .map(|terrain| terrain.blocks_vision())
+            .unwrap_or(true)
+    }
+}
+
+/// Adapter to make FovMap work with brtk FovReceiver trait
+struct EchosFovReceiver<'a> {
+    fov_map: &'a mut FovMap,
+}
+
+impl<'a> EchosFovReceiver<'a> {
+    fn new(fov_map: &'a mut FovMap) -> Self {
+        Self { fov_map }
+    }
+}
+
+impl<'a> FovReceiver for EchosFovReceiver<'a> {
+    fn set_visible(&mut self, position: (i32, i32)) {
+        let pos = Position::new(position.0, position.1);
+        self.fov_map.set_visible(pos, true);
+    }
+
+    fn get_visible(&self, position: (i32, i32)) -> bool {
+        let pos = Position::new(position.0, position.1);
+        self.fov_map.is_visible(pos)
+    }
+
+    fn clear_visible(&mut self) {
+        self.fov_map.clear_visibility();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -498,18 +570,64 @@ mod tests {
             }
         }
 
-        // Both algorithms should see the origin
+        // Test advanced shadowcasting
+        fov_map.set_algorithm(FovAlgorithm::AdvancedShadowcasting);
+        fov_map.compute_fov(&map, origin, radius);
+        let mut advanced_shadowcasting_visible = Vec::new();
+        for x in 0..20 {
+            for y in 0..20 {
+                let pos = Position::new(x, y);
+                if fov_map.is_visible(pos) {
+                    advanced_shadowcasting_visible.push(pos);
+                }
+            }
+        }
+
+        // All algorithms should see the origin
         assert!(raycasting_visible.contains(&origin));
         assert!(shadowcasting_visible.contains(&origin));
+        assert!(advanced_shadowcasting_visible.contains(&origin));
 
         // The number of visible tiles should be similar (within reasonable bounds)
-        let diff = (raycasting_visible.len() as i32 - shadowcasting_visible.len() as i32).abs();
+        let diff1 = (raycasting_visible.len() as i32 - shadowcasting_visible.len() as i32).abs();
+        let diff2 = (shadowcasting_visible.len() as i32 - advanced_shadowcasting_visible.len() as i32).abs();
         assert!(
-            diff < 10,
-            "Algorithms should produce similar results. Raycasting: {}, Shadowcasting: {}",
+            diff1 < 10,
+            "Raycasting and Shadowcasting should produce similar results. Raycasting: {}, Shadowcasting: {}",
             raycasting_visible.len(),
             shadowcasting_visible.len()
         );
+        assert!(
+            diff2 < 10,
+            "Shadowcasting and Advanced Shadowcasting should produce similar results. Shadowcasting: {}, Advanced: {}",
+            shadowcasting_visible.len(),
+            advanced_shadowcasting_visible.len()
+        );
+    }
+
+    #[test]
+    fn test_advanced_shadowcasting_basic() {
+        let mut fov_map = FovMap::new(20, 20);
+        let map = create_test_map(20, 20);
+        let origin = Position::new(10, 10);
+        let radius = 5;
+
+        fov_map.set_algorithm(FovAlgorithm::AdvancedShadowcasting);
+        fov_map.compute_fov(&map, origin, radius);
+
+        // Origin should be visible
+        assert!(fov_map.is_visible(origin));
+        assert!(fov_map.is_revealed(origin));
+
+        // Adjacent tiles should be visible
+        assert!(fov_map.is_visible(Position::new(11, 10)));
+        assert!(fov_map.is_visible(Position::new(9, 10)));
+        assert!(fov_map.is_visible(Position::new(10, 11)));
+        assert!(fov_map.is_visible(Position::new(10, 9)));
+
+        // Tiles beyond radius should not be visible
+        assert!(!fov_map.is_visible(Position::new(16, 10)));
+        assert!(!fov_map.is_visible(Position::new(4, 10)));
     }
 
     #[test]
