@@ -26,7 +26,8 @@ pub fn plugin(app: &mut App) {
     app.init_resource::<resources::CurrentMap>()
         .init_resource::<resources::TurnQueue>()
         .init_resource::<resources::FovMap>()
-        .init_resource::<resources::SpawnPoint>();
+        .init_resource::<resources::SpawnPoint>()
+        .init_resource::<resources::DistanceSettings>();
 
     // Register core components for reflection
     app.register_type::<components::Position>()
@@ -34,7 +35,8 @@ pub fn plugin(app: &mut App) {
         .register_type::<components::FieldOfView>()
         .register_type::<components::PlayerTag>()
         .register_type::<components::AITag>()
-        .register_type::<components::DeadTag>();
+        .register_type::<components::DeadTag>()
+        .register_type::<resources::DistanceSettings>();
 
     // Register core events
     app.add_event::<events::GameStarted>().add_event::<events::GameEnded>();

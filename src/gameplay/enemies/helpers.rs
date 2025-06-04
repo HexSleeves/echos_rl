@@ -53,7 +53,7 @@ pub fn find_alternative_direction(from: Position, to: Position, map: &CurrentMap
         let (dx, dy) = dir.coord();
         let test_pos = from + (dx, dy);
         if map.is_walkable(test_pos) {
-            let distance = crate::utils::calculate_distance(test_pos, to);
+            let distance = test_pos.pathfinding_distance(&to);
             if distance < best_distance {
                 best_distance = distance;
                 best_direction = Some(dir);
@@ -80,7 +80,7 @@ pub fn find_alternative_flee_direction(
         let (dx, dy) = dir.coord();
         let test_pos = from + (dx, dy);
         if map.is_walkable(test_pos) {
-            let distance = crate::utils::calculate_distance(test_pos, away_from);
+            let distance = test_pos.pathfinding_distance(&away_from);
             if distance > best_distance {
                 best_distance = distance;
                 best_direction = Some(dir);

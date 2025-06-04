@@ -30,6 +30,8 @@ impl TurnActor {
     pub fn peek_next_action(&self) -> Option<&dyn GameAction> { self.actions.front().map(Box::as_ref) }
 
     pub fn is_alive(&self) -> bool { self.alive }
+
+    pub fn has_action(&self) -> bool { !self.actions.is_empty() }
 }
 
 impl From<TurnActorData> for TurnActor {

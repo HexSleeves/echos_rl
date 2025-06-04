@@ -11,7 +11,7 @@ The echos_rl project now features a comprehensive, trait-based Field of View sys
 The FOV system is built around three main traits in the `brtk` crate:
 
 1. **`FovProvider`** - Abstracts map/world representation for opacity queries
-2. **`FovReceiver`** - Handles visibility information storage and retrieval  
+2. **`FovReceiver`** - Handles visibility information storage and retrieval
 3. **`FovAlgorithm`** - Defines the interface for FOV calculation algorithms
 
 ### Key Features
@@ -22,6 +22,70 @@ The FOV system is built around three main traits in the `brtk` crate:
 - **Directional FOV** support for cone-based vision
 - **Memory-efficient** bit-level storage for visibility data
 - **Performance optimized** with caching and efficient algorithms
+- **Entity-to-entity visibility** utility functions for AI systems
+
+## Entity Visibility Utilities
+
+### New Utility Functions
+
+The `FovMap` now provides utility functions for checking entity-to-entity visibility:
+
+#### `can_see_position(observer_pos, target_pos, range, map) -> bool`
+
+Checks if an observer at one position can see a target position within a given range.
+
+```rust
+use crate::core::resources::FovMap;
+
+let observer_pos = Position::new(5, 5);
+let target_pos = Position::new(7, 6);
+let range = 8;
+
+if FovMap::can_see_position(observer_pos, target_pos, range, &map) {
+    println!("Observer can see the target!");
+}
+```
+
+#### `can_see_entity(observer_pos, observer_range, target_pos, map) -> bool`
+
+Semantic wrapper for entity-to-entity visibility checks.
+
+```rust
+// AI checking if it can see the player
+if FovMap::can_see_entity(*ai_pos, ai_behavior.detection_range, player_pos, &current_map) {
+    // AI can see player, start chasing!
+    ai_behavior.update_player_sighting(player_pos, current_turn);
+}
+```
+
+#### `compute_temporary_fov(observer_pos, range, map) -> VisibilityMap`
+
+Computes a temporary FOV for multiple visibility queries from the same observer.
+
+```rust
+let visibility_map = FovMap::compute_temporary_fov(observer_pos, range, &map);
+
+// Check multiple targets efficiently
+for target_pos in potential_targets {
+    if visibility_map.get_visible((target_pos.x(), target_pos.y())) {
+        // Target is visible
+    }
+}
+```
+
+### AI Integration
+
+The AI systems now use these utility functions to properly check their own field of view:
+
+```rust
+// Before: Incorrectly checking player's FOV
+if fov_map.is_visible(*player_pos) { ... }
+
+// After: Correctly checking AI's FOV
+if FovMap::can_see_entity(*ai_pos, ai_behavior.detection_range, *player_pos, &current_map) { ... }
+```
+
+This fixes the fundamental issue where AI entities were checking if the player position was visible in the player's FOV, rather than checking if the AI could see the player from its own position.
 
 ## Implementation Details
 
@@ -42,135 +106,119 @@ crates/brtk/src/fov/
 │   └── distance.rs        # Distance calculation algorithms
 └── implementations/
     ├── mod.rs
-    ├── visibility_map.rs  # HashSet-based FovReceiver implementation
-    └── map_provider.rs    # Generic map provider adapters
+    ├── visibility_map.rs  # HashSet-based visibility storage
+    └── map_provider.rs    # Generic map provider wrapper
 ```
 
-### Algorithm Comparison
+### Game Integration
 
-| Algorithm | Complexity | Accuracy | Performance | Use Case |
-|-----------|------------|----------|-------------|----------|
-| Raycasting | O(r²) | High | Good | Reliable wall blocking |
-| Traditional Shadowcasting | O(r²) | Good | Excellent | Large view distances |
-| Advanced Shadowcasting | O(r²) | Excellent | Excellent | Artifact-free precision |
+```
+src/core/resources/
+└── fov_map.rs            # Main FovMap resource with utility functions
 
-### Advanced Shadowcasting Features
-
-The new advanced shadowcasting algorithm provides:
-
-- **Precise slope calculations** using rational numbers to avoid floating-point errors
-- **Symmetric visibility** ensuring consistent results
-- **Artifact-free rendering** with proper shadow casting
-- **Octant-based scanning** for complete 360° coverage
-- **Efficient recursion** with proper shadow boundary handling
-
-## Integration with echos_rl
-
-### FovMap Enhancement
-
-The existing `FovMap` resource has been enhanced with:
-
-- New `AdvancedShadowcasting` algorithm option (now default)
-- Adapter classes (`EchosMapProvider`, `EchosFovReceiver`) for seamless integration
-- Backward compatibility with existing API
-- Enhanced algorithm toggling (F key cycles through all three algorithms)
-
-### Usage Example
-
-```rust
-// Create FOV map with advanced shadowcasting (default)
-let mut fov_map = FovMap::new(width, height);
-
-// Compute FOV for player
-fov_map.compute_fov(&map, player_position, view_radius);
-
-// Check visibility
-if fov_map.is_visible(some_position) {
-    // Tile is visible to player
-}
-
-// Toggle algorithms at runtime
-fov_map.set_algorithm(FovAlgorithm::AdvancedShadowcasting);
+src/core/systems.rs      # Player FOV computation system
+src/gameplay/enemies/systems/
+├── chase.rs              # AI chase behavior using entity visibility
+└── flee.rs               # AI flee behavior using entity visibility
 ```
 
-## Performance Characteristics
+## Performance Considerations
 
-### Memory Usage
+### Utility Function Performance
 
-- **BitVec storage** for visibility flags (1 bit per tile)
-- **HashSet-based** visibility maps for flexible implementations
-- **Ray caching** for raycasting algorithm optimization
+The new utility functions compute FOV on-demand using temporary storage:
 
-### Computational Complexity
+- **Memory**: Uses `VisibilityMap` (HashSet-based) for temporary storage
+- **CPU**: Computes full FOV for each query (optimizable with caching)
+- **Scalability**: Suitable for current AI entity counts, can be optimized later
 
-- **O(r²)** time complexity for all algorithms where r is the vision radius
-- **Constant memory** overhead regardless of map size
-- **Cache-friendly** access patterns for better performance
+### Optimization Opportunities
+
+1. **FOV Caching**: Cache FOV results per entity per turn
+2. **Incremental Updates**: Only recompute FOV when entity moves
+3. **Spatial Partitioning**: Group nearby entities for batch FOV computation
+4. **Range Culling**: Skip FOV computation for entities beyond interaction range
 
 ## Testing
 
-The implementation includes comprehensive tests:
+The system includes comprehensive tests covering:
 
-- **Algorithm consistency** tests comparing all three algorithms
-- **Edge case handling** for boundaries and obstacles
-- **Performance benchmarks** for algorithm comparison
-- **Integration tests** with the existing game systems
+- Basic visibility checks
+- Range limitations
+- Wall occlusion
+- Utility function correctness
 
-### Running Tests
+Run tests with:
 
 ```bash
-# Test the brtk FOV system
-cargo test fov -p brtk
+cargo test fov_map::tests
+```
 
-# Test integration with echos_rl
-cargo test fov_map
+## Usage Examples
 
-# Run performance benchmarks
-cargo test --ignored test_performance_comparison
+### AI Enemy Detection
+
+```rust
+// In AI scorer system
+if ai_behavior.behavior_type == AIBehaviorType::Hostile {
+    if FovMap::can_see_entity(*ai_pos, ai_behavior.detection_range, *player_pos, &current_map) {
+        let distance = crate::utils::calculate_distance(*ai_pos, *player_pos);
+        if distance <= ai_behavior.detection_range as f32 {
+            ai_behavior.update_player_sighting(*player_pos, current_turn);
+            chase_score = 1.0;
+        }
+    }
+}
+```
+
+### Multi-Target Visibility
+
+```rust
+// Check visibility to multiple targets efficiently
+let visibility_map = FovMap::compute_temporary_fov(observer_pos, range, &map);
+
+for enemy in enemies.iter() {
+    if visibility_map.get_visible((enemy.pos.x(), enemy.pos.y())) {
+        // Enemy is visible, add to target list
+        visible_enemies.push(enemy);
+    }
+}
 ```
 
 ## Future Enhancements
 
-### Planned Features
-
-1. **Vision Types** - Support for different vision modes (infrared, magical, etc.)
-2. **Asymmetric FOV** - Support for directional lighting and vision cones
-3. **Multi-level FOV** - Support for 3D environments with multiple floors
-4. **Dynamic Lighting** - Integration with lighting systems for realistic shadows
-
-### Extension Points
-
-The trait-based design makes it easy to:
-
-- Add new FOV algorithms by implementing `FovAlgorithm`
-- Create custom map providers for different game types
-- Implement specialized visibility storage systems
-- Add vision modifiers and effects
+1. **Component-based FOV**: Give each entity its own FOV component
+2. **Directional Vision**: Implement cone-based vision for more realistic AI
+3. **Vision Types**: Support different vision types (normal, infrared, magical)
+4. **Performance Optimization**: Implement caching and incremental updates
+5. **Advanced AI**: Use FOV for more sophisticated AI behaviors
 
 ## Migration Guide
 
-### From Previous Implementation
+### Updating AI Systems
 
-The new system is fully backward compatible. Existing code will continue to work unchanged, but you can opt into the new advanced shadowcasting by:
+If you have existing AI systems that check visibility:
 
-```rust
-// Enable advanced shadowcasting (now default)
-fov_map.set_algorithm(FovAlgorithm::AdvancedShadowcasting);
-```
+1. **Replace global FOV checks**:
 
-### Best Practices
+   ```rust
+   // Old
+   if fov_map.is_visible(target_pos) { ... }
 
-1. **Use AdvancedShadowcasting** for the best visual quality
-2. **Cache FOV results** when possible to avoid redundant calculations
-3. **Consider vision radius** impact on performance for large values
-4. **Test algorithm behavior** with your specific map layouts
+   // New
+   if FovMap::can_see_entity(observer_pos, range, target_pos, &map) { ... }
+   ```
 
-## Technical References
+2. **Add CurrentMap resource** to system parameters if not already present
 
-- [Albert Ford's Shadowcasting Algorithm](https://www.albertford.com/shadowcasting/)
-- [Roguelike FOV Algorithms](http://www.roguebasin.com/index.php?title=Field_of_Vision)
-- [Symmetric Shadowcasting](http://www.roguebasin.com/index.php?title=Symmetric_Shadowcasting)
+3. **Update function signatures** to include the map parameter
+
+### Performance Considerations
+
+- The new utility functions compute FOV on-demand
+- For high-frequency visibility checks, consider using `compute_temporary_fov`
+- Monitor performance and implement caching if needed
 
 ## Conclusion
 
-The new FOV system provides a robust, flexible, and high-performance foundation for line-of-sight calculations in echos_rl. The trait-based architecture ensures extensibility while the advanced shadowcasting algorithm delivers artifact-free, precise visibility calculations that enhance the player experience.
+The enhanced FOV system provides a solid foundation for entity-to-entity visibility checks while maintaining the existing player FOV functionality. The utility functions offer a clean API for AI systems and can be extended for future gameplay features.

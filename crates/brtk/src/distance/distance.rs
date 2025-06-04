@@ -1,3 +1,5 @@
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "bevy", derive(bevy::prelude::Reflect))]
 pub enum Distance {
     /// Use the Pythagoras algorithm for determining distance - sqrt(A^2 + B^2)
     Pythagoras,

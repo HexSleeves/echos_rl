@@ -4,11 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["icon"]
+default = ["icon", "bevy"]
 icon = ["bevy/bevy_winit", "bevy/bevy_window"]
+bevy = ["dep:bevy"]
 
 [dependencies]
-bevy = { workspace = true, features = ["bevy_asset"] }
+bevy = { workspace = true, features = ["bevy_asset"], optional = true }
 
 directories = "6" # A tiny mid-level library that provides platform-specific standard locations of directories
 thiserror = { workspace = true } # This library provides a convenient derive macro for the standard library's std::error::Error trait.

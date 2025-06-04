@@ -12,3 +12,6 @@ pub use self::fov_map::*;
 
 mod spawn_point;
 pub use self::spawn_point::*;
+
+mod distance_settings;
+pub use self::distance_settings::*;

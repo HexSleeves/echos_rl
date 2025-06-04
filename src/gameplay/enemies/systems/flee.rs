@@ -5,7 +5,7 @@ use crate::{
     core::{
         actions::Walk,
         components::{PlayerTag, Position},
-        resources::{CurrentMap, FovMap},
+        resources::{CurrentMap, FovMap, TurnQueue},
         types::{BuildableGameAction, GameActionBuilder},
     },
     gameplay::{
@@ -23,9 +23,10 @@ use crate::{
 
 /// System that scores how much an AI wants to flee from the player
 pub fn flee_from_player_scorer_system(
-    fov_map: Res<FovMap>,
+    current_map: Res<CurrentMap>,
+    turn_queue: Res<TurnQueue>,
     player_query: Query<&Position, With<PlayerTag>>,
-    ai_query: Query<(&Position, &AIBehavior, &TurnActor)>,
+    mut ai_query: Query<(&Position, &mut AIBehavior, &TurnActor)>,
     mut scorer_query: Query<(&Actor, &mut Score), With<FleeFromPlayerScorer>>,
 ) {
     let Ok(player_pos) = player_query.single() else {
@@ -33,8 +34,10 @@ pub fn flee_from_player_scorer_system(
         return;
     };
 
+    let current_turn = turn_queue.current_time();
+
     for (Actor(actor_entity), mut score) in scorer_query.iter_mut() {
-        if let Ok((ai_pos, ai_behavior, turn_actor)) = ai_query.get(*actor_entity) {
+        if let Ok((ai_pos, mut ai_behavior, turn_actor)) = ai_query.get_mut(*actor_entity) {
             // Skip scoring if this entity already has an action queued
             if turn_actor.peek_next_action().is_some() {
                 continue;
@@ -44,14 +47,21 @@ pub fn flee_from_player_scorer_system(
 
             // Only passive enemies want to flee
             if ai_behavior.behavior_type == AIBehaviorType::Passive {
-                // Check if AI can see the player
-                if fov_map.is_visible(*player_pos) {
-                    let distance = crate::utils::calculate_distance(*ai_pos, *player_pos);
-
-                    // Higher score for closer players (more urgent to flee)
+                // Check if AI can see the player using the AI's own FOV
+                if FovMap::can_see_entity(*ai_pos, ai_behavior.detection_range, *player_pos, &current_map) {
+                    let distance = ai_pos.ai_detection_distance(player_pos);
                     if distance <= ai_behavior.detection_range as f32 {
+                        // Update AI's knowledge of player position
+                        ai_behavior.update_player_sighting(*player_pos, current_turn);
+
+                        // Higher score for closer threats (more urgent to flee)
                         flee_score = 1.0 - (distance / ai_behavior.detection_range as f32);
                         flee_score = flee_score.clamp(0.0, 1.0);
+
+                        info!(
+                            "AI entity {:?} sees threat at distance {:.1}, flee score: {:.2}",
+                            actor_entity, distance, flee_score
+                        );
                     }
                 }
             }
