@@ -12,13 +12,15 @@ pub struct RectIter {
 
 impl RectIter {
     /// Creates a new rectangle iterator.
+    ///
+    /// # Arguments
+    /// * `min` - The minimum corner point (inclusive)
+    /// * `max` - The maximum corner point (inclusive/exclusive - clarify intended behavior)
+    ///
+    /// # Example
     pub fn new(min: (i32, i32), max: (i32, i32)) -> Self {
         let size = (max.0 - min.0, max.1 - min.1);
-        Self {
-            min,
-            max_offset: size,
-            offset: (0, 0),
-        }
+        Self { min, max_offset: size, offset: (0, 0) }
     }
 }
 
@@ -40,7 +42,5 @@ impl Iterator for RectIter {
 }
 
 impl From<Rectangle> for RectIter {
-    fn from(rect: Rectangle) -> Self {
-        rect.into_iter()
-    }
+    fn from(rect: Rectangle) -> Self { rect.into_iter() }
 }

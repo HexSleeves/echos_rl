@@ -30,6 +30,10 @@ impl From<TilePos> for Position {
     fn from(tile_pos: TilePos) -> Self { Self(IVec2::new(tile_pos.x as i32, tile_pos.y as i32)) }
 }
 
+impl From<(i32, i32)> for Position {
+    fn from((x, y): (i32, i32)) -> Self { Self(IVec2::new(x, y)) }
+}
+
 impl Add<Position> for Position {
     type Output = Self;
 

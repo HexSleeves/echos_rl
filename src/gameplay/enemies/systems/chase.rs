@@ -114,7 +114,7 @@ pub fn chase_player_action_system(
                         "AI entity {:?} performing chase action toward player at {:?}",
                         actor_entity, player_pos
                     );
-                    ai_state.current_action = AIAction::ChasePlayer;
+                    ai_state.current_action = Some(AIAction::ChasePlayer);
                     ai_state.target_position = Some(*player_pos);
 
                     // Calculate direction toward player
@@ -162,6 +162,8 @@ pub fn chase_player_action_system(
                 }
                 ActionState::Success | ActionState::Failure => {
                     // Action completed, reset to init and wait for next decision cycle
+                    ai_state.current_action = None; // or whatever “idle” enum you use
+                    ai_state.target_position = None;
                     *action_state = ActionState::Init;
                 }
                 ActionState::Cancelled => {

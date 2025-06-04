@@ -65,7 +65,7 @@ pub mod utils {
 
     /// Find a path and return the next step
     pub fn find_next_step(origin: Position, destination: Position, map: &mut CurrentMap) -> Option<Position> {
-        find_path(origin, destination, map, false)?.into_iter().next()
+        find_path(origin, destination, map, false)?.into_iter().nth(1)
     }
 
     /// Find the best position to move towards a target (allows partial paths)

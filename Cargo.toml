@@ -34,9 +34,9 @@ anyhow    = { version = "1" } # A library for convenient error handling in Rust.
 thiserror = { version = "2" } # This library provides a convenient derive macro for the standard library's std::error::Error trait.
 
 ### Randomness ###
-fastrand   = "2.0"               # A fast random number generator
-rand       = { version = "0.9" } # Random number generators and other randomness functionality.
-rand_distr = { version = "0.5" } # Random number distributions.
+fastrand   = "2.0"                 # A fast random number generator
+rand       = { version = "0.9" }   # Random number generators and other randomness functionality.
+rand_distr = { version = "0.5.1" } # Random number distributions.
 
 ### Serialization ###
 ron = "0.10" # Rusty Object Notation

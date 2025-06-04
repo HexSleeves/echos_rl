@@ -91,7 +91,7 @@ pub fn flee_from_player_action_system(
                         "AI entity {:?} performing flee action away from player at {:?}",
                         actor_entity, player_pos
                     );
-                    ai_state.current_action = AIAction::FleeFromPlayer;
+                    ai_state.current_action = Some(AIAction::FleeFromPlayer);
 
                     // Calculate direction away from player
                     let direction = helpers::calculate_direction_away_from_target(*ai_pos, *player_pos);

@@ -33,7 +33,7 @@ pub fn idle_action_system(
                     }
 
                     info!("AI entity {:?} performing idle action", actor_entity);
-                    ai_state.current_action = AIAction::Idle;
+                    ai_state.current_action = Some(AIAction::Idle);
                     // Add a wait action to the queue for idle behavior
                     turn_actor.add_action(Wait::builder().with_entity(*actor_entity).build());
 

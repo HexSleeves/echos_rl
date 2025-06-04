@@ -5,16 +5,16 @@ use crate::core::{components::Position, resources::CurrentMap};
 
 /// Calculate the direction to move toward a target
 pub fn calculate_direction_to_target(from: Position, to: Position) -> Option<Direction> {
-    let diff = to.0 - from.0;
+    let diff_x = to.x - from.x;
+    let diff_y = to.y - from.y;
 
-    if diff.x == 0 && diff.y == 0 {
+    if diff_x == 0 && diff_y == 0 {
         return None; // Already at target
     }
 
-    // Prioritize the axis with the larger difference
-    if diff.x.abs() > diff.y.abs() {
-        if diff.x > 0 { Some(Direction::EAST) } else { Some(Direction::WEST) }
-    } else if diff.y > 0 {
+    if diff_x.abs() > diff_y.abs() {
+        if diff_x > 0 { Some(Direction::EAST) } else { Some(Direction::WEST) }
+    } else if diff_y > 0 {
         Some(Direction::SOUTH)
     } else {
         Some(Direction::NORTH)

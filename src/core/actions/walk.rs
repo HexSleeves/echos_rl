@@ -11,26 +11,6 @@ use crate::{
     impl_debug_with_field, impl_game_action,
 };
 
-#[derive(Default)]
-pub struct WalkBuilder {
-    entity: Option<Entity>,
-    direction: Option<Direction>,
-}
-
-impl WalkBuilder {
-    pub fn new() -> Self { Self::default() }
-
-    pub fn with_entity(mut self, entity: Entity) -> Self {
-        self.entity = Some(entity);
-        self
-    }
-
-    pub fn with_direction(mut self, direction: Direction) -> Self {
-        self.direction = Some(direction);
-        self
-    }
-}
-
 pub struct Walk {
     entity: Entity,
     direction: Direction,
@@ -71,6 +51,26 @@ impl GameAction for Walk {
         state.apply(world);
 
         Ok(1000)
+    }
+}
+
+#[derive(Default)]
+pub struct WalkBuilder {
+    entity: Option<Entity>,
+    direction: Option<Direction>,
+}
+
+impl WalkBuilder {
+    pub fn new() -> Self { Self::default() }
+
+    pub fn with_entity(mut self, entity: Entity) -> Self {
+        self.entity = Some(entity);
+        self
+    }
+
+    pub fn with_direction(mut self, direction: Direction) -> Self {
+        self.direction = Some(direction);
+        self
     }
 }
 

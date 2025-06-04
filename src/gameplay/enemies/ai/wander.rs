@@ -98,7 +98,7 @@ fn generate_wander_path(rng: &mut impl RngCore, map: &mut CurrentMap, ai_pos: Po
     let wander_radius = WANDER_RANGE.sample(rng);
     let wander_circle = Circle::new((0, 0), wander_radius);
 
-    loop {
+    for _ in 0..500 {
         // Default to the circle center
         let offset = wander_circle.iter().choose(rng).unwrap_or_else(|| wander_circle.center());
         let destination = ai_pos + offset;
@@ -106,4 +106,7 @@ fn generate_wander_path(rng: &mut impl RngCore, map: &mut CurrentMap, ai_pos: Po
             return destination;
         }
     }
+
+    // Fallback: stay in place
+    return ai_pos;
 }

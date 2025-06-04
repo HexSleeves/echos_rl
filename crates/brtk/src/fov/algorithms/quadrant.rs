@@ -61,6 +61,7 @@ impl<'a, P: FovProvider, R: FovReceiver> Quadrant<'a, P, R> {
             }
             _ => {
                 // Invalid direction - return origin to avoid silent failures
+                debug_assert!(false, "Invalid direction in transform: {:?}", self.direction);
                 (0, 0)
             }
         };

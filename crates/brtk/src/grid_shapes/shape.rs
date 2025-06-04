@@ -23,8 +23,8 @@ pub trait Shape {
     /// returns `true` if the point is inside the shape
     fn contains(&self, position: (i32, i32)) -> bool;
 
-    /// returns an iterator over all of the points
-    fn get_positions(&self) -> HashSet<(i32, i32)>;
+    /// returns an iterator over all points (*no allocation*)
+    fn positions(&self) -> BoxedShapeIter;
 
     /// returns a boxed iterator over all of the points
     fn boxed_iter(&self) -> BoxedShapeIter;

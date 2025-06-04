@@ -166,7 +166,7 @@ fn add_big_brain_components(entity_commands: &mut EntityCommands, behavior_type:
             // Hostile enemies prioritize chasing when they see the player
             let thinker = Thinker::build()
                 .picker(FirstToScore { threshold: 0.6 })
-                .when(ChasePlayerScorer, ChasePlayerAction)
+                .when(ChasePlayerScorer, ChasePlayerAction::default())
                 .when(WanderScorer, WanderAction)
                 .otherwise(IdleAction);
 
@@ -174,7 +174,7 @@ fn add_big_brain_components(entity_commands: &mut EntityCommands, behavior_type:
                 thinker,
                 ChasePlayerScorer,
                 WanderScorer,
-                ChasePlayerAction,
+                ChasePlayerAction::default(),
                 WanderAction,
                 IdleAction,
             ));

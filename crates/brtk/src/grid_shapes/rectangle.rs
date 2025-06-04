@@ -13,19 +13,14 @@ pub struct Rectangle {
 }
 
 impl Default for Rectangle {
-    fn default() -> Self {
-        Self::new_with_size((0, 0), (0, 0))
-    }
+    fn default() -> Self { Self::new_with_size((0, 0), (0, 0)) }
 }
 
 impl Rectangle {
     /// Creates a new rectangle.
     #[inline]
     pub fn new(min: (i32, i32), max: (i32, i32)) -> Self {
-        Self {
-            min: min.min(max),
-            max: min.max(max),
-        }
+        Self { min: (min.0.min(max.0), min.1.min(max.1)), max: (min.0.max(max.0), min.1.max(max.1)) }
     }
 
     /// Creates a new rectangle with the given size.
@@ -39,27 +34,19 @@ impl Rectangle {
 impl Rectangle {
     /// Get the width of the rectangle.
     #[inline]
-    pub const fn width(&self) -> i32 {
-        self.max.0 - self.min.0
-    }
+    pub const fn width(&self) -> i32 { self.max.0 - self.min.0 }
 
     /// Get the height of the rectangle.
     #[inline]
-    pub const fn height(&self) -> i32 {
-        self.max.1 - self.min.1
-    }
+    pub const fn height(&self) -> i32 { self.max.1 - self.min.1 }
 
     /// Get the minimum point of the rectangle.
     #[inline]
-    pub const fn min(&self) -> (i32, i32) {
-        self.min
-    }
+    pub const fn min(&self) -> (i32, i32) { self.min }
 
     /// Get the maximum point of the rectangle.
     #[inline]
-    pub const fn max(&self) -> (i32, i32) {
-        self.max
-    }
+    pub const fn max(&self) -> (i32, i32) { self.max }
 
     /// Check if the rectangle is square.
     #[inline]
@@ -76,24 +63,16 @@ impl Rectangle {
     }
 
     #[inline]
-    pub fn left(&self) -> i32 {
-        self.min.0.min(self.max.0)
-    }
+    pub fn left(&self) -> i32 { self.min.0.min(self.max.0) }
 
     #[inline]
-    pub fn right(&self) -> i32 {
-        self.min.0.max(self.max.0)
-    }
+    pub fn right(&self) -> i32 { self.min.0.max(self.max.0) }
 
     #[inline]
-    pub fn top(&self) -> i32 {
-        self.min.1.max(self.max.1)
-    }
+    pub fn top(&self) -> i32 { self.min.1.max(self.max.1) }
 
     #[inline]
-    pub fn bottom(&self) -> i32 {
-        self.min.1.min(self.max.1)
-    }
+    pub fn bottom(&self) -> i32 { self.min.1.min(self.max.1) }
 
     /// Check if this rectangle intersects another rectangle.
     #[inline]
@@ -119,7 +98,5 @@ impl IntoIterator for Rectangle {
     type Item = (i32, i32);
 
     #[inline]
-    fn into_iter(self) -> Self::IntoIter {
-        RectIter::new(self.min, self.max)
-    }
+    fn into_iter(self) -> Self::IntoIter { RectIter::new(self.min, self.max) }
 }

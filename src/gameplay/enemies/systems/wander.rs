@@ -84,7 +84,7 @@ pub fn wander_action_system(
                     }
 
                     info!("AI entity {:?} performing wander action at {:?}", actor_entity, ai_pos);
-                    ai_state.current_action = AIAction::Wander;
+                    ai_state.current_action = Some(AIAction::Wander);
 
                     // Find a random walkable direction
                     if let Some(direction) = helpers::find_random_walkable_direction(*ai_pos, &current_map) {

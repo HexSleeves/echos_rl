@@ -1,12 +1,12 @@
 pub enum Distance {
     /// Use the Pythagoras algorithm for determining distance - sqrt(A^2 + B^2)
     Pythagoras,
-    /// Us the Pythagoras algorithm for distance, but omitting the square-root for a faster
+    /// Use the Pythagoras algorithm for distance, but omitting the square-root for a faster
     /// but squared result.
     PythagorasSquared,
     /// Use Manhattan distance (distance up plus distance along)
     Manhattan,
-    /// Use Chebyshev distance (like Manhattan, but adds one to each entry)
+    /// Use Chebyshev distance (maximum of absolute differences in each dimension)
     Chebyshev,
     /// Use a diagonal distance, the max of the x and y distances
     Diagonal,

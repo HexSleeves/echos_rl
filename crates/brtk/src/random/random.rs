@@ -55,5 +55,10 @@ impl Random {
         fastrand::Rng::with_seed(seed)
     }
 
-    pub fn as_rngcore(&mut self) -> &mut Pcg64 { &mut self.random }
+    /// Returns a mutable reference to the underlying RNG core.
+    ///
+    /// Use this when you need direct access to the RNG for compatibility
+    /// with external libraries that expect a specific RNG type.
+    /// Prefer the structured methods (roll, u32, i32, etc.) when possible.
+    pub fn as_rng_core(&mut self) -> &mut Pcg64 { &mut self.random }
 }

@@ -178,7 +178,7 @@ pub fn chase_action(
                     false, // partial path on failure
                     &mut *current_map,
                 ) {
-                    if let Some(&(next_x, next_y)) = path.get(0) {
+                    if let Some(&(next_x, next_y)) = path.get(1) {
                         let next_step = Position::new(next_x, next_y);
                         chase.generated_path = true;
                         chase.last_seen_pt = Some(next_step);

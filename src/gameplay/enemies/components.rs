@@ -2,28 +2,78 @@ use bevy::prelude::*;
 use big_brain::prelude::*;
 use echos_assets::entities::AIBehaviorType;
 
-use crate::core::{components::Position, types::ActionType};
+use crate::core::components::Position;
 
-#[derive(Reflect, Component, Default, Clone, Copy)]
+// ============================================================================
+// BIG-BRAIN SCORERS (How the AI evaluates what to do)
+// ============================================================================
+
+/// Scorer that evaluates if the AI should chase the player
+#[derive(Component, Debug, Clone, ScorerBuilder)]
+pub struct ChasePlayerScorer;
+
+/// Scorer that evaluates if the AI should flee from the player
+#[derive(Component, Debug, Clone, ScorerBuilder)]
+pub struct FleeFromPlayerScorer;
+
+/// Scorer that evaluates if the AI should wander randomly
+#[derive(Component, Debug, Clone, ScorerBuilder)]
+pub struct WanderScorer;
+
+/// Scorer that evaluates if the AI can see the player
+#[derive(Component, Debug, Clone, ScorerBuilder)]
+pub struct PlayerVisibilityScorer;
+
+// ============================================================================
+// BIG-BRAIN ACTIONS (What the AI actually does)
+// ============================================================================
+
+/// Action for moving toward the player
+#[derive(Component, Debug, Clone, ActionBuilder, Default)]
+pub struct ChasePlayerAction {
+    pub(crate) generated_path: bool,
+    pub(crate) last_seen_pt: Option<Position>,
+}
+
+/// Action for fleeing from the player
+#[derive(Component, Debug, Clone, ActionBuilder)]
+pub struct FleeFromPlayerAction;
+
+/// Action for wandering randomly
+#[derive(Component, Debug, Clone, ActionBuilder)]
+pub struct WanderAction;
+
+/// Action for staying idle
+#[derive(Component, Debug, Clone, ActionBuilder)]
+pub struct IdleAction;
+
+// ============================================================================
+// HELPER COMPONENTS
+// ============================================================================
+
+#[derive(Debug, Clone, PartialEq, Reflect, Copy)]
+pub enum AIAction {
+    ChasePlayer,
+    FleeFromPlayer,
+    Wander,
+    Idle,
+}
+
+/// Component to track AI state for debugging and behavior
+#[derive(Component, Debug, Clone, Reflect, Copy)]
 #[reflect(Component)]
-pub struct AIComponent {
-    pub(crate) ai_type: AIBehaviorType,
-    pub preferred_action: Option<ActionType>,
+pub struct AIState {
+    pub last_action_time: f32,
+    pub current_action: Option<AIAction>,
+    pub target_position: Option<Position>,
 }
 
-impl AIComponent {
-    #[inline]
-    pub const fn new(ai_type: AIBehaviorType) -> Self { Self { ai_type, preferred_action: None } }
-}
-
-impl AIComponent {
-    pub const fn passive() -> Self { Self { ai_type: AIBehaviorType::Passive, preferred_action: None } }
-    pub const fn hostile() -> Self { Self { ai_type: AIBehaviorType::Hostile, preferred_action: None } }
-    pub const fn neutral() -> Self { Self { ai_type: AIBehaviorType::Neutral, preferred_action: None } }
+impl Default for AIState {
+    fn default() -> Self { Self { current_action: None, target_position: None, last_action_time: 0.0 } }
 }
 
 /// Component that marks an entity as having AI behavior
-#[derive(Component, Debug, Clone, Reflect)]
+#[derive(Component, Debug, Clone, Reflect, Copy)]
 #[reflect(Component)]
 pub struct AIBehavior {
     pub detection_range: u8,
@@ -54,8 +104,8 @@ impl AIBehavior {
         Self {
             behavior_type,
             detection_range,
-            last_known_player_position: None,
             last_player_seen_turn: None,
+            last_known_player_position: None,
             turns_before_wander: turns_before_wander * 1000,
         }
     }
@@ -80,69 +130,40 @@ impl AIBehavior {
     }
 }
 
-// ============================================================================
-// BIG-BRAIN SCORERS (How the AI evaluates what to do)
-// ============================================================================
-
-/// Scorer that evaluates if the AI should chase the player
-#[derive(Component, Debug, Clone, ScorerBuilder)]
-pub struct ChasePlayerScorer;
-
-/// Scorer that evaluates if the AI should flee from the player
-#[derive(Component, Debug, Clone, ScorerBuilder)]
-pub struct FleeFromPlayerScorer;
-
-/// Scorer that evaluates if the AI should wander randomly
-#[derive(Component, Debug, Clone, ScorerBuilder)]
-pub struct WanderScorer;
-
-/// Scorer that evaluates if the AI can see the player
-#[derive(Component, Debug, Clone, ScorerBuilder)]
-pub struct PlayerVisibilityScorer;
-
-// ============================================================================
-// BIG-BRAIN ACTIONS (What the AI actually does)
-// ============================================================================
-
-/// Action for moving toward the player
-#[derive(Component, Debug, Clone, ActionBuilder)]
-pub struct ChasePlayerAction;
-
-/// Action for fleeing from the player
-#[derive(Component, Debug, Clone, ActionBuilder)]
-pub struct FleeFromPlayerAction;
-
-/// Action for wandering randomly
-#[derive(Component, Debug, Clone, ActionBuilder)]
-pub struct WanderAction;
-
-/// Action for staying idle
-#[derive(Component, Debug, Clone, ActionBuilder)]
-pub struct IdleAction;
-
-// ============================================================================
-// HELPER COMPONENTS
-// ============================================================================
-
-#[derive(Debug, Clone, PartialEq, Reflect)]
-pub enum AIAction {
-    ChasePlayer,
-    FleeFromPlayer,
-    Wander,
-    Idle,
-}
-
-/// Component to track AI state for debugging and behavior
-#[derive(Component, Debug, Clone, Reflect)]
+#[derive(Reflect, Component, Default, Clone, Copy)]
 #[reflect(Component)]
-pub struct AIState {
-    pub current_action: AIAction,
-    pub target_position: Option<Position>,
-    pub last_action_time: f32,
+pub struct AIComponent {
+    pub(crate) state: AIState,
+    pub(crate) ai_type: AIBehaviorType,
+    pub(crate) ai_behavior: AIBehavior,
 }
 
-impl Default for AIState {
-    fn default() -> Self {
-        Self { current_action: AIAction::Idle, target_position: None, last_action_time: 0.0 }
+impl AIComponent {
+    pub fn new(ai_type: AIBehaviorType) -> Self {
+        Self { state: AIState::default(), ai_type, ai_behavior: AIBehavior::default() }
+    }
+}
+
+impl AIComponent {
+    pub fn passive() -> Self {
+        Self {
+            state: AIState::default(),
+            ai_type: AIBehaviorType::Passive,
+            ai_behavior: AIBehavior::passive(8),
+        }
+    }
+    pub fn hostile() -> Self {
+        Self {
+            state: AIState::default(),
+            ai_type: AIBehaviorType::Hostile,
+            ai_behavior: AIBehavior::hostile(8),
+        }
+    }
+    pub fn neutral() -> Self {
+        Self {
+            state: AIState::default(),
+            ai_type: AIBehaviorType::Neutral,
+            ai_behavior: AIBehavior::neutral(8),
+        }
     }
 }

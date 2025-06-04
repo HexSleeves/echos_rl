@@ -97,7 +97,7 @@ impl PathAlgorithm for AStar {
 
         // No path found
         if partial_path_on_failure {
-            Self::find_best_partial_path_simple(&g_score, destination)
+            Self::find_best_partial_path_simple(&g_score, &came_from, destination)
         } else {
             None
         }
@@ -112,10 +112,11 @@ impl AStar {
     ) -> Vec<(i32, i32)> {
         let mut path = Vec::new();
         let mut current = destination;
+        path.push(current);
 
         while let Some(&parent) = came_from.get(&current) {
-            path.push(current);
             current = parent;
+            path.push(current);
         }
 
         path.reverse();
@@ -125,6 +126,7 @@ impl AStar {
     /// Find the best partial path when full path fails
     fn find_best_partial_path_simple(
         g_score: &HashMap<(i32, i32), u32>,
+        came_from: &HashMap<(i32, i32), (i32, i32)>,
         destination: (i32, i32),
     ) -> Option<Vec<(i32, i32)>> {
         // Find the position closest to the destination
@@ -139,8 +141,8 @@ impl AStar {
             }
         }
 
-        // Return a simple path to the best position found
-        best_pos.map(|pos| vec![pos])
+        // Reconstruct the full path from origin to the best position found
+        best_pos.map(|pos| Self::reconstruct_path_simple(pos, came_from))
     }
 }
 

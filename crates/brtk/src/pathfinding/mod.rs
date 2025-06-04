@@ -127,4 +127,31 @@ mod tests {
 
         assert!(path.is_none()); // No path should be found
     }
+
+    #[test]
+    fn test_partial_path_reconstruction() {
+        let mut map = TestMapProvider::new(10, 10);
+
+        // Create a wall that completely blocks the path
+        for y in 0..10 {
+            map.add_wall(5, y);
+        }
+
+        let pathfinder = PathFinder::AStar;
+        // Request partial path when no full path is available
+        let path = pathfinder.compute((0, 0), (9, 0), 0, true, &mut map);
+
+        assert!(path.is_some()); // Should find a partial path
+        let path = path.unwrap();
+
+        // Should start from origin and move toward destination as far as possible
+        assert_eq!(path[0], (0, 0)); // Should start from origin
+        assert!(path.len() > 1); // Should have more than just the origin
+
+        // The path should get closer to the destination than the origin
+        let origin_to_dest_dist = ((9i32 - 0i32).pow(2) + (0i32 - 0i32).pow(2)) as f32;
+        let last_pos = path.last().unwrap();
+        let last_to_dest_dist = ((9i32 - last_pos.0).pow(2) + (0i32 - last_pos.1).pow(2)) as f32;
+        assert!(last_to_dest_dist < origin_to_dest_dist);
+    }
 }
