@@ -55,18 +55,17 @@ pub fn player_input_system(
 
     // Movement
     for input_direction in PlayerAction::DIRECTIONS {
-        if action_state.just_pressed(&input_direction)
+        if (action_state.just_pressed(&input_direction)
             || (action_state.pressed(&input_direction)
                 && action_state.current_duration(&input_direction) > PRESSED_DURATION)
-                && timer.finished()
+                && timer.finished())
+            && let Some(direction) = input_direction.direction()
         {
-            if let Some(direction) = input_direction.direction() {
-                timer.reset();
-                action = Some(ActionType::MoveDelta(direction));
-                // action_queue.add_action(ActionType::Movement(*player_position + direction));
-                // p_actor.add_action(Walk::builder().with_entity(entity).with_direction(direction).
-                // build());
-            }
+            timer.reset();
+            action = Some(ActionType::MoveDelta(direction));
+            // action_queue.add_action(ActionType::Movement(*player_position + direction));
+            // p_actor.add_action(Walk::builder().with_entity(entity).with_direction(direction).
+            // build());
         }
     }
 
@@ -75,10 +74,11 @@ pub fn player_input_system(
 
         match action {
             ActionType::Wait => {
-                p_actor.add_action(WaitBuilder::new().with_entity(entity).build());
+                let _ = p_actor.queue_action(WaitBuilder::new().with_entity(entity).build());
             }
             ActionType::MoveDelta(direction) => {
-                p_actor.add_action(Walk::builder().with_entity(entity).with_direction(direction).build());
+                let _ = p_actor
+                    .queue_action(Walk::builder().with_entity(entity).with_direction(direction).build());
             }
             _ => {}
         }

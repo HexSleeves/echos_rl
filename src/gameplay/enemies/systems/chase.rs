@@ -27,13 +27,11 @@ use crate::{
 pub fn chase_player_scorer_system(
     turn_queue: Res<TurnQueue>,
     current_map: Res<CurrentMap>,
-
     player_query: Query<(Entity, &Position), With<PlayerTag>>,
     mut ai_query: Query<(&Position, &mut AIBehavior, &TurnActor)>,
     mut scorer_query: Query<(&Actor, &mut Score), With<ChasePlayerScorer>>,
 ) {
     let Ok((player_entity, player_pos)) = player_query.single() else {
-        // No player found or multiple players - skip AI processing
         return;
     };
 
@@ -49,50 +47,20 @@ pub fn chase_player_scorer_system(
             continue;
         };
 
-        // Skip scoring if this entity already has an action queued
         if turn_actor.has_action() {
             continue;
         }
 
-        let mut chase_score = 0.0;
+        let chase_score = calculate_chase_score(
+            &ai_pos,
+            &mut ai_behavior,
+            player_pos,
+            current_turn,
+            &current_map,
+            *actor_entity,
+        );
 
-        // Only hostile enemies want to chase
-        if ai_behavior.behavior_type == AIBehaviorType::Hostile {
-            // Check if AI can see the player using the AI's own FOV
-            if FovMap::can_see_entity(ai_pos, ai_behavior.detection_range, *player_pos, &current_map) {
-                let distance = ai_pos.ai_detection_distance(player_pos);
-
-                if distance <= ai_behavior.detection_range as f32 {
-                    // Higher score for closer players
-                    // chase_score = 1.0 - (distance / ai_behavior.detection_range as f32);
-                    // chase_score = chase_score.clamp(0.0, 1.0);
-
-                    chase_score = 1.0;
-
-                    info!(
-                        "AI entity {:?} can see player at distance {:.1}, chase score: {:.2}",
-                        actor_entity, distance, chase_score
-                    );
-
-                    // Update AI's knowledge of player position
-                    ai_behavior.update_player_sighting(*player_pos, current_turn);
-                }
-            } else if let Some(last_known_pos) = ai_behavior.last_known_player_position {
-                println!("Player not visible, but AI remembers where they were");
-
-                // Player not visible, but AI remembers where they were
-                if !ai_behavior.should_switch_to_wander(current_turn) {
-                    let distance = ai_pos.ai_detection_distance(&last_known_pos);
-
-                    // Lower score for remembered positions
-                    chase_score = 0.3 * (1.0 - (distance / ai_behavior.detection_range as f32));
-                    chase_score = chase_score.clamp(0.0, 0.5);
-                }
-            }
-
-            println!("AI entity {:?} chase score: {:.2}", actor_entity, chase_score);
-            score.set(chase_score);
-        }
+        score.set(chase_score);
     }
 }
 
@@ -138,7 +106,7 @@ pub fn chase_player_action_system(
                         let (dx, dy) = dir.coord();
                         let target_pos = *ai_pos + (dx, dy);
                         if current_map.is_walkable(target_pos) {
-                            turn_actor.add_action(
+                            let _ = turn_actor.queue_action(
                                 Walk::builder().with_entity(*actor_entity).with_direction(dir).build(),
                             );
                             *action_state = ActionState::Executing;
@@ -147,7 +115,7 @@ pub fn chase_player_action_system(
                             if let Some(alt_dir) =
                                 helpers::find_alternative_direction(*ai_pos, *player_pos, &current_map)
                             {
-                                turn_actor.add_action(
+                                let _ = turn_actor.queue_action(
                                     Walk::builder()
                                         .with_entity(*actor_entity)
                                         .with_direction(alt_dir)
@@ -186,6 +154,77 @@ pub fn chase_player_action_system(
             }
         }
     }
+}
+
+////////////////////////////
+// HELPER FUNCTIONS
+////////////////////////////
+
+fn calculate_chase_score(
+    ai_pos: &Position,
+    ai_behavior: &mut AIBehavior,
+    player_pos: &Position,
+    current_turn: u64,
+    current_map: &CurrentMap,
+    actor_entity: Entity,
+) -> f32 {
+    if ai_behavior.behavior_type != AIBehaviorType::Hostile {
+        return 0.0;
+    }
+
+    if FovMap::can_see_entity(*ai_pos, ai_behavior.detection_range, *player_pos, current_map) {
+        calculate_visible_player_score(ai_pos, ai_behavior, player_pos, current_turn, actor_entity)
+    } else if let Some(last_known_pos) = ai_behavior.last_known_player_position {
+        calculate_remembered_position_score(ai_pos, ai_behavior, &last_known_pos, current_turn, actor_entity)
+    } else {
+        0.0
+    }
+}
+
+fn calculate_visible_player_score(
+    ai_pos: &Position,
+    ai_behavior: &mut AIBehavior,
+    player_pos: &Position,
+    current_turn: u64,
+    actor_entity: Entity,
+) -> f32 {
+    let distance = ai_pos.ai_detection_distance(player_pos);
+    if distance <= ai_behavior.detection_range as f32 {
+        info!("AI entity {:?} is within detection range of player at distance {:.1}", actor_entity, distance);
+
+        let chase_score = 1.0;
+
+        info!(
+            "AI entity {:?} can see player at distance {:.1}, chase score: {:.2}",
+            actor_entity, distance, chase_score
+        );
+
+        ai_behavior.update_player_sighting(*player_pos, current_turn);
+        chase_score
+    } else {
+        0.0
+    }
+}
+
+fn calculate_remembered_position_score(
+    ai_pos: &Position,
+    ai_behavior: &AIBehavior,
+    last_known_pos: &Position,
+    current_turn: u64,
+    actor_entity: Entity,
+) -> f32 {
+    info!("Player not visible, but AI remembers where they were");
+
+    if ai_behavior.should_switch_to_wander(current_turn) {
+        return 0.0;
+    }
+
+    let distance = ai_pos.ai_detection_distance(last_known_pos);
+    let chase_score = 0.3 * (1.0 - (distance / ai_behavior.detection_range as f32));
+    let clamped_score = chase_score.clamp(0.0, 0.5);
+
+    info!("AI entity {:?} chase score: {:.2}", actor_entity, clamped_score);
+    clamped_score
 }
 
 fn generate_last_seen_path(

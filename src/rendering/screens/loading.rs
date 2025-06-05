@@ -114,7 +114,7 @@ fn animate_loading_screen(
             2 => "..",
             _ => "...",
         };
-        **text = format!("Loading{}", dots);
+        **text = format!("Loading{dots}");
     }
 
     // Animate progress bar with a sine wave

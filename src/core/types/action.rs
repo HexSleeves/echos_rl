@@ -26,9 +26,32 @@ impl ActionType {
     }
 }
 
+/// Lightweight categories for AI decision making and UI hints
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ActionCategory {
+    Movement,
+    Attack,
+    Spell,
+    Item,
+    Wait,
+    Interact,
+    Social,
+    Craft,
+}
+
+impl std::fmt::Display for ActionCategory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { write!(f, "{self:?}") }
+}
+
+/// Your existing trait (which is excellent!)
 pub trait GameAction: Send + Sync + 'static + std::fmt::Debug {
     fn entity(&self) -> Option<Entity>;
     fn perform(&self, world: &mut World) -> Result<u64, GameError>;
+
+    // Add these methods:
+    fn category(&self) -> ActionCategory;
+    fn can_interrupt(&self) -> bool { false }
+    fn priority(&self) -> u8 { 0 } // 0 = normal, higher = more important
 }
 
 /// Builder trait for GameAction implementations
@@ -37,7 +60,7 @@ pub trait GameActionBuilder: Send + Sync + 'static {
     type Action: GameAction;
 
     /// Build the final action
-    fn build(self) -> Self::Action;
+    fn build(self) -> Box<Self::Action>;
 }
 
 pub trait BuildableGameAction: GameAction {
@@ -53,12 +76,13 @@ macro_rules! impl_game_action {
     ($action:ident, $builder:ident, $( $field:ident ),+ ) => {
         impl $crate::core::types::GameActionBuilder for $builder {
             type Action = $action;
-            fn build(self) -> $action {
+            fn build(self) -> Box<$action> {
                 $action {
                     $(
                         $field: self.$field.expect(concat!(stringify!($field), " must be set")),
                     )+
                 }
+                .into()
             }
         }
 

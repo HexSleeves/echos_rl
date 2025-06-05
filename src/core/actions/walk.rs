@@ -5,18 +5,21 @@ use crate::{
     core::{
         components::Position,
         resources::CurrentMap,
-        types::{GameAction, GameError},
+        types::{ActionCategory, GameAction, GameError},
     },
     gameplay::world::components::TerrainType,
     impl_debug_with_field, impl_game_action,
 };
 
+#[derive(Clone)]
 pub struct Walk {
     entity: Entity,
     direction: Direction,
 }
 
 impl GameAction for Walk {
+    fn category(&self) -> ActionCategory { ActionCategory::Movement }
+
     fn entity(&self) -> Option<Entity> { Some(self.entity) }
 
     fn perform(&self, world: &mut World) -> Result<u64, GameError> {
@@ -31,20 +34,24 @@ impl GameAction for Walk {
 
             let Some(terrain_type) = current_map.get_terrain(new_pos) else {
                 log::error!("Failed to get terrain type for entity: {}", self.entity);
-                return Err(GameError::MissingComponent);
+                return Err(GameError::MissingComponent { entity: self.entity, component: "TerrainType" });
             };
 
             match terrain_type {
                 TerrainType::Wall => {
                     log::error!("Wall in the way");
-                    return Err(GameError::TerrainBlocked);
+                    return Err(GameError::MovementBlocked {
+                        from: *current_pos,
+                        to: new_pos,
+                        reason: "Wall in the way".to_string(),
+                    });
                 }
                 _ => {
                     *current_pos = new_pos;
                 }
             }
         } else {
-            return Err(GameError::EntityNotFound);
+            return Err(GameError::EntityNotFound(self.entity));
         }
 
         // Return the system state to update the world
@@ -54,7 +61,7 @@ impl GameAction for Walk {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct WalkBuilder {
     entity: Option<Entity>,
     direction: Option<Direction>,

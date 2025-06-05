@@ -56,9 +56,7 @@ impl EntityDefinition {
     pub fn spawn_weight(&self) -> f32 { self.components.spawn_weight.unwrap_or(1.0) }
 
     /// Get AI behavior type (defaults to Neutral if not specified)
-    pub fn ai_behavior_type(&self) -> AIBehaviorType {
-        self.components.ai_behavior_type.clone().unwrap_or_default()
-    }
+    pub fn ai_behavior_type(&self) -> AIBehaviorType { self.components.ai_behavior_type.unwrap_or_default() }
 }
 
 impl EntityComponents {
@@ -111,7 +109,7 @@ impl EntityComponents {
 
     /// Set level range
     pub fn with_level_range(mut self, min: u32, max: u32) -> Self {
-        assert!(min <= max, "Level range minimum ({}) cannot be greater than maximum ({})", min, max);
+        assert!(min <= max, "Level range minimum ({min}) cannot be greater than maximum ({max})");
         self.level_range = Some((min, max));
         self
     }

@@ -21,7 +21,7 @@ use crate::{
 /// Configuration for entity-specific components and defaults
 struct EntitySpawnConfig {
     default_view_radius: u8,
-    default_turn_speed: u64,
+    default_turn_speed: u32,
 }
 
 impl EntitySpawnConfig {
@@ -153,7 +153,7 @@ fn finalize_entity_spawn(
     // Update map with entity position
     current_map
         .place_actor(position, entity_id)
-        .map_err(|e| format!("Failed to place {}: {e}", entity_type))?;
+        .map_err(|e| format!("Failed to place {entity_type}: {e}"))?;
 
     info!("Spawned {} '{}' at {:?}", entity_type, entity_name, position);
     Ok(entity_id)

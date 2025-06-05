@@ -20,13 +20,13 @@ impl Default for AIBehaviorType {
 #[derive(Serialize, Deserialize, Debug, Clone, Reflect)]
 pub struct TurnActorData {
     /// Speed value for turn timing
-    pub speed: u64,
+    pub speed: u32,
     /// Maximum number of actions that can be queued
     pub action_queue_size: Option<usize>,
 }
 
 impl TurnActorData {
-    pub fn new(speed: u64) -> Self { Self { speed, action_queue_size: None } }
+    pub fn new(speed: u32) -> Self { Self { speed, action_queue_size: None } }
 
     pub fn with_queue_size(mut self, size: usize) -> Self {
         self.action_queue_size = Some(size);
