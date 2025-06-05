@@ -41,29 +41,6 @@ pub fn calculate_direction_away_from_target(from: Position, away_from: Position)
     }
 }
 
-/// Find an alternative direction when the direct path is blocked
-pub fn find_alternative_direction(from: Position, to: Position, map: &CurrentMap) -> Option<Direction> {
-    let directions: Vec<Direction> = Direction::iter_cardinal().collect();
-
-    // Try all directions and pick the one that gets us closest to the target
-    let mut best_direction = None;
-    let mut best_distance = f32::INFINITY;
-
-    for &dir in &directions {
-        let (dx, dy) = dir.coord();
-        let test_pos = from + (dx, dy);
-        if map.is_walkable(test_pos) {
-            let distance = test_pos.pathfinding_distance(&to);
-            if distance < best_distance {
-                best_distance = distance;
-                best_direction = Some(dir);
-            }
-        }
-    }
-
-    best_direction
-}
-
 /// Find an alternative direction for fleeing when the direct path is blocked
 pub fn find_alternative_flee_direction(
     from: Position,

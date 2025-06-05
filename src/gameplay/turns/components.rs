@@ -2,10 +2,7 @@ use bevy::prelude::*;
 use echos_assets::entities::TurnActorData;
 use std::collections::VecDeque;
 
-use crate::core::{
-    actions::WaitAction,
-    types::{ActionCategory, GameAction},
-};
+use crate::core::types::{ActionCategory, ActionType};
 
 /// Component for entities that participate in the turn-based system
 #[derive(Component, Debug)]
@@ -15,7 +12,7 @@ pub struct TurnActor {
     /// Whether this actor is alive and should participate in turns
     pub alive: bool,
     /// Queue of actions to perform
-    pub actions: VecDeque<Box<dyn GameAction>>,
+    pub actions: VecDeque<ActionType>,
 }
 
 impl TurnActor {
@@ -23,13 +20,13 @@ impl TurnActor {
     pub fn new(speed: u32) -> Self { Self { speed, alive: true, actions: VecDeque::new() } }
 
     /// Get the next action
-    pub fn next_action(&mut self) -> Option<Box<dyn GameAction>> { self.actions.pop_front() }
+    pub fn next_action(&mut self) -> Option<ActionType> { self.actions.pop_front() }
 
     /// Peek at the next action without consuming it
-    pub fn peek_next_action(&self) -> Option<&dyn GameAction> { self.actions.front().map(|a| a.as_ref()) }
+    pub fn peek_next_action(&self) -> Option<&ActionType> { self.actions.front() }
 
     /// Queue an action
-    pub fn queue_action(&mut self, action: Box<dyn GameAction>) { self.actions.push_back(action); }
+    pub fn queue_action(&mut self, action: ActionType) { self.actions.push_back(action); }
 
     /// Check if actor has any pending actions
     pub fn has_action(&self) -> bool { !self.actions.is_empty() }
@@ -87,9 +84,7 @@ impl Default for TurnActor {
 // Convenience methods for common action types
 impl TurnActor {
     /// Quick method to queue a wait action
-    pub fn queue_wait(&mut self, entity: Entity, duration: u64) {
-        self.queue_action(Box::new(WaitAction::new(entity, duration)));
-    }
+    pub fn queue_wait(&mut self) { self.queue_action(ActionType::Wait); }
 
     /// Check if the next action is of a specific category
     pub fn next_action_is_category(&self, category: ActionCategory) -> bool {
@@ -100,6 +95,7 @@ impl TurnActor {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::core::types::ActionType;
 
     #[test]
     fn test_turn_actor_creation() {
@@ -115,5 +111,39 @@ mod tests {
         assert_eq!(actor.speed(), 100);
         assert!(actor.is_alive());
         assert!(!actor.has_action());
+    }
+
+    #[test]
+    fn test_action_queue() {
+        let mut actor = TurnActor::new(100);
+
+        // Test queuing actions
+        actor.queue_action(ActionType::Wait);
+        assert!(actor.has_action());
+        assert_eq!(actor.action_count(), 1);
+
+        // Test peeking
+        assert_eq!(actor.peek_next_action(), Some(&ActionType::Wait));
+        assert_eq!(actor.action_count(), 1); // Should not consume
+
+        // Test consuming
+        assert_eq!(actor.next_action(), Some(ActionType::Wait));
+        assert!(!actor.has_action());
+        assert_eq!(actor.action_count(), 0);
+    }
+
+    #[test]
+    fn test_convenience_methods() {
+        let mut actor = TurnActor::new(100);
+
+        // Test queue_wait
+        actor.queue_wait();
+        assert!(actor.has_action());
+        assert_eq!(actor.peek_next_action(), Some(&ActionType::Wait));
+
+        // Test category checking
+        use crate::core::types::ActionCategory;
+        assert!(actor.next_action_is_category(ActionCategory::Wait));
+        assert!(!actor.next_action_is_category(ActionCategory::Movement));
     }
 }

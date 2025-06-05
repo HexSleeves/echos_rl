@@ -1,8 +1,16 @@
 use bevy::{ecs::system::SystemState, prelude::*};
+use brtk::prelude::Direction;
 
 use crate::{
-    core::{components::PlayerTag, resources::TurnQueue, states::GameState},
-    gameplay::{player::components::AwaitingInput, turns::components::TurnActor},
+    core::{
+        components::{PlayerTag, Position},
+        resources::{CurrentMap, TurnQueue},
+        states::GameState,
+        types::{ActionType, GameError},
+    },
+    gameplay::{
+        player::components::AwaitingInput, turns::components::TurnActor, world::components::TerrainType,
+    },
 };
 
 /// System that processes turns in the turn queue
@@ -29,7 +37,7 @@ pub fn process_turns(world: &mut World) {
             let (mut next_state, mut q_actor) = state.get_mut(world);
 
             let Ok((entity, mut actor, player)) = q_actor.get_mut(entity) else {
-                log::error!("Actor not found: {entity:?}");
+                error!("Actor not found: {entity:?}");
                 continue;
             };
 
@@ -56,11 +64,11 @@ pub fn process_turns(world: &mut World) {
                 return;
             };
 
-            // Get next action and drop turn_queue borrow temporarily
-            match action.perform(world) {
+            // Process the action directly
+            match perform_action(world, entity, action) {
                 Ok(d_time) => turn_queue.schedule_turn(entity, time + d_time),
                 Err(e) => {
-                    log::error!("Failed to perform action: {e:?}");
+                    error!("Failed to perform action: {e:?}");
 
                     if is_player {
                         turn_queue.schedule_turn(entity, time);
@@ -71,4 +79,116 @@ pub fn process_turns(world: &mut World) {
             }
         }
     });
+}
+
+/// Perform an action for the given entity
+fn perform_action(world: &mut World, entity: Entity, action: ActionType) -> Result<u64, GameError> {
+    match action {
+        ActionType::Wait => {
+            info!("Entity {} is waiting", entity);
+            Ok(action.get_base_time_to_perform())
+        }
+        ActionType::MoveDelta(direction) => match perform_move_delta(world, entity, direction) {
+            Ok(()) => Ok(action.get_base_time_to_perform()),
+            Err(e) => Err(e),
+        },
+        ActionType::Move(target_pos) => match perform_move_to_position(world, entity, target_pos) {
+            Ok(()) => Ok(action.get_base_time_to_perform()),
+            Err(e) => Err(e),
+        },
+        ActionType::Attack(target_pos) => match perform_attack(world, entity, target_pos) {
+            Ok(()) => Ok(action.get_base_time_to_perform()),
+            Err(e) => Err(e),
+        },
+    }
+}
+
+/// Perform a movement in a specific direction
+fn perform_move_delta(world: &mut World, entity: Entity, direction: Direction) -> Result<(), GameError> {
+    let mut state: SystemState<(ResMut<CurrentMap>, Query<&mut Position>)> = SystemState::new(world);
+    let (current_map, mut q_position) = state.get_mut(world);
+
+    // Get the entity's current position
+    if let Ok(mut current_pos) = q_position.get_mut(entity) {
+        let new_pos = *current_pos + direction.coord();
+
+        let Some(terrain_type) = current_map.get_terrain(new_pos) else {
+            error!("Failed to get terrain type for entity: {entity}");
+            return Err(GameError::MissingComponent { entity, component: "TerrainType" });
+        };
+
+        match terrain_type {
+            TerrainType::Wall => {
+                error!("Wall in the way");
+                return Err(GameError::MovementBlocked {
+                    to: new_pos,
+                    from: *current_pos,
+                    reason: "Wall in the way".to_string(),
+                });
+            }
+            _ => {
+                *current_pos = new_pos;
+                info!("Entity {} moved from {:?} to {:?}", entity, current_pos, new_pos);
+            }
+        }
+    } else {
+        return Err(GameError::EntityNotFound(entity));
+    }
+
+    // Apply the system state changes
+    state.apply(world);
+    Ok(())
+}
+
+/// Perform a movement to a specific position
+fn perform_move_to_position(
+    world: &mut World,
+    entity: Entity,
+    target_pos: Position,
+) -> Result<(), GameError> {
+    let mut state: SystemState<(ResMut<CurrentMap>, Query<&mut Position>)> = SystemState::new(world);
+    let (current_map, mut q_position) = state.get_mut(world);
+
+    // Get the entity's current position
+    if let Ok(mut current_pos) = q_position.get_mut(entity) {
+        let Some(terrain_type) = current_map.get_terrain(target_pos) else {
+            error!("Failed to get terrain type for target position: {:?}", target_pos);
+            return Err(GameError::MissingComponent { entity, component: "TerrainType" });
+        };
+
+        match terrain_type {
+            TerrainType::Wall => {
+                error!("Target position is blocked by wall");
+                return Err(GameError::MovementBlocked {
+                    from: *current_pos,
+                    to: target_pos,
+                    reason: "Target position blocked by wall".to_string(),
+                });
+            }
+            _ => {
+                *current_pos = target_pos;
+                info!("Entity {} moved to {:?}", entity, target_pos);
+            }
+        }
+    } else {
+        return Err(GameError::EntityNotFound(entity));
+    }
+
+    // Apply the system state changes
+    state.apply(world);
+    Ok(())
+}
+
+/// Perform an attack action (placeholder implementation)
+fn perform_attack(_world: &mut World, entity: Entity, target_pos: Position) -> Result<(), GameError> {
+    // Placeholder implementation - just log the attack for now
+    info!("Entity {} attacks position {:?}", entity, target_pos);
+
+    // TODO: Implement actual attack logic when combat system is added
+    // - Check if target position has an entity
+    // - Calculate damage
+    // - Apply damage to target
+    // - Handle death/destruction
+
+    Ok(())
 }

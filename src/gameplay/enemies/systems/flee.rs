@@ -3,10 +3,9 @@ use big_brain::prelude::*;
 
 use crate::{
     core::{
-        actions::Walk,
         components::{PlayerTag, Position},
         resources::{CurrentMap, FovMap, TurnQueue},
-        types::{BuildableGameAction, GameActionBuilder},
+        types::ActionType,
     },
     gameplay::{
         enemies::{
@@ -30,44 +29,53 @@ pub fn flee_from_player_scorer_system(
     mut scorer_query: Query<(&Actor, &mut Score), With<FleeFromPlayerScorer>>,
 ) {
     let Ok(player_pos) = player_query.single() else {
-        // No player found or multiple players - skip AI processing
         return;
     };
 
     let current_turn = turn_queue.current_time();
 
     for (Actor(actor_entity), mut score) in scorer_query.iter_mut() {
-        if let Ok((ai_pos, mut ai_behavior, turn_actor)) = ai_query.get_mut(*actor_entity) {
-            // Skip scoring if this entity already has an action queued
-            if turn_actor.peek_next_action().is_some() {
+        let Ok((&ai_pos, mut ai_behavior, turn_actor)) = ai_query.get_mut(*actor_entity) else {
+            warn!("Actor must have required components");
+            continue;
+        };
+
+        // Don't score if already has actions queued
+        if turn_actor.has_action() {
+            score.set(0.0);
+            continue;
+        }
+
+        // Only passive entities should flee
+        if ai_behavior.behavior_type != AIBehaviorType::Passive {
+            score.set(0.0);
+            continue;
+        }
+
+        // Check if player is visible and close enough to trigger flee
+        if FovMap::can_see_entity(ai_pos, ai_behavior.detection_range, *player_pos, &current_map) {
+            let distance = ai_pos.distance(player_pos);
+
+            // Flee if player is within detection range
+            if distance <= ai_behavior.detection_range as f32 {
+                ai_behavior.last_player_seen_turn = Some(current_turn);
+                ai_behavior.last_known_player_position = Some(*player_pos);
+
+                // Higher score for closer players (more urgent to flee)
+                let urgency = 1.0 - (distance / ai_behavior.detection_range as f32);
+                let flee_score = 0.8 + (urgency * 0.2); // 0.8 to 1.0
+
+                info!(
+                    "Passive AI entity {:?} wants to flee from player at distance {}",
+                    actor_entity, distance
+                );
+                score.set(flee_score);
                 continue;
             }
-
-            let mut flee_score = 0.0;
-
-            // Only passive enemies want to flee
-            if ai_behavior.behavior_type == AIBehaviorType::Passive {
-                // Check if AI can see the player using the AI's own FOV
-                if FovMap::can_see_entity(*ai_pos, ai_behavior.detection_range, *player_pos, &current_map) {
-                    let distance = ai_pos.ai_detection_distance(player_pos);
-                    if distance <= ai_behavior.detection_range as f32 {
-                        // Update AI's knowledge of player position
-                        ai_behavior.update_player_sighting(*player_pos, current_turn);
-
-                        // Higher score for closer threats (more urgent to flee)
-                        flee_score = 1.0 - (distance / ai_behavior.detection_range as f32);
-                        flee_score = flee_score.clamp(0.0, 1.0);
-
-                        info!(
-                            "AI entity {:?} sees threat at distance {:.1}, flee score: {:.2}",
-                            actor_entity, distance, flee_score
-                        );
-                    }
-                }
-            }
-
-            score.set(flee_score);
         }
+
+        // No immediate threat
+        score.set(0.0);
     }
 }
 
@@ -111,21 +119,14 @@ pub fn flee_from_player_action_system(
                         let (dx, dy) = dir.coord();
                         let target_pos = *ai_pos + (dx, dy);
                         if current_map.is_walkable(target_pos) {
-                            turn_actor.queue_action(
-                                Walk::builder().with_entity(*actor_entity).with_direction(dir).build(),
-                            );
+                            turn_actor.queue_action(ActionType::MoveDelta(dir));
                             *action_state = ActionState::Executing;
                         } else {
                             // Try alternative directions if direct flee path is blocked
                             if let Some(alt_dir) =
                                 helpers::find_alternative_flee_direction(*ai_pos, *player_pos, &current_map)
                             {
-                                turn_actor.queue_action(
-                                    Walk::builder()
-                                        .with_entity(*actor_entity)
-                                        .with_direction(alt_dir)
-                                        .build(),
-                                );
+                                turn_actor.queue_action(ActionType::MoveDelta(alt_dir));
                                 *action_state = ActionState::Executing;
                             } else {
                                 info!("AI entity {:?} cannot find flee path, action failed", actor_entity);

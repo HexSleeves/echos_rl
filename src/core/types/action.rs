@@ -3,9 +3,9 @@ use brtk::prelude::Direction;
 
 use crate::core::{components::Position, types::error::GameError};
 
-pub const TURN_TIME: u32 = 1000;
-pub const WAIT_TIME: u32 = 1000;
-pub const ATTACK_TIME: u32 = 1000;
+pub const TURN_TIME: u64 = 1000;
+pub const WAIT_TIME: u64 = 1000;
+pub const ATTACK_TIME: u64 = 1000;
 
 #[derive(Debug, Reflect, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ActionType {
@@ -16,12 +16,20 @@ pub enum ActionType {
 }
 
 impl ActionType {
-    pub const fn get_base_time_to_perform(&self) -> u32 {
+    pub const fn get_base_time_to_perform(&self) -> u64 {
         match self {
             Self::Wait => WAIT_TIME,
             Self::Attack(_) => ATTACK_TIME,
             Self::Move(_) => TURN_TIME,
             Self::MoveDelta(_) => TURN_TIME,
+        }
+    }
+
+    pub const fn category(&self) -> ActionCategory {
+        match self {
+            Self::Wait => ActionCategory::Wait,
+            Self::Move(_) | Self::MoveDelta(_) => ActionCategory::Movement,
+            Self::Attack(_) => ActionCategory::Attack,
         }
     }
 }

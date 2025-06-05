@@ -2,10 +2,7 @@ use bevy::prelude::*;
 use big_brain::prelude::*;
 
 use crate::{
-    core::{
-        actions::Wait,
-        types::{BuildableGameAction, GameActionBuilder},
-    },
+    core::types::ActionType,
     gameplay::{
         enemies::components::{AIAction, AIState},
         turns::components::TurnActor,
@@ -36,7 +33,7 @@ pub fn idle_action_system(
                     ai_state.current_action = Some(AIAction::Idle);
 
                     // Add a wait action to the queue for idle behavior
-                    turn_actor.queue_action(Wait::builder().with_entity(*actor_entity).build());
+                    turn_actor.queue_action(ActionType::Wait);
 
                     *action_state = ActionState::Executing;
                 }

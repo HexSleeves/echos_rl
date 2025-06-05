@@ -39,8 +39,9 @@ impl_debug_with_field!(Wait, entity);
 impl_game_action!(Wait, WaitBuilder, entity);
 
 ///////////////////////////
-///
 // Simple actions
+///////////////////////////
+
 #[derive(Debug, Clone)]
 pub struct WaitAction {
     entity: Entity,

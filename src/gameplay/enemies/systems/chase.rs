@@ -3,11 +3,10 @@ use big_brain::prelude::*;
 
 use crate::{
     core::{
-        actions::{Wait, Walk},
         components::{PlayerTag, Position},
         pathfinding,
         resources::{CurrentMap, FovMap, TurnQueue},
-        types::{BuildableGameAction, GameActionBuilder},
+        types::ActionType,
     },
     gameplay::{
         enemies::{
@@ -108,8 +107,7 @@ pub fn chase_player_action_system(
 
                 let direction = helpers::calculate_direction_to_target(*ai_pos, *player_pos);
                 if let Some(dir) = direction {
-                    ai_actor
-                        .queue_action(Walk::builder().with_entity(*actor_entity).with_direction(dir).build());
+                    ai_actor.queue_action(ActionType::MoveDelta(dir));
                     *action_state = ActionState::Executing;
                 } else {
                     info!("AI entity {:?} cannot find path to player, action failed", actor_entity);
@@ -137,7 +135,7 @@ pub fn chase_player_action_system(
                     // ai_component.preferred_action = Some(ActionType::Wait);
 
                     ai_state.current_action = Some(AIAction::Idle);
-                    ai_actor.queue_action(Wait::builder().with_entity(*actor_entity).build());
+                    ai_actor.queue_action(ActionType::Wait);
 
                     continue;
                 };
@@ -171,7 +169,7 @@ pub fn chase_player_action_system(
             ai_state.current_action = Some(AIAction::ChasePlayer);
             ai_state.target_position = Some(*position);
 
-            ai_actor.queue_action(Walk::builder().with_entity(*actor_entity).with_direction(dir).build());
+            ai_actor.queue_action(ActionType::MoveDelta(dir));
         } else {
             info!("AI entity {:?} cannot find path to player, action failed", actor_entity);
             *action_state = ActionState::Failure;
@@ -353,7 +351,6 @@ fn calculate_remembered_position_score(
     // let distance = ai_pos.ai_detection_distance(last_known_pos);
     // let chase_score = 0.3 * (1.0 - (distance / ai_behavior.detection_range as f32));
     // let clamped_score = chase_score.clamp(0.0, 0.5);
-    
 
     1.0
 }

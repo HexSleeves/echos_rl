@@ -3,10 +3,9 @@ use big_brain::prelude::*;
 
 use crate::{
     core::{
-        actions::Walk,
         components::Position,
         resources::{CurrentMap, TurnQueue},
-        types::{BuildableGameAction, GameActionBuilder},
+        types::ActionType,
     },
     gameplay::{
         enemies::{
@@ -27,43 +26,33 @@ pub fn wander_scorer_system(
     let current_turn = turn_queue.current_time();
 
     for (Actor(actor_entity), mut score) in scorer_query.iter_mut() {
-        if let Ok((ai_behavior, turn_actor)) = ai_query.get(*actor_entity) {
-            // Skip scoring if this entity already has an action queued
-            if turn_actor.peek_next_action().is_some() {
-                continue;
-            }
+        let Ok((ai_behavior, turn_actor)) = ai_query.get(*actor_entity) else {
+            warn!("Actor must have required components");
+            continue;
+        };
 
-            let wander_score = match ai_behavior.behavior_type {
-                AIBehaviorType::Neutral => {
-                    // Neutral entities should always want to wander
-                    0.2 + fastrand::f32() * 0.3 // 0.2 to 0.5 - always above threshold
-                }
-                AIBehaviorType::Hostile => {
-                    if ai_behavior.should_switch_to_wander(current_turn) {
-                        // Hostile enemy hasn't seen player for a while, switch to wandering
-                        info!(
-                            "Hostile AI entity {:?} switching to wander (no player seen for {} turns)",
-                            actor_entity,
-                            current_turn.saturating_sub(ai_behavior.last_player_seen_turn.unwrap_or(0))
-                        );
-                        0.7 // High score to override chase behavior
-                    } else {
-                        // Low wander score when actively hostile
-                        0.15 + fastrand::f32() * 0.1 // 0.15 to 0.25
-                    }
-                }
-                AIBehaviorType::Passive => {
-                    // Passive entities wander when not fleeing
-                    0.3 + fastrand::f32() * 0.2 // 0.3 to 0.5
-                }
-            };
-
-            score.set(wander_score);
+        // Don't score if already has actions queued
+        if turn_actor.has_action() {
+            score.set(0.0);
+            continue;
         }
+
+        // Calculate wander score based on behavior type and time
+        let base_score = match ai_behavior.behavior_type {
+            AIBehaviorType::Hostile => 0.2, // Low priority for hostile enemies
+            AIBehaviorType::Passive => 0.4, // Medium priority for passive entities
+            AIBehaviorType::Neutral => 0.6, // High priority for neutral wanderers
+        };
+
+        // Add some randomness and time-based variation
+        let time_factor = (current_turn % 1000) as f32 / 1000.0;
+        let final_score = base_score + (time_factor * 0.2);
+
+        score.set(final_score);
     }
 }
 
-/// System that handles random wandering
+/// System that handles wandering behavior
 pub fn wander_action_system(
     current_map: Res<CurrentMap>,
     mut action_query: Query<(&Actor, &mut ActionState), With<WanderAction>>,
@@ -88,9 +77,7 @@ pub fn wander_action_system(
 
                     // Find a random walkable direction
                     if let Some(direction) = helpers::find_random_walkable_direction(*ai_pos, &current_map) {
-                        turn_actor.queue_action(
-                            Walk::builder().with_entity(*actor_entity).with_direction(direction).build(),
-                        );
+                        turn_actor.queue_action(ActionType::MoveDelta(direction));
                         *action_state = ActionState::Executing;
                     } else {
                         info!("AI entity {:?} cannot find walkable direction for wandering", actor_entity);

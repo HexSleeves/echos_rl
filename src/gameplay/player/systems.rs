@@ -3,11 +3,7 @@ use leafwing_input_manager::prelude::*;
 use std::time::Duration;
 
 use crate::{
-    core::{
-        actions::{WaitBuilder, Walk},
-        states::GameState,
-        types::{ActionType, BuildableGameAction, GameActionBuilder},
-    },
+    core::{states::GameState, types::ActionType},
     gameplay::{
         player::{actions::PlayerAction, components::AwaitingInput},
         turns::components::TurnActor,
@@ -49,8 +45,6 @@ pub fn player_input_system(
     // Actions
     if action_state.just_pressed(&PlayerAction::Wait) {
         action = Some(ActionType::Wait);
-        // action_queue.add_action(ActionType::Wait);
-        // p_actor.add_action(WaitBuilder::new().with_entity(entity).build());
     }
 
     // Movement
@@ -63,25 +57,14 @@ pub fn player_input_system(
         {
             timer.reset();
             action = Some(ActionType::MoveDelta(direction));
-            // action_queue.add_action(ActionType::Movement(*player_position + direction));
-            // p_actor.add_action(Walk::builder().with_entity(entity).with_direction(direction).
-            // build());
         }
     }
 
     if let Some(action) = action {
         info!("Player gave input: {:?}", action);
 
-        match action {
-            ActionType::Wait => {
-                p_actor.queue_action(WaitBuilder::new().with_entity(entity).build());
-            }
-            ActionType::MoveDelta(direction) => {
-                p_actor
-                    .queue_action(Walk::builder().with_entity(entity).with_direction(direction).build());
-            }
-            _ => {}
-        }
+        // Queue the action directly - no more builder pattern!
+        p_actor.queue_action(action);
 
         commands.entity(entity).remove::<AwaitingInput>();
 
