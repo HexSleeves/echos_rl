@@ -1,0 +1,446 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Bevy Game Engine Development Workflows
+
+## Development Workflow
+
+### Before Making Changes
+1. **Run `cargo clippy`** - Use clippy over basic cargo check for better analysis
+2. **Check current build status** - Run `cargo check` or `cargo build` to assess errors
+3. **Profile if performance-related** - Use `cargo run --release` for performance testing
+
+### After Making Changes
+1. **Format code** - Always run `cargo fmt` after core changes
+2. **Test systems** - Run `cargo test` to ensure no regressions
+3. **Verify game runs** - Test the actual game functionality
+
+## Bevy-Specific Development Patterns
+
+### System Development Workflow
+```rust
+// 1. Define components first
+#[derive(Component)]
+struct Health(f32);
+
+#[derive(Component)]
+struct Player;
+
+// 2. Create focused systems
+fn player_health_system(
+    mut query: Query<&mut Health, With<Player>>,
+    time: Res<Time>,
+) {
+    for mut health in query.iter_mut() {
+        // System logic here
+    }
+}
+
+// 3. Add to app with proper scheduling
+app.add_systems(Update, player_health_system);
+```
+
+### Plugin Development Pattern
+```rust
+pub struct PlayerPlugin;
+
+impl Plugin for PlayerPlugin {
+    fn build(&self, app: &mut App) {
+        app
+            .add_systems(Startup, spawn_player)
+            .add_systems(Update, (
+                player_movement,
+                player_input,
+            ).chain()) // Use .chain() for dependent systems
+            .add_systems(FixedUpdate, player_physics);
+    }
+}
+```
+
+### Resource Management Pattern
+```rust
+// Prefer events over direct resource mutation
+#[derive(Event)]
+struct ScoreChanged {
+    new_score: u32,
+}
+
+// System that triggers score change
+fn collect_item(
+    mut score_events: EventWriter<ScoreChanged>,
+    // ... other parameters
+) {
+    score_events.send(ScoreChanged { new_score: 100 });
+}
+
+// System that handles score change
+fn update_score_display(
+    mut score_events: EventReader<ScoreChanged>,
+    mut score: ResMut<Score>,
+) {
+    for event in score_events.read() {
+        score.value = event.new_score;
+    }
+}
+```
+
+## Performance Optimization Workflow
+
+### Profiling Setup
+```rust
+// Add to Cargo.toml for profiling builds
+[profile.profiling]
+inherits = "release"
+debug = true
+
+// Use in main.rs for tracy profiling
+#[cfg(feature = "tracy")]
+use bevy_tracy::TracyPlugin;
+
+fn main() {
+    let mut app = App::new();
+
+    #[cfg(feature = "tracy")]
+    app.add_plugins(TracyPlugin);
+
+    app.run();
+}
+```
+
+### Query Optimization Checklist
+- [ ] Use `With<T>` and `Without<T>` filters
+- [ ] Prefer `&T` over `&mut T` when possible
+- [ ] Use `Changed<T>` for reactive systems
+- [ ] Consider `Query::get()` for single entity access
+- [ ] Batch similar operations together
+
+### System Scheduling Best Practices
+```rust
+// Good: Explicit system ordering
+app.add_systems(Update, (
+    input_system,
+    movement_system.after(input_system),
+    collision_system.after(movement_system),
+    render_system.after(collision_system),
+));
+
+// Better: Use system sets for complex dependencies
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+enum GameSystems {
+    Input,
+    Logic,
+    Render,
+}
+
+app.configure_sets(Update, (
+    GameSystems::Input,
+    GameSystems::Logic.after(GameSystems::Input),
+    GameSystems::Render.after(GameSystems::Logic),
+));
+```
+
+## Asset Management Workflow
+
+### Asset Loading Pattern
+```rust
+#[derive(Resource)]
+struct GameAssets {
+    // Use Handle<T> for all assets
+    player_texture: Handle<Image>,
+    background_music: Handle<AudioSource>,
+    level_data: Handle<LevelData>,
+}
+
+fn load_game_assets(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    let assets = GameAssets {
+        player_texture: asset_server.load("textures/player.png"),
+        background_music: asset_server.load("audio/background.ogg"),
+        level_data: asset_server.load("levels/level1.ron"),
+    };
+    commands.insert_resource(assets);
+}
+
+// Check if assets are loaded
+fn check_assets_loaded(
+    assets: Res<GameAssets>,
+    asset_server: Res<AssetServer>,
+) -> bool {
+    asset_server.is_loaded_with_dependencies(&assets.player_texture)
+        && asset_server.is_loaded_with_dependencies(&assets.background_music)
+        && asset_server.is_loaded_with_dependencies(&assets.level_data)
+}
+```
+
+### Hot Reloading Setup
+```rust
+// Enable hot reloading in development
+#[cfg(debug_assertions)]
+fn setup_hot_reload(app: &mut App) {
+    app.add_plugins(bevy::asset::debug_asset_server::DebugAssetServerPlugin::default());
+}
+```
+
+## State Management Patterns
+
+### Game State Architecture
+```rust
+#[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
+enum AppState {
+    Loading,
+    MainMenu,
+    InGame,
+    Paused,
+    GameOver,
+}
+
+#[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
+enum GameState {
+    Playing,
+    Inventory,
+    Dialog,
+}
+
+// Systems can depend on multiple states
+fn game_logic(
+    // Only runs when in InGame app state AND Playing game state
+) {
+}
+
+app.add_systems(
+    Update,
+    game_logic.run_if(in_state(AppState::InGame).and_then(in_state(GameState::Playing)))
+);
+```
+
+### State Transition Handling
+```rust
+fn handle_game_over(
+    mut next_state: ResMut<NextState<AppState>>,
+    query: Query<&Health, With<Player>>,
+) {
+    for health in query.iter() {
+        if health.0 <= 0.0 {
+            next_state.set(AppState::GameOver);
+        }
+    }
+}
+```
+
+## Testing Patterns
+
+### System Testing
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bevy::prelude::*;
+
+    #[test]
+    fn test_player_movement() {
+        let mut world = World::new();
+
+        // Setup test entities
+        let player = world.spawn((
+            Player,
+            Transform::default(),
+            Velocity(Vec3::ZERO),
+        )).id();
+
+        // Create and run system
+        let mut system = IntoSystem::into_system(player_movement_system);
+        system.initialize(&mut world);
+        system.run((), &mut world);
+
+        // Assert results
+        let transform = world.get::<Transform>(player).unwrap();
+        assert_eq!(transform.translation, Vec3::new(1.0, 0.0, 0.0));
+    }
+}
+```
+
+### Integration Testing
+```rust
+#[test]
+fn test_game_flow() {
+    let mut app = App::new();
+    app.add_plugins(MinimalPlugins)
+       .add_plugins(GamePlugin);
+
+    // Simulate game steps
+    app.update();
+
+    // Check game state
+    let world = app.world();
+    assert!(world.contains_resource::<Score>());
+}
+```
+
+## Debugging Workflow
+
+### Debug Rendering Setup
+```rust
+#[cfg(debug_assertions)]
+fn setup_debug_rendering(app: &mut App) {
+    app.add_plugins(bevy_inspector_egui::quick::WorldInspectorPlugin::new());
+}
+
+// Debug draw system
+fn debug_draw_colliders(
+    mut gizmos: Gizmos,
+    query: Query<&Transform, With<Collider>>,
+) {
+    for transform in query.iter() {
+        gizmos.rect_2d(
+            transform.translation.truncate(),
+            0.0,
+            Vec2::splat(32.0),
+            Color::RED,
+        );
+    }
+}
+```
+
+### Performance Monitoring
+```rust
+// Add performance monitoring
+fn monitor_fps(
+    diagnostics: Res<DiagnosticsStore>,
+    mut fps_text: Query<&mut Text, With<FpsText>>,
+) {
+    if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
+        if let Some(value) = fps.smoothed() {
+            for mut text in fps_text.iter_mut() {
+                text.sections[0].value = format!("FPS: {:.1}", value);
+            }
+        }
+    }
+}
+```
+
+## Common Workflow Patterns
+
+### Entity Spawning Pattern
+```rust
+fn spawn_enemy(
+    mut commands: Commands,
+    assets: Res<GameAssets>,
+) {
+    commands.spawn((
+        // Bundle components together
+        SpriteBundle {
+            texture: assets.enemy_texture.clone(),
+            transform: Transform::from_translation(Vec3::new(100.0, 0.0, 0.0)),
+            ..default()
+        },
+        // Game-specific components
+        Enemy,
+        Health(100.0),
+        Velocity(Vec3::new(-50.0, 0.0, 0.0)),
+        // Marker for cleanup
+        DespawnOnGameOver,
+    ));
+}
+```
+
+### Cleanup Pattern
+```rust
+#[derive(Component)]
+struct DespawnOnGameOver;
+
+fn cleanup_game_entities(
+    mut commands: Commands,
+    query: Query<Entity, With<DespawnOnGameOver>>,
+) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+}
+
+// Add to state transition
+app.add_systems(OnExit(AppState::InGame), cleanup_game_entities);
+```
+
+## Build and Deployment
+
+### Release Build Optimization
+```toml
+# Cargo.toml
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+# For smaller binary size
+[profile.release-small]
+inherits = "release"
+opt-level = "z"
+strip = true
+```
+
+### Platform-Specific Features
+```rust
+// Platform-specific code
+#[cfg(target_os = "windows")]
+fn setup_windows_specific() {
+    // Windows-specific setup
+}
+
+#[cfg(target_os = "linux")]
+fn setup_linux_specific() {
+    // Linux-specific setup
+}
+
+#[cfg(target_arch = "wasm32")]
+fn setup_web_specific() {
+    // Web-specific setup
+}
+```
+
+## Error Handling Patterns
+
+### Graceful Error Handling
+```rust
+fn load_save_file(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    match std::fs::read_to_string("save.json") {
+        Ok(data) => {
+            // Handle successful load
+            if let Ok(save_data) = serde_json::from_str::<SaveData>(&data) {
+                commands.insert_resource(save_data);
+            }
+        }
+        Err(e) => {
+            // Log error but don't panic
+            warn!("Failed to load save file: {}", e);
+            // Create default save data
+            commands.insert_resource(SaveData::default());
+        }
+    }
+}
+```
+
+### Result Propagation
+```rust
+fn try_spawn_entity(
+    commands: &mut Commands,
+    assets: &GameAssets,
+) -> Result<Entity, SpawnError> {
+    let entity = commands.spawn((
+        SpriteBundle {
+            texture: assets.player_texture.clone(),
+            ..default()
+        },
+        Player,
+    )).id();
+
+    Ok(entity)
+}
+```

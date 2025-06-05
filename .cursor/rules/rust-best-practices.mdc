@@ -3,52 +3,248 @@ description:
 globs: *.rs
 alwaysApply: false
 ---
-# Rust Best Practices (Performance & AI/ML Focus)
+# Rust Game Development & Bevy Engine Best Practices
 
-## General Principles
-- **Prefer idiomatic Rust:** Use ownership, borrowing, and lifetimes to ensure safety and performance.
-- **Zero-cost abstractions:** Use iterators, traits, and generics to write efficient, reusable code.
-- **Minimize unsafe:** Only use `unsafe` when absolutely necessary, and always document why.
-- **Error handling:** Use `Result` and `Option` types. Avoid panics in library code.
-- **Explicitness:** Be explicit with types and lifetimes when clarity or performance is at stake.
+## Core Rust Principles for Games
+- **Zero-cost abstractions:** Leverage Rust's compile-time optimizations for game performance
+- **Memory safety without GC:** Use ownership and borrowing to avoid garbage collection pauses
+- **Fearless concurrency:** Utilize Rust's thread safety for parallel game systems
+- **Explicit error handling:** Use `Result` and `Option` types, avoid panics in game loops
+- **Profile-guided optimization:** Always benchmark in `--release` mode with real game scenarios
 
-## Performance
-- **Avoid unnecessary allocations:** Use stack allocation and slices where possible. Prefer `Vec` over `Box<[T]>` unless heap allocation is required.
-- **Minimize copies:** Use references and slices instead of cloning data. Use `.iter()` and `.as_ref()`.
-- **Leverage concurrency:** Use `rayon`, `tokio`, or native threads for parallelism when appropriate.
-- **SIMD & BLAS:** For numerics/AI, prefer crates like `ndarray`, `nalgebra`, or direct BLAS bindings for heavy math.
-- **Profile first:** Use `cargo bench`, `criterion`, and `perf` to find real bottlenecks before optimizing.
-- **Cache locality:** Prefer SoA (structure of arrays) for large numeric data, and minimize pointer chasing.
-- **Avoid dynamic dispatch:** Use generics and monomorphization for hot code paths.
-- **Release mode:** Always benchmark and test performance in `--release` mode.
+## Bevy ECS Architecture Best Practices
 
-## AI/ML Specific
-- **Use established crates:** Prefer `ndarray`, `nalgebra`, `tch`, `tract`, or `burn` for tensor and ML workloads.
-- **Parallelize workloads:** Use `rayon` for data parallelism, especially in data preprocessing and batch operations.
-- **FFI:** For heavy lifting, consider FFI to C/C++/CUDA (e.g., via `tch` or `tract`), but wrap safely.
-- **Numerical stability:** Use f64 for critical math unless memory is a bottleneck. Document precision trade-offs.
-- **Batch operations:** Always prefer batch over per-item processing for ML/data pipelines.
+### Components
+- **Keep components small and focused:** One piece of data per component
+- **Use marker components:** Empty structs for tagging entities (e.g., `Player`, `Enemy`)
+- **Prefer composition over inheritance:** Combine simple components for complex behaviors
+- **Use `#[derive(Component)]` for all component structs**
 
-## Code Style & Documentation
-- **Clippy:** Run `cargo clippy` and fix all warnings.
-- **Rustfmt:** Use `cargo fmt` for consistent style.
-- **Doc comments:** Use `///` for public APIs, document parameters, return values, and panics.
-- **Meaningful names:** Use descriptive, conventional names for types, functions, and variables.
-- **Module organization:** Group related code into modules. Keep files <300 lines when possible.
+```rust
+#[derive(Component)]
+struct Health(f32);
 
-## Testing & Benchmarking
-- **Unit tests:** Write tests for all critical logic. Use `#[cfg(test)]` and `mod tests`.
-- **Property-based tests:** Use `proptest` or `quickcheck` for complex invariants.
-- **Benchmarks:** Use `criterion` for microbenchmarks. Document benchmark results.
-- **No breakage:** All code must pass `cargo test` before merging.
+#[derive(Component)]
+struct Player; // Marker component
 
-## Safety & Review
-- **Review unsafe:** All `unsafe` blocks must be reviewed and justified in comments.
-- **Audit dependencies:** Use `cargo audit` to check for vulnerable crates.
-- **Minimal dependencies:** Only add crates if they are well-maintained and necessary.
+#[derive(Component)]
+struct Velocity(Vec3);
+```
 
-## Commit & PRs
-- **Conventional commits:** Use the conventional commit format for all messages.
-- **Small PRs:** Keep pull requests focused and <500 lines when possible.
+### Systems
+- **Single responsibility:** Each system should do one clear task
+- **Use specific queries:** Filter entities precisely to avoid unnecessary iterations
+- **Leverage system ordering:** Use `.before()` and `.after()` for system dependencies
+- **Batch similar operations:** Group related work to improve cache locality
 
-# End of Rust Best Practices
+```rust
+// Good: Specific query with filters
+fn move_players(mut query: Query<&mut Transform, (With<Player>, With<Velocity>)>) {
+    // Implementation
+}
+
+// Bad: Overly broad query
+fn move_entities(mut query: Query<&mut Transform>) {
+    // Processes ALL entities with Transform
+}
+```
+
+### Queries & Performance
+- **Use `With<T>` and `Without<T>` filters:** Reduce query scope
+- **Prefer `&T` over `&mut T` when possible:** Allows parallel system execution
+- **Use `Changed<T>` for reactive systems:** Only process entities when components change
+- **Consider `Query::get()` for single entity access**
+
+```rust
+// Reactive system - only runs when Health changes
+fn health_changed(query: Query<&Health, Changed<Health>>) {
+    for health in query.iter() {
+        if health.0 <= 0.0 {
+            // Handle death
+        }
+    }
+}
+```
+
+### Resources
+- **Use sparingly:** Resources are global and can create bottlenecks
+- **Prefer `Res<T>` over `ResMut<T>` when possible:** Allows parallel access
+- **Consider `Local<T>` for system-specific state**
+- **Use events for communication between systems**
+
+## Performance Optimization
+
+### Memory & Allocation
+- **Minimize allocations in game loops:** Pre-allocate collections, use object pools
+- **Use `Vec::with_capacity()` when size is known**
+- **Prefer stack allocation:** Use arrays and slices where possible
+- **Consider `SmallVec` for small collections that might grow**
+
+### Rendering Performance
+- **Batch draw calls:** Use instancing for similar objects
+- **Optimize texture usage:** Use texture atlases, avoid frequent texture swaps
+- **Implement LOD systems:** Reduce detail for distant objects
+- **Use frustum culling:** Don't render off-screen objects
+- **Profile GPU usage:** Use tools like RenderDoc or PIX
+
+### ECS Performance Patterns
+- **Structure of Arrays (SoA):** Keep related data together for cache efficiency
+- **Use `ParallelIterator` with rayon:** Parallelize system work when safe
+- **Avoid frequent entity spawning/despawning:** Use object pooling
+- **Cache expensive computations:** Store results in components when appropriate
+
+## Common Pitfalls & Anti-Patterns
+
+### ECS Anti-Patterns
+- **God systems:** Systems that do too many things
+- **Component coupling:** Components that depend on other specific components
+- **Overuse of `ResMut`:** Creates system ordering constraints
+- **Ignoring system parallelism:** Not considering which systems can run in parallel
+
+### Performance Pitfalls
+- **Heavy logic every frame:** Use timers and run conditions
+- **Unoptimized asset loading:** Use Bevy's asset system properly
+- **Excessive state changes:** Batch GPU state changes
+- **Large textures everywhere:** Implement quality settings and texture downscaling
+
+### Code Quality Issues
+- **Panic in game loops:** Use proper error handling
+- **Hardcoded values:** Use configuration files or constants
+- **No profiling:** Always measure before optimizing
+- **Platform assumptions:** Consider different target platforms
+
+## Bevy-Specific Patterns
+
+### Asset Management
+```rust
+// Proper asset loading
+#[derive(Resource)]
+struct GameAssets {
+    player_texture: Handle<Image>,
+    enemy_mesh: Handle<Mesh>,
+}
+
+fn load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let assets = GameAssets {
+        player_texture: asset_server.load("player.png"),
+        enemy_mesh: asset_server.load("enemy.gltf#Mesh0/Primitive0"),
+    };
+    commands.insert_resource(assets);
+}
+```
+
+### Event-Driven Architecture
+```rust
+#[derive(Event)]
+struct PlayerDiedEvent {
+    entity: Entity,
+}
+
+// System that sends events
+fn check_player_death(
+    query: Query<(Entity, &Health), With<Player>>,
+    mut death_events: EventWriter<PlayerDiedEvent>,
+) {
+    for (entity, health) in query.iter() {
+        if health.0 <= 0.0 {
+            death_events.send(PlayerDiedEvent { entity });
+        }
+    }
+}
+
+// System that handles events
+fn handle_player_death(
+    mut death_events: EventReader<PlayerDiedEvent>,
+    mut commands: Commands,
+) {
+    for event in death_events.read() {
+        commands.entity(event.entity).despawn_recursive();
+    }
+}
+```
+
+### State Management
+```rust
+#[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
+enum GameState {
+    Menu,
+    Playing,
+    Paused,
+}
+
+// Systems can be conditional on state
+fn game_logic(/* ... */) {
+    // Only runs in Playing state
+}
+
+fn setup_game_systems(app: &mut App) {
+    app.add_systems(Update, game_logic.run_if(in_state(GameState::Playing)));
+}
+```
+
+## Testing & Debugging
+
+### Unit Testing
+- **Test systems in isolation:** Use `World` directly for testing
+- **Mock components and resources:** Create test-specific data
+- **Test game logic separately from rendering**
+
+### Debugging Tools
+- **Use Bevy's inspector:** `bevy-inspector-egui` for runtime debugging
+- **Enable debug rendering:** Wireframes, bounding boxes, etc.
+- **Profile with `tracy` or `puffin`:** Identify performance bottlenecks
+- **Use `cargo flamegraph` for CPU profiling**
+
+## Code Organization
+
+### Project Structure
+```
+src/
+├── main.rs
+├── components/
+│   ├── mod.rs
+│   ├── player.rs
+│   └── enemy.rs
+├── systems/
+│   ├── mod.rs
+│   ├── movement.rs
+│   └── combat.rs
+├── resources/
+│   ├── mod.rs
+│   └── game_state.rs
+└── plugins/
+    ├── mod.rs
+    ├── player_plugin.rs
+    └── enemy_plugin.rs
+```
+
+### Plugin Architecture
+- **Organize by feature:** Create plugins for major game systems
+- **Keep plugins focused:** Each plugin should handle one aspect
+- **Use plugin groups:** Combine related plugins
+
+```rust
+pub struct GamePlugin;
+
+impl Plugin for GamePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins((
+            PlayerPlugin,
+            EnemyPlugin,
+            CombatPlugin,
+        ));
+    }
+}
+```
+
+## Platform Considerations
+- **Target-specific optimizations:** Adjust quality settings per platform
+- **Input handling:** Support multiple input methods (keyboard, gamepad, touch)
+- **Asset variants:** Different quality assets for different platforms
+- **Performance scaling:** Implement graphics quality options
+
+## Commit & Documentation
+- **Conventional commits:** Use semantic commit messages
+- **Document public APIs:** Use `///` for public functions and types
+- **Performance notes:** Document performance-critical code sections
+- **Platform notes:** Document platform-specific behavior
