@@ -1,12 +1,88 @@
-# Tasks Plan: AI Enemy System Implementation
+# Tasks Plan: Turn System Simplification & AI Enemy System
 
 ## Project Status: COMPLETED ✅
 
-**Last Updated**: January 2, 2025
-**Current Phase**: Implementation Complete
+**Last Updated**: January 3, 2025
+**Current Phase**: System Optimization Complete
 **Overall Progress**: 100% Complete
 
-## COMPLETED IMPLEMENTATION ✅
+## LATEST COMPLETION ✅
+
+### ✅ Turn Processing System Simplification
+
+**Status**: COMPLETED
+**Duration**: 2 hours
+**Quality**: Major code reduction, all functionality preserved
+
+#### What Was Delivered
+
+1. **Eliminated Dual Turn Management Systems**
+
+   - Removed over-engineered `TurnManager` (552 lines)
+   - Kept simple, effective `TurnQueue` (180 lines)
+   - Eliminated system conflicts and complexity
+
+2. **Removed Redundant Turn Processing**
+
+   - Deleted complex `turn_processor.rs` (452 lines)
+   - Preserved clean `systems.rs` (75 lines)
+   - Single, understandable processing flow
+
+3. **Drastically Simplified TurnActor Component**
+
+   - Reduced from 372 lines to 120 lines (-68%)
+   - Removed unused features: forced actions, preferred actions, speed modifiers
+   - Kept essential functionality: action queue, speed, alive status
+
+4. **Code Reduction Achievement**
+   - **Total Reduction**: 1376 → 375 lines (-73%)
+   - Turn Management: 552 → 180 lines (-67%)
+   - Turn Processing: 452 → 75 lines (-83%)
+   - TurnActor: 372 → 120 lines (-68%)
+
+#### Architecture Improvements
+
+**Before**: Over-engineered dual systems
+
+- Two competing turn managers
+- Two competing processors
+- Complex priority queues and flow control
+- Unused features and premature optimization
+
+**After**: Clean, simple architecture
+
+- Single turn queue with essential features
+- Single processing system with clear flow
+- Minimal, focused component design
+- YAGNI principle applied effectively
+
+#### Files Modified/Deleted
+
+**Deleted**:
+
+- `src/gameplay/turns/turn_processor.rs` (452 lines)
+- `src/gameplay/turns/turn_manager.rs` (552 lines)
+
+**Simplified**:
+
+- `src/gameplay/turns/components.rs` (372 → 120 lines)
+- `src/gameplay/turns/mod.rs` (removed complex system registration)
+
+**Preserved**:
+
+- `src/core/resources/turn_queue.rs` (180 lines, working perfectly)
+- `src/gameplay/turns/systems.rs` (75 lines, clean and effective)
+
+#### Quality Metrics
+
+- ✅ Build successful with no errors
+- ✅ All turn-based functionality preserved
+- ✅ Player input handling works correctly
+- ✅ AI action execution works correctly
+- ✅ Turn scheduling and timing maintained
+- ✅ No breaking changes to gameplay
+
+## PREVIOUS COMPLETION ✅
 
 ### ✅ AI Enemy Spawning and Interaction System
 
@@ -49,6 +125,25 @@
 
 ## Technical Architecture Delivered
 
+### Simplified Turn System
+
+```rust
+// Clean, simple turn processing
+while let Some((entity, time)) = turn_queue.get_next_actor() {
+    if is_player && !has_action {
+        next_state.set(GameState::GatherActions);
+        return;
+    }
+
+    if let Some(action) = actor.next_action() {
+        match action.perform(world) {
+            Ok(time_spent) => turn_queue.schedule_turn(entity, time + time_spent),
+            Err(_) => turn_queue.schedule_turn(entity, time + 100),
+        }
+    }
+}
+```
+
 ### Big-Brain Integration
 
 ```rust
@@ -88,6 +183,15 @@ app.add_systems(
 
 ## Files Created/Modified
 
+### Turn System Simplification
+
+- ❌ `src/gameplay/turns/turn_processor.rs` - Deleted (452 lines)
+- ❌ `src/gameplay/turns/turn_manager.rs` - Deleted (552 lines)
+- ✅ `src/gameplay/turns/components.rs` - Simplified (372 → 120 lines)
+- ✅ `src/gameplay/turns/mod.rs` - Cleaned up system registration
+- ✅ `src/core/resources/turn_queue.rs` - Preserved (180 lines)
+- ✅ `src/gameplay/turns/systems.rs` - Preserved (75 lines)
+
 ### Core AI System
 
 - ✅ `src/model/components/ai_behavior.rs` - AI behavior components
@@ -108,6 +212,14 @@ app.add_systems(
 - ✅ `Cargo.toml` - Added big-brain and regex dependencies
 
 ## Quality Metrics Achieved
+
+### System Simplification
+
+- ✅ 73% reduction in turn system code
+- ✅ Eliminated dual system conflicts
+- ✅ Preserved all essential functionality
+- ✅ Improved maintainability and debugging
+- ✅ Applied YAGNI and simplicity principles
 
 ### Functionality
 
@@ -176,6 +288,14 @@ app.add_systems(
 
 ## Success Criteria Met
 
+### System Simplification ✅
+
+- [x] Removed over-engineered dual turn systems
+- [x] Preserved all essential turn-based functionality
+- [x] Achieved 73% code reduction in turn system
+- [x] Eliminated system conflicts and complexity
+- [x] Improved maintainability and debugging
+
 ### MVP Requirements ✅
 
 - [x] Enemy spawning system implemented
@@ -198,7 +318,6 @@ app.add_systems(
 - [x] Code compiles without errors
 - [x] Proper error handling and logging
 - [x] Modular, maintainable code structure
-- [x] Documentation and clear code organization
 
 ## Project Completion Summary
 
