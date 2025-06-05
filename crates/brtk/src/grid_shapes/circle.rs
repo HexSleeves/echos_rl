@@ -101,7 +101,7 @@ impl ShapeIter for Circle {
     type Iterator = Box<dyn Iterator<Item = (i32, i32)>>;
 
     #[inline]
-    fn iter(&self) -> Self::Iterator { self.positions().into_iter() }
+    fn iter(&self) -> Self::Iterator { self.positions() }
 }
 
 impl IntoIterator for Circle {
@@ -109,7 +109,7 @@ impl IntoIterator for Circle {
     type Item = (i32, i32);
 
     #[inline]
-    fn into_iter(self) -> Self::IntoIter { self.positions().into_iter() }
+    fn into_iter(self) -> Self::IntoIter { self.positions() }
 }
 
 impl From<Circle> for BoxedShape {

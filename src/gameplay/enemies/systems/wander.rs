@@ -88,7 +88,7 @@ pub fn wander_action_system(
 
                     // Find a random walkable direction
                     if let Some(direction) = helpers::find_random_walkable_direction(*ai_pos, &current_map) {
-                        let _ = turn_actor.queue_action(
+                        turn_actor.queue_action(
                             Walk::builder().with_entity(*actor_entity).with_direction(direction).build(),
                         );
                         *action_state = ActionState::Executing;

@@ -65,7 +65,7 @@ pub fn process_turns(world: &mut World) {
                     if is_player {
                         turn_queue.schedule_turn(entity, time);
                     } else {
-                        turn_queue.schedule_turn(entity, time + 100);
+                        turn_queue.schedule_turn(entity, time + 1000);
                     }
                 }
             }

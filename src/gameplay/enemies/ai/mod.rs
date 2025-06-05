@@ -3,11 +3,6 @@ use big_brain::prelude::*;
 
 use crate::{core::states::GameState, gameplay::enemies::systems, rendering::screens::ScreenState};
 
-/// System condition to check if any AI entities need to make decisions
-// fn ai_needs_decisions(ai_query: Query<&TurnActor, With<AIBehavior>>) -> bool {
-//     ai_query.iter().any(|turn_actor| turn_actor.peek_next_action().is_none())
-// }
-
 /// AI plugin that handles big-brain AI behavior
 pub fn plugin(app: &mut App) {
     // Add big-brain plugin for AI
@@ -35,6 +30,10 @@ pub fn plugin(app: &mut App) {
                 .in_set(BigBrainSet::Scorers)
                 .run_if(in_state(GameState::GatherActions))
                 .run_if(in_state(ScreenState::Gameplay)),
+            // Debug system
+            // systems::debug_ai_components_system
+            //     .run_if(in_state(GameState::GatherActions))
+            //     .run_if(in_state(ScreenState::Gameplay)),
         ),
     );
 }

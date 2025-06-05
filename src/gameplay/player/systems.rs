@@ -74,10 +74,10 @@ pub fn player_input_system(
 
         match action {
             ActionType::Wait => {
-                let _ = p_actor.queue_action(WaitBuilder::new().with_entity(entity).build());
+                p_actor.queue_action(WaitBuilder::new().with_entity(entity).build());
             }
             ActionType::MoveDelta(direction) => {
-                let _ = p_actor
+                p_actor
                     .queue_action(Walk::builder().with_entity(entity).with_direction(direction).build());
             }
             _ => {}

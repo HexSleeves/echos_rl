@@ -111,7 +111,7 @@ pub fn flee_from_player_action_system(
                         let (dx, dy) = dir.coord();
                         let target_pos = *ai_pos + (dx, dy);
                         if current_map.is_walkable(target_pos) {
-                            let _ = turn_actor.queue_action(
+                            turn_actor.queue_action(
                                 Walk::builder().with_entity(*actor_entity).with_direction(dir).build(),
                             );
                             *action_state = ActionState::Executing;
@@ -120,7 +120,7 @@ pub fn flee_from_player_action_system(
                             if let Some(alt_dir) =
                                 helpers::find_alternative_flee_direction(*ai_pos, *player_pos, &current_map)
                             {
-                                let _ = turn_actor.queue_action(
+                                turn_actor.queue_action(
                                     Walk::builder()
                                         .with_entity(*actor_entity)
                                         .with_direction(alt_dir)
