@@ -129,47 +129,6 @@ impl AddAssign<(i32, i32)> for Position {
     }
 }
 
-/// Description component for entities
-#[derive(Component, Reflect, Default, Debug, Clone, Deref, DerefMut)]
-#[reflect(Component)]
-pub struct Description(pub String);
-
-impl Description {
-    pub fn new(description: impl ToString) -> Self { Self(description.to_string()) }
-}
-
-#[derive(Reflect, Component, Deref, DerefMut)]
-#[reflect(Component)]
-pub struct FieldOfView(pub u8);
-
-impl Default for FieldOfView {
-    fn default() -> Self { Self(4) }
-}
-
-impl FieldOfView {
-    pub fn new(radius: u8) -> Self { Self(radius) }
-}
-
-/// Component that marks an entity as the player
-#[derive(Component, Reflect, Default)]
-#[reflect(Component)]
-#[require(Description, Position)]
-pub struct PlayerTag;
-
-/// Component that marks an entity as AI-controlled
-#[derive(Component, Debug, Reflect)]
-#[reflect(Component)]
-pub struct AITag;
-
-/// Component that marks an entity as dead
-#[derive(Component, Debug, Reflect)]
-#[reflect(Component)]
-pub struct DeadTag;
-
-#[derive(Reflect, Component, Default)]
-#[reflect(Component)]
-pub struct Mob;
-
 #[cfg(test)]
 mod tests {
     use super::*;

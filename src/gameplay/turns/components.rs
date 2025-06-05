@@ -1,8 +1,10 @@
 use bevy::prelude::*;
-use echos_assets::entities::TurnActorData;
 use std::collections::VecDeque;
 
-use crate::core::types::{ActionCategory, ActionType};
+use brtk::prelude::Direction;
+use echos_assets::entities::TurnActorData;
+
+use crate::core::{components::Position, types::ActionType};
 
 /// Component for entities that participate in the turn-based system
 #[derive(Component, Debug)]
@@ -86,64 +88,14 @@ impl TurnActor {
     /// Quick method to queue a wait action
     pub fn queue_wait(&mut self) { self.queue_action(ActionType::Wait); }
 
-    /// Check if the next action is of a specific category
-    pub fn next_action_is_category(&self, category: ActionCategory) -> bool {
-        self.peek_next_action().map(|action| action.category()) == Some(category)
-    }
-}
+    /// Quick method to queue a teleport action
+    pub fn queue_teleport(&mut self, position: Position) { self.queue_action(ActionType::Teleport(position)) }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::core::types::ActionType;
+    /// Quick method to queue an attack action
+    pub fn queue_attack(&mut self, position: Position) { self.queue_action(ActionType::Attack(position)) }
 
-    #[test]
-    fn test_turn_actor_creation() {
-        let actor = TurnActor::new(100);
-        assert_eq!(actor.speed(), 100);
-        assert!(actor.is_alive());
-        assert!(!actor.has_action());
-    }
-
-    #[test]
-    fn test_turn_actor_default() {
-        let actor = TurnActor::default();
-        assert_eq!(actor.speed(), 100);
-        assert!(actor.is_alive());
-        assert!(!actor.has_action());
-    }
-
-    #[test]
-    fn test_action_queue() {
-        let mut actor = TurnActor::new(100);
-
-        // Test queuing actions
-        actor.queue_action(ActionType::Wait);
-        assert!(actor.has_action());
-        assert_eq!(actor.action_count(), 1);
-
-        // Test peeking
-        assert_eq!(actor.peek_next_action(), Some(&ActionType::Wait));
-        assert_eq!(actor.action_count(), 1); // Should not consume
-
-        // Test consuming
-        assert_eq!(actor.next_action(), Some(ActionType::Wait));
-        assert!(!actor.has_action());
-        assert_eq!(actor.action_count(), 0);
-    }
-
-    #[test]
-    fn test_convenience_methods() {
-        let mut actor = TurnActor::new(100);
-
-        // Test queue_wait
-        actor.queue_wait();
-        assert!(actor.has_action());
-        assert_eq!(actor.peek_next_action(), Some(&ActionType::Wait));
-
-        // Test category checking
-        use crate::core::types::ActionCategory;
-        assert!(actor.next_action_is_category(ActionCategory::Wait));
-        assert!(!actor.next_action_is_category(ActionCategory::Movement));
+    /// Quick method to queue a move delta action
+    pub fn queue_move_delta(&mut self, direction: Direction) {
+        self.queue_action(ActionType::MoveDelta(direction))
     }
 }

@@ -33,11 +33,31 @@ pub struct PlayerVisibilityScorer;
 pub struct ChasePlayerAction {
     pub(crate) generated_path: bool,
     pub(crate) last_seen_pt: Option<Position>,
+
+    /// Complete A* path to target (first element is current position)
+    pub(crate) current_path: Vec<Position>,
+    /// Current index in the path (0 = current position, 1 = next step)
+    pub(crate) path_index: usize,
+    /// Target position when path was generated (for regeneration detection)
+    pub(crate) target_when_path_generated: Option<Position>,
+    /// AI position when path was generated (for regeneration detection)
+    pub(crate) ai_pos_when_path_generated: Option<Position>,
 }
 
 /// Action for fleeing from the player
-#[derive(Component, Debug, Clone, ActionBuilder)]
-pub struct FleeFromPlayerAction;
+#[derive(Component, Debug, Clone, ActionBuilder, Default)]
+pub struct FleeFromPlayerAction {
+    /// Complete A* escape path (first element is current position)
+    pub(crate) escape_path: Vec<Position>,
+    /// Current index in the escape path (0 = current position, 1 = next step)
+    pub(crate) path_index: usize,
+    /// Final escape destination when path was generated
+    pub(crate) escape_target: Option<Position>,
+    /// Threat position when path was generated (for regeneration detection)
+    pub(crate) threat_pos_when_path_generated: Option<Position>,
+    /// AI position when path was generated (for regeneration detection)
+    pub(crate) ai_pos_when_path_generated: Option<Position>,
+}
 
 /// Action for wandering randomly
 #[derive(Component, Debug, Clone, ActionBuilder)]

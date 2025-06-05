@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
+use brtk::prelude::Direction;
 
 use crate::{
     core::{
@@ -53,251 +54,6 @@ pub fn chase_player_scorer_system(
         score.set(chase_score);
     }
 }
-
-/// System that handles chasing the player
-pub fn chase_player_action_system(
-    player_query: Query<&Position, With<PlayerTag>>,
-    mut current_map: ResMut<CurrentMap>,
-    mut ai_query: Query<(&Position, &mut TurnActor, &mut AIState, &AIBehavior, &Name)>,
-    mut action_query: Query<(&Actor, &mut ActionState, &mut ChasePlayerAction)>,
-) {
-    let Ok(player_pos) = player_query.single() else {
-        // No player found or multiple players - skip AI processing
-        return;
-    };
-
-    for (Actor(actor_entity), mut action_state, mut chase_action) in action_query.iter_mut() {
-        let Ok((ai_pos, mut ai_actor, mut ai_state, ai_behavior, ai_name)) = ai_query.get_mut(*actor_entity)
-        else {
-            warn!("Actor must have required components");
-            continue;
-        };
-
-        if ai_actor.has_action() {
-            continue;
-        }
-
-        match *action_state {
-            // Success | Failure
-            ActionState::Success | ActionState::Failure => {
-                info!("{} chase state: {:?}", ai_name, action_state);
-                ai_state.current_action = None;
-                ai_state.target_position = None;
-
-                continue;
-            }
-            ActionState::Cancelled => {
-                info!("{} cancelled chase!", ai_name);
-                *action_state = ActionState::Failure;
-                ai_state.current_action = None;
-                ai_state.target_position = None;
-
-                continue;
-            }
-            ActionState::Init | ActionState::Requested => {
-                info!("{} gonna start chasing!", ai_name);
-                *action_state = ActionState::Executing;
-
-                chase_action.generated_path = false;
-                chase_action.last_seen_pt = Some(*player_pos);
-                // ai_component.preferred_action = Some(ActionType::Movement(player_position));
-
-                ai_state.current_action = Some(AIAction::ChasePlayer);
-                ai_state.target_position = Some(*player_pos);
-
-                let direction = helpers::calculate_direction_to_target(*ai_pos, *player_pos);
-                if let Some(dir) = direction {
-                    ai_actor.queue_action(ActionType::MoveDelta(dir));
-                    *action_state = ActionState::Executing;
-                } else {
-                    info!("AI entity {:?} cannot find path to player, action failed", actor_entity);
-                    *action_state = ActionState::Failure;
-                }
-            }
-            ActionState::Executing => {}
-        }
-
-        info!("{} executing chase!", ai_name);
-
-        let position =
-            if FovMap::can_see_entity(*ai_pos, ai_behavior.detection_range, *player_pos, &current_map) {
-                // if in_attack_range(ai_position, player_position) {
-                //     *action_state = ActionState::Success;
-                //     continue;
-                // }
-
-                chase_action.last_seen_pt = Some(*player_pos);
-                chase_action.generated_path = false;
-                player_pos
-            } else {
-                let Some(last_seen) = chase_action.last_seen_pt else {
-                    error!("Executing chase with no target.");
-                    // ai_component.preferred_action = Some(ActionType::Wait);
-
-                    ai_state.current_action = Some(AIAction::Idle);
-                    ai_actor.queue_action(ActionType::Wait);
-
-                    continue;
-                };
-
-                // We reached the end of our chase path and we do not see the player :(
-                if last_seen == *ai_pos {
-                    *action_state = ActionState::Failure;
-                    continue;
-                }
-
-                // We have lost sight of the player and need a path to their last seen position.
-                // Our pathfinder will only generate a valid path to the last seen location, this includes
-                // partial path. We can expect the first element in the path to be a valid location
-                // that is closest to the last_seen_pt.
-                &if !chase_action.generated_path {
-                    let path = generate_last_seen_path(*ai_pos, last_seen, &mut current_map);
-                    let point = path.first().unwrap_or(&last_seen);
-
-                    chase_action.generated_path = true;
-                    chase_action.last_seen_pt = Some(*point);
-                    *point
-                } else {
-                    last_seen
-                }
-            };
-
-        println!("position: {position:?}");
-        let dir = helpers::calculate_direction_to_target(*ai_pos, *position);
-        println!("dir: {dir:?}");
-        if let Some(dir) = dir {
-            ai_state.current_action = Some(AIAction::ChasePlayer);
-            ai_state.target_position = Some(*position);
-
-            ai_actor.queue_action(ActionType::MoveDelta(dir));
-        } else {
-            info!("AI entity {:?} cannot find path to player, action failed", actor_entity);
-            *action_state = ActionState::Failure;
-        }
-
-        // match ai_query.get_mut(*actor_entity) {
-        //     Ok((ai_pos, mut turn_actor, mut ai_state)) => {
-        //         match *action_state {
-        //             ActionState::Init => {
-        //                 println!("chase_player_action_system: Entity {:?} initializing action",
-        // actor_entity);                 // Initialize the action
-        //                 *action_state = ActionState::Requested;
-        //             }
-        //             ActionState::Requested => {
-        //                 println!(
-        //                     "chase_player_action_system: Entity {:?} processing requested
-        // action",                     actor_entity
-        //                 );
-        //                 // Only add action if the entity doesn't already have actions queued
-        //                 if turn_actor.peek_next_action().is_some() {
-        //                     println!(
-        //                         "chase_player_action_system: Entity {:?} already has action
-        // queued, setting to executing",                         actor_entity
-        //                     );
-        //                     // Already has an action queued, wait for it to be processed
-        //                     *action_state = ActionState::Executing;
-        //                     continue;
-        //                 }
-
-        //                 info!(
-        //                     "AI entity {:?} performing chase action toward player at {:?}",
-        //                     actor_entity, player_pos
-        //                 );
-        //                 ai_state.current_action = Some(AIAction::ChasePlayer);
-        //                 ai_state.target_position = Some(*player_pos);
-
-        //                 // Calculate direction toward player
-        //                 let direction = helpers::calculate_direction_to_target(*ai_pos,
-        // *player_pos);
-
-        //                 if let Some(dir) = direction {
-        //                     // Check if the direct path is walkable
-        //                     let (dx, dy) = dir.coord();
-        //                     let target_pos = *ai_pos + (dx, dy);
-        //                     if current_map.is_walkable(target_pos) {
-        //                         println!(
-        //                             "chase_player_action_system: Entity {:?} queuing walk action
-        // in direction {:?}",                             actor_entity, dir
-        //                         );
-        //                         let _ = turn_actor.queue_action(
-        //
-        // Walk::builder().with_entity(*actor_entity).with_direction(dir).build(),
-        //                         );
-        //                         *action_state = ActionState::Executing;
-        //                     } else {
-        //                         // Try alternative directions if direct path is blocked
-        //                         if let Some(alt_dir) =
-        //                             helpers::find_alternative_direction(*ai_pos, *player_pos,
-        // &current_map)                         {
-        //                             println!(
-        //                                 "chase_player_action_system: Entity {:?} queuing
-        // alternative walk action in direction {:?}",
-        // actor_entity, alt_dir                             );
-        //                             let _ = turn_actor.queue_action(
-        //                                 Walk::builder()
-        //                                     .with_entity(*actor_entity)
-        //                                     .with_direction(alt_dir)
-        //                                     .build(),
-        //                             );
-        //                             *action_state = ActionState::Executing;
-        //                         } else {
-        //                             info!(
-        //                                 "AI entity {:?} cannot find path to player, action
-        // failed",                                 actor_entity
-        //                             );
-        //                             *action_state = ActionState::Failure;
-        //                         }
-        //                     }
-        //                 } else {
-        //                     // Already at player position or no valid direction
-        //                     *action_state = ActionState::Success;
-        //                 }
-        //             }
-        //             ActionState::Executing => {
-        //                 // Check if the action has been processed (no more actions in queue)
-        //                 if turn_actor.peek_next_action().is_none() {
-        //                     println!(
-        //                         "chase_player_action_system: Entity {:?} action completed,
-        // setting to success",                         actor_entity
-        //                     );
-        //                     *action_state = ActionState::Success;
-        //                 }
-        //             }
-        //             ActionState::Success | ActionState::Failure => {
-        //                 println!(
-        //                     "chase_player_action_system: Entity {:?} resetting action state to
-        // init",                     actor_entity
-        //                 );
-        //                 // Action completed, reset to init and wait for next decision cycle
-        //                 ai_state.current_action = None; // or whatever "idle" enum you use
-        //                 ai_state.target_position = None;
-        //                 *action_state = ActionState::Init;
-        //             }
-        //             ActionState::Cancelled => {
-        //                 println!(
-        //                     "chase_player_action_system: Entity {:?} action cancelled, resetting
-        // to init",                     actor_entity
-        //                 );
-        //                 // Action was cancelled, reset to init
-        //                 *action_state = ActionState::Init;
-        //             }
-        //         }
-        //     }
-        //     Err(e) => {
-        //         println!(
-        //             "chase_player_action_system: Entity {:?} missing required components: {:?}",
-        //             actor_entity, e
-        //         );
-        //         // Entity doesn't have required components, skip it
-        //         continue;
-        //     }
-        // }
-    }
-}
-
-////////////////////////////
-// HELPER FUNCTIONS
-////////////////////////////
 
 fn calculate_chase_score(
     ai_pos: &Position,
@@ -355,12 +111,310 @@ fn calculate_remembered_position_score(
     1.0
 }
 
-fn generate_last_seen_path(
-    ai_pos: Position,
-    target_pos: Position,
-    map_provider: &mut CurrentMap,
-) -> Vec<Position> {
-    pathfinding::utils::find_path(ai_pos, target_pos, map_provider, true).unwrap_or_default()
+// ============================================================================
+// ACTION SYSTEMS (Execute the AI's actions)
+// ============================================================================
+
+/// System that handles chasing the player
+pub fn chase_player_action_system(
+    player_query: Query<&Position, With<PlayerTag>>,
+    mut current_map: ResMut<CurrentMap>,
+    mut ai_query: Query<(&Position, &mut TurnActor, &mut AIState, &AIBehavior, &Name)>,
+    mut action_query: Query<(&Actor, &mut ActionState, &mut ChasePlayerAction)>,
+) {
+    let Ok(player_pos) = player_query.single() else {
+        // No player found or multiple players - skip AI processing
+        return;
+    };
+
+    for (Actor(actor_entity), mut action_state, mut chase_action) in action_query.iter_mut() {
+        let Ok((ai_pos, mut ai_actor, mut ai_state, ai_behavior, ai_name)) = ai_query.get_mut(*actor_entity)
+        else {
+            warn!("Actor must have required components");
+            continue;
+        };
+
+        if ai_actor.has_action() {
+            continue;
+        }
+
+        match *action_state {
+            // Success | Failure
+            ActionState::Success | ActionState::Failure => {
+                info!("{} chase state: {:?}", ai_name, action_state);
+                ai_state.current_action = None;
+                ai_state.target_position = None;
+
+                continue;
+            }
+            ActionState::Cancelled => {
+                info!("{} cancelled chase!", ai_name);
+                *action_state = ActionState::Failure;
+                ai_state.current_action = None;
+                ai_state.target_position = None;
+
+                continue;
+            }
+            ActionState::Init | ActionState::Requested => {
+                info!("{} gonna start chasing!", ai_name);
+                *action_state = ActionState::Executing;
+
+                // Generate A* path to player using enhanced pathfinding
+                if let Some(path) =
+                    pathfinding::utils::find_path(*ai_pos, *player_pos, &mut current_map, true)
+                {
+                    info!("{} generated A* path with {} steps", ai_name, path.len());
+
+                    // Store the complete path and tracking information
+                    chase_action.current_path = path;
+                    chase_action.path_index = 0;
+                    chase_action.target_when_path_generated = Some(*player_pos);
+                    chase_action.ai_pos_when_path_generated = Some(*ai_pos);
+                    chase_action.generated_path = true;
+                    chase_action.last_seen_pt = Some(*player_pos);
+
+                    // Use first step of path for immediate movement
+                    if let Some(&next_pos) = chase_action.current_path.get(1) {
+                        // Skip current position (index 0)
+                        let direction = helpers::calculate_direction_to_target(*ai_pos, next_pos);
+                        if let Some(dir) = direction {
+                            ai_actor.queue_action(ActionType::MoveDelta(dir));
+                            chase_action.path_index = 1; // Mark that we're moving to step 1
+
+                            ai_state.current_action = Some(AIAction::ChasePlayer);
+                            ai_state.target_position = Some(next_pos);
+
+                            info!("{} starting A* chase, moving {:?} towards {:?}", ai_name, dir, next_pos);
+                        } else {
+                            info!(
+                                "{} A* path generated but cannot calculate direction, falling back",
+                                ai_name
+                            );
+                            *action_state = ActionState::Failure;
+                        }
+                    } else {
+                        info!("{} A* path too short, already at target", ai_name);
+                        *action_state = ActionState::Success;
+                    }
+                } else {
+                    // Fallback to simple direction calculation if A* fails
+                    info!("{} A* pathfinding failed, using simple direction", ai_name);
+
+                    chase_action.generated_path = false;
+                    chase_action.last_seen_pt = Some(*player_pos);
+                    chase_action.current_path.clear();
+
+                    ai_state.current_action = Some(AIAction::ChasePlayer);
+                    ai_state.target_position = Some(*player_pos);
+
+                    let direction = helpers::calculate_direction_to_target(*ai_pos, *player_pos);
+                    if let Some(dir) = direction {
+                        ai_actor.queue_action(ActionType::MoveDelta(dir));
+                        *action_state = ActionState::Executing;
+                    } else {
+                        info!("AI entity {:?} cannot find path to player, action failed", actor_entity);
+                        *action_state = ActionState::Failure;
+                    }
+                }
+            }
+            ActionState::Executing => {}
+        }
+
+        info!("{} executing chase!", ai_name);
+
+        // Check if we need to regenerate the path
+        let should_regenerate_path = should_regenerate_chase_path(
+            &chase_action,
+            *ai_pos,
+            *player_pos,
+            &current_map,
+            ai_behavior.detection_range,
+        );
+
+        if should_regenerate_path {
+            info!("{} regenerating A* path due to changed conditions", ai_name);
+
+            // Regenerate path to current player position
+            if let Some(path) = pathfinding::utils::find_path(*ai_pos, *player_pos, &mut current_map, true) {
+                chase_action.current_path = path;
+                chase_action.path_index = 0;
+                chase_action.target_when_path_generated = Some(*player_pos);
+                chase_action.ai_pos_when_path_generated = Some(*ai_pos);
+                chase_action.generated_path = true;
+                chase_action.last_seen_pt = Some(*player_pos);
+
+                info!("{} regenerated A* path with {} steps", ai_name, chase_action.current_path.len());
+            } else {
+                info!("{} failed to regenerate A* path, falling back to simple chase", ai_name);
+                chase_action.generated_path = false;
+                chase_action.current_path.clear();
+            }
+        }
+
+        // Determine target position based on visibility and path availability
+        let target_position =
+            if FovMap::can_see_entity(*ai_pos, ai_behavior.detection_range, *player_pos, &current_map) {
+                // Player is visible - update last seen position and potentially regenerate path
+                chase_action.last_seen_pt = Some(*player_pos);
+
+                // If we don't have a current path or it's to a different target, regenerate
+                if (!chase_action.generated_path
+                    || chase_action.target_when_path_generated != Some(*player_pos))
+                    && let Some(path) =
+                        pathfinding::utils::find_path(*ai_pos, *player_pos, &mut current_map, true)
+                {
+                    chase_action.current_path = path;
+                    chase_action.path_index = 0;
+                    chase_action.target_when_path_generated = Some(*player_pos);
+                    chase_action.ai_pos_when_path_generated = Some(*ai_pos);
+                    chase_action.generated_path = true;
+
+                    info!("{} updated A* path to visible player", ai_name);
+                }
+
+                *player_pos
+            } else {
+                // Player not visible - use last known position or stored path
+                let Some(last_seen) = chase_action.last_seen_pt else {
+                    error!("Executing chase with no target.");
+                    ai_state.current_action = Some(AIAction::Idle);
+                    ai_actor.queue_action(ActionType::Wait);
+                    continue;
+                };
+
+                // Check if we've reached the last seen position
+                if last_seen == *ai_pos {
+                    *action_state = ActionState::Failure;
+                    continue;
+                }
+
+                last_seen
+            };
+
+        // Follow the stored A* path or calculate next move
+        let next_move_result = if chase_action.generated_path && !chase_action.current_path.is_empty() {
+            follow_stored_path(&mut chase_action, *ai_pos, &current_map)
+        } else {
+            // Fallback to simple direction calculation
+            helpers::calculate_direction_to_target(*ai_pos, target_position)
+        };
+
+        // Execute the movement
+        if let Some(direction) = next_move_result {
+            ai_state.current_action = Some(AIAction::ChasePlayer);
+            ai_state.target_position = Some(target_position);
+            ai_actor.queue_action(ActionType::MoveDelta(direction));
+
+            info!("{} chasing: moving {:?} towards {:?}", ai_name, direction, target_position);
+        } else {
+            info!("AI entity {:?} cannot find path to player, action failed", actor_entity);
+            *action_state = ActionState::Failure;
+        }
+    }
+}
+
+// fn generate_last_seen_path(
+//     ai_pos: Position,
+//     target_pos: Position,
+//     map_provider: &mut CurrentMap,
+// ) -> Vec<Position> {
+//     pathfinding::utils::find_path(ai_pos, target_pos, map_provider, true).unwrap_or_default()
+// }
+
+/// Check if the chase path should be regenerated based on current conditions
+fn should_regenerate_chase_path(
+    chase_action: &ChasePlayerAction,
+    current_ai_pos: Position,
+    current_player_pos: Position,
+    map: &CurrentMap,
+    _detection_range: u8,
+) -> bool {
+    // No path exists
+    if !chase_action.generated_path || chase_action.current_path.is_empty() {
+        return true;
+    }
+
+    // Player moved significantly from when path was generated
+    if let Some(old_target) = chase_action.target_when_path_generated {
+        let player_moved_distance = old_target.distance(&current_player_pos);
+        if player_moved_distance > 2.0 {
+            // Regenerate if player moved more than 2 tiles
+            return true;
+        }
+    }
+
+    // AI moved significantly from when path was generated (shouldn't happen normally)
+    if let Some(old_ai_pos) = chase_action.ai_pos_when_path_generated {
+        let ai_moved_distance = old_ai_pos.distance(&current_ai_pos);
+        if ai_moved_distance > 3.0 {
+            // Regenerate if AI somehow moved more than 3 tiles
+            return true;
+        }
+    }
+
+    // Current path step is blocked
+    if let Some(next_pos) = chase_action.current_path.get(chase_action.path_index + 1)
+        && !map.is_walkable(*next_pos)
+    {
+        return true;
+    }
+
+    // Path is exhausted
+    if chase_action.path_index >= chase_action.current_path.len().saturating_sub(1) {
+        return true;
+    }
+
+    false
+}
+
+/// Follow the stored A* path and return the next direction to move
+fn follow_stored_path(
+    chase_action: &mut ChasePlayerAction,
+    current_ai_pos: Position,
+    map: &CurrentMap,
+) -> Option<Direction> {
+    // Ensure we have a valid path
+    if chase_action.current_path.is_empty() {
+        return None;
+    }
+
+    // Find our current position in the path or the closest position
+    let mut current_path_index = chase_action.path_index;
+
+    // Verify we're at the expected position in the path
+    if let Some(expected_pos) = chase_action.current_path.get(current_path_index)
+        && *expected_pos != current_ai_pos
+    {
+        // Try to find our actual position in the path
+        if let Some(found_index) = chase_action.current_path.iter().position(|&pos| pos == current_ai_pos) {
+            current_path_index = found_index;
+            chase_action.path_index = found_index;
+        } else {
+            // We're not on the path anymore, need to regenerate
+            return None;
+        }
+    }
+
+    // Get the next step in the path
+    let next_index = current_path_index + 1;
+    if let Some(next_pos) = chase_action.current_path.get(next_index) {
+        // Check if the next position is walkable
+        if !map.is_walkable(*next_pos) {
+            // Path is blocked, need to regenerate
+            return None;
+        }
+
+        // Calculate direction to next position
+        let direction = helpers::calculate_direction_to_target(current_ai_pos, *next_pos);
+
+        // Update path index for next time
+        chase_action.path_index = next_index;
+
+        direction
+    } else {
+        // Reached end of path
+        None
+    }
 }
 
 // ============================================================================

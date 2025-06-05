@@ -107,7 +107,11 @@ pub mod utils {
                 let coord = direction.coord();
                 let test_pos = origin + (coord.0 * radius as i32, coord.1 * radius as i32);
 
-                if (**map).is_walkable(test_pos) && map.get_actor(test_pos).is_none() {
+                // Check basic walkability first (without mutable borrow)
+                let is_walkable = (**map).is_walkable(test_pos);
+                let has_no_actor = map.get_actor(test_pos).is_none();
+
+                if is_walkable && has_no_actor {
                     let distance_from_threat = test_pos.distance(&threat_position);
 
                     if distance_from_threat > best_distance {

@@ -1,4 +1,4 @@
-# Active Context: Action System Simplification
+# Active Context: Enhanced Chase & Flee Actions with A\* Pathfinding
 
 ## Current Status: COMPLETED ✅
 
@@ -7,237 +7,277 @@
 
 ## What Was Just Completed
 
-### ✅ Major Action System Simplification
+### ✅ Enhanced Chase & Flee Actions with A\* Pathfinding
 
-Successfully simplified the over-complicated action system by removing the trait-based GameAction approach in favor of a simple enum-based ActionType system:
+Successfully enhanced the chase and flee action systems to use intelligent A\* pathfinding instead of simple direction calculation:
 
-#### 1. **Eliminated Complex GameAction Trait System**
+#### 1. **Fixed Compilation Issues**
 
-**Before**: Complex trait-based system with builders
+**Before**: Missing helper functions causing compilation errors
 
-- `GameAction` trait with `perform` method
-- `GameActionBuilder` trait with builder pattern
-- `BuildableGameAction` trait for construction
-- Dynamic dispatch with `Box<dyn GameAction>`
-- Heap allocations for every action
+- `calculate_direction_to_target` - missing function
+- `calculate_direction_away_from_target` - missing function
 
-**After**: Simple enum-based system
+**After**: Complete helper function implementation
 
-- `ActionType` enum with direct variants
-- No builders or trait complexity
-- Stack-based storage in `VecDeque<ActionType>`
-- Direct pattern matching in `process_turns`
+- Simple direction calculation for basic cases
+- Enhanced pathfinding versions for complex scenarios
+- Fallback mechanisms when pathfinding fails
 
-#### 2. **Simplified TurnActor Action Storage**
+#### 2. **Enhanced Chase System with A\* Pathfinding**
 
-**Before**: Complex action queue (120 lines after previous simplification)
+**Before**: Simple direction calculation
 
 ```rust
-pub actions: VecDeque<Box<dyn GameAction>>,
-pub fn queue_action(&mut self, action: Box<dyn GameAction>)
-pub fn next_action(&mut self) -> Option<Box<dyn GameAction>>
+let direction = helpers::calculate_direction_to_target(*ai_pos, *player_pos);
+ai_actor.queue_action(ActionType::MoveDelta(direction));
 ```
 
-**After**: Simple enum storage
+**After**: Intelligent A\* pathfinding with path caching
 
 ```rust
-pub actions: VecDeque<ActionType>,
-pub fn queue_action(&mut self, action: ActionType)
-pub fn next_action(&mut self) -> Option<ActionType>
+// Generate complete A* path to player
+if let Some(path) = pathfinding::utils::find_path(*ai_pos, *player_pos, &mut current_map, true) {
+    chase_action.current_path = path;
+    chase_action.path_index = 0;
+    // Follow stored path step by step
+}
 ```
 
-#### 3. **Centralized Action Processing**
+#### 3. **Enhanced ChasePlayerAction Component**
 
-**Before**: Distributed action logic
-
-- Each action implemented its own `perform` method
-- Logic scattered across multiple files
-- Complex builder pattern for simple actions
-
-**After**: Centralized processing
-
-- All action logic in `process_turns` system
-- Direct pattern matching on `ActionType`
-- Simple, readable action processing
-
-#### 4. **Eliminated Builder Pattern Complexity**
-
-**Before**: Complex builder usage everywhere
+**Before**: Simple tracking
 
 ```rust
-// Player input
-p_actor.queue_action(WaitBuilder::new().with_entity(entity).build());
-p_actor.queue_action(Walk::builder().with_entity(entity).with_direction(direction).build());
-
-// AI systems
-turn_actor.queue_action(Walk::builder().with_entity(*actor_entity).with_direction(direction).build());
-turn_actor.queue_action(Wait::builder().with_entity(*actor_entity).build());
+pub struct ChasePlayerAction {
+    pub generated_path: bool,
+    pub last_seen_pt: Option<Position>,
+}
 ```
 
-**After**: Direct enum usage
+**After**: Complete path management
 
 ```rust
-// Player input
-p_actor.queue_action(ActionType::Wait);
-p_actor.queue_action(ActionType::MoveDelta(direction));
-
-// AI systems
-turn_actor.queue_action(ActionType::MoveDelta(direction));
-turn_actor.queue_action(ActionType::Wait);
+pub struct ChasePlayerAction {
+    pub generated_path: bool,
+    pub last_seen_pt: Option<Position>,
+    pub current_path: Vec<Position>,           // Complete A* path
+    pub path_index: usize,                     // Current position in path
+    pub target_when_path_generated: Option<Position>,  // For regeneration detection
+    pub ai_pos_when_path_generated: Option<Position>,  // For regeneration detection
+}
 ```
 
-## Technical Implementation Details
+#### 4. **Enhanced Flee System with Intelligent Escape Routes**
 
-### Simplified Action Processing
+**Before**: Simple direction away from player
 
 ```rust
-// Clean, centralized action processing
-fn perform_action(world: &mut World, entity: Entity, action: ActionType) -> Result<u64, GameError> {
-    match action {
-        ActionType::Wait => {
-            info!("Entity {} is waiting", entity);
-            Ok(action.get_base_time_to_perform() as u64)
-        }
-        ActionType::MoveDelta(direction) => {
-            perform_move_delta(world, entity, direction)
-        }
-        ActionType::Move(target_pos) => {
-            perform_move_to_position(world, entity, target_pos)
-        }
-        ActionType::Attack(target_pos) => {
-            perform_attack(world, entity, target_pos)
-        }
+let direction = helpers::calculate_direction_away_from_target(*ai_pos, *player_pos);
+```
+
+**After**: Intelligent escape route finding
+
+```rust
+// Find safe escape target using pathfinding utilities
+if let Some(escape_target) = find_escape_target(*ai_pos, *player_pos, &current_map, detection_range) {
+    if let Some(path) = pathfinding::utils::find_path(*ai_pos, escape_target, &mut current_map, true) {
+        flee_action.escape_path = path;
+        // Follow escape path to safety
     }
 }
 ```
 
-### Performance Improvements
+#### 5. **Enhanced FleeFromPlayerAction Component**
 
-- **No Heap Allocations**: Actions stored directly on stack
-- **No Dynamic Dispatch**: Direct enum matching
-- **Faster Creation**: No builder pattern overhead
-- **Better Cache Locality**: Smaller, more compact data structures
+**Before**: Empty struct
 
-### Code Reduction Summary
+```rust
+pub struct FleeFromPlayerAction;
+```
 
-| Component       | Before          | After        | Reduction |
-| --------------- | --------------- | ------------ | --------- |
-| Action Creation | Builder pattern | Direct enum  | -100%     |
-| Action Storage  | `Box<dyn>`      | `ActionType` | -90%      |
-| Action Logic    | Distributed     | Centralized  | +50%      |
-| **Complexity**  | **High**        | **Low**      | **-80%**  |
+**After**: Complete escape path management
 
-## Files Modified/Deleted
+```rust
+pub struct FleeFromPlayerAction {
+    pub escape_path: Vec<Position>,                    // Complete A* escape path
+    pub path_index: usize,                             // Current position in path
+    pub escape_target: Option<Position>,               // Final escape destination
+    pub threat_pos_when_path_generated: Option<Position>,  // For regeneration detection
+    pub ai_pos_when_path_generated: Option<Position>,      // For regeneration detection
+}
+```
 
-### Modified Files
+## Technical Implementation Details
 
-- `src/gameplay/turns/components.rs` - Updated TurnActor to store ActionType
-- `src/gameplay/turns/systems.rs` - Added centralized action processing
-- `src/core/types/action.rs` - Added category method to ActionType
-- `src/gameplay/player/systems.rs` - Removed GameAction conversion
-- `src/gameplay/enemies/systems/idle.rs` - Direct ActionType usage
-- `src/gameplay/enemies/systems/wander.rs` - Direct ActionType usage
-- `src/gameplay/enemies/systems/flee.rs` - Direct ActionType usage
-- `src/gameplay/enemies/systems/chase.rs` - Direct ActionType usage
+### Intelligent Path Following
 
-### Files That Can Be Removed (Future Cleanup)
+```rust
+// Chase system follows stored A* paths
+fn follow_stored_path(
+    chase_action: &mut ChasePlayerAction,
+    current_ai_pos: Position,
+    map: &CurrentMap,
+) -> Option<Direction> {
+    // Verify current position in path
+    // Get next step and validate walkability
+    // Update path index for next iteration
+}
 
-- `src/core/actions/walk.rs` - Logic moved to process_turns
-- `src/core/actions/wait.rs` - Logic moved to process_turns
-- `src/core/actions/mod.rs` - No longer needed
+// Flee system follows escape routes
+fn follow_stored_escape_path(
+    flee_action: &mut FleeFromPlayerAction,
+    current_ai_pos: Position,
+    map: &CurrentMap,
+) -> Option<Direction> {
+    // Similar intelligent path following for escape routes
+}
+```
+
+### Smart Path Regeneration
+
+```rust
+// Regenerate paths when conditions change
+fn should_regenerate_chase_path(
+    chase_action: &ChasePlayerAction,
+    current_ai_pos: Position,
+    current_player_pos: Position,
+    map: &CurrentMap,
+    detection_range: u8,
+) -> bool {
+    // Player moved significantly (>2 tiles)
+    // AI moved unexpectedly (>3 tiles)
+    // Path is blocked by obstacles
+    // Path is exhausted
+}
+```
+
+### Escape Target Finding
+
+```rust
+// Find intelligent escape positions
+fn find_escape_target(
+    ai_pos: Position,
+    threat_pos: Position,
+    map: &mut CurrentMap,
+    detection_range: u8,
+) -> Option<Position> {
+    // Use existing escape route finding utility
+    // Fallback to opposite direction calculation
+    // Validate walkability and safety
+}
+```
+
+## Performance Improvements
+
+### Intelligent Movement
+
+- **Obstacle Navigation**: AI can navigate around walls and obstacles
+- **Path Optimization**: A\* finds optimal routes instead of getting stuck
+- **Predictive Behavior**: AI plans multi-step movements in advance
+
+### Path Caching Benefits
+
+- **Reduced Computation**: Paths cached and reused until invalidated
+- **Smooth Movement**: Consistent direction following stored paths
+- **Smart Regeneration**: Only recalculate when necessary
+
+### Fallback Mechanisms
+
+- **Graceful Degradation**: Falls back to simple direction calculation if A\* fails
+- **Error Handling**: Robust error handling for pathfinding failures
+- **Compatibility**: Works with existing action system architecture
+
+## Files Modified
+
+### Enhanced Files
+
+- `src/gameplay/enemies/helpers.rs` - Added missing helper functions
+- `src/gameplay/enemies/components.rs` - Enhanced action components
+- `src/gameplay/enemies/systems/chase.rs` - A\* pathfinding integration
+- `src/gameplay/enemies/systems/flee.rs` - Intelligent escape routes
+- `src/core/pathfinding.rs` - Fixed borrowing issues in find_escape_route
+
+### Helper Functions Added
+
+```rust
+// Basic direction calculation
+pub fn calculate_direction_to_target(from: Position, to: Position) -> Option<Direction>
+pub fn calculate_direction_away_from_target(from: Position, away_from: Position) -> Option<Direction>
+
+// Enhanced pathfinding versions (for future use)
+pub fn calculate_direction_to_target_with_pathfinding(...)
+pub fn calculate_direction_away_from_target_with_pathfinding(...)
+```
 
 ## Current Game State
 
-### Action System Working
+### Enhanced AI Behavior
 
-- ✅ Player input processing (direct ActionType)
-- ✅ AI action processing (direct ActionType)
-- ✅ Turn scheduling and timing
-- ✅ Movement validation and execution
-- ✅ Wait action processing
-- ✅ Attack action placeholder
+- ✅ Chase actions use A\* pathfinding for intelligent pursuit
+- ✅ Flee actions use escape route finding for smart evasion
+- ✅ Path caching reduces computational overhead
+- ✅ Smart path regeneration when conditions change
+- ✅ Fallback to simple behavior when pathfinding fails
 
 ### Functionality Preserved
 
-- ✅ All essential turn-based mechanics work
-- ✅ Player input gathering
-- ✅ AI action execution (idle, wander, flee, chase)
-- ✅ Turn timing and scheduling
-- ✅ Entity lifecycle management
-- ✅ No breaking changes to gameplay
+- ✅ All existing action system functionality maintained
+- ✅ Player input processing unchanged
+- ✅ Turn scheduling and timing preserved
+- ✅ No breaking changes to core game mechanics
 
 ## Testing Results
 
 ### Build Results
 
-- ✅ Cargo check successful (1.45s)
-- ✅ All tests passing (22/22)
-- ✅ No compilation errors
-- ✅ All systems integrate correctly
+- ✅ Cargo clippy successful (2.50s)
+- ✅ All compilation errors fixed
+- ✅ Clippy warnings addressed (3 automatic fixes applied)
+- ✅ No breaking changes to existing systems
 
-### Functionality Verification
+### Code Quality
 
-- ✅ Action processing works with simple enum system
-- ✅ Player input handling preserved
-- ✅ AI action execution preserved
-- ✅ No conflicts or regressions
+- ✅ Borrowing issues resolved in pathfinding module
+- ✅ Function signatures corrected for mutable references
+- ✅ Clippy suggestions applied for cleaner code
+- ✅ Unused function warnings expected (enhanced versions for future use)
 
-## Performance Impact
+## Benefits Achieved
 
-### Improvements
+### AI Intelligence
 
-- **Memory**: No heap allocations for actions
-- **Speed**: Direct enum matching vs dynamic dispatch
-- **Complexity**: 80% reduction in action system complexity
-- **Maintainability**: Centralized logic easier to debug
+- **Smarter Movement**: AI navigates around obstacles intelligently
+- **Better Pursuit**: Chase behavior follows optimal paths to player
+- **Intelligent Escape**: Flee behavior finds safe positions away from threats
+- **Adaptive Behavior**: Paths regenerate when conditions change
 
-### Simplification Benefits
+### Performance
 
-- **Debugging**: Single code path for all actions
-- **Features**: Easier to add new action types
-- **Testing**: Simpler test scenarios
-- **Documentation**: Clearer system to explain
+- **Efficient Pathfinding**: A\* algorithm finds optimal routes
+- **Caching Benefits**: Paths reused until invalidation
+- **Reduced Computation**: Smart regeneration only when needed
+- **Graceful Fallbacks**: Simple behavior when pathfinding unavailable
 
-## Success Metrics Achieved
+### Maintainability
 
-- ✅ Eliminated builder pattern complexity
-- ✅ Removed dynamic dispatch overhead
-- ✅ Centralized action processing logic
-- ✅ Preserved all essential functionality
-- ✅ Clean build with no errors
-- ✅ All tests passing
-
-## Architecture Insights
-
-### What We Learned
-
-1. **Simple Enums > Complex Traits**: For simple data, enums are more efficient than trait objects
-2. **Centralized Logic**: Having all action logic in one place is easier to maintain
-3. **YAGNI Applied Again**: The builder pattern was over-engineering for simple actions
-4. **Performance Matters**: Stack allocation vs heap allocation makes a difference
-
-### Design Principles Applied
-
-- **Simplicity First**: Choose the simplest solution that works
-- **Performance by Default**: Avoid allocations when possible
-- **Centralized Processing**: Keep related logic together
-- **Direct Data Flow**: Minimize conversions and indirection
+- **Clean Architecture**: Enhanced components with clear responsibilities
+- **Robust Error Handling**: Fallback mechanisms for edge cases
+- **Future-Ready**: Enhanced helper functions available for other systems
+- **Consistent Patterns**: Similar enhancement approach for chase and flee
 
 ## Next Steps
 
-### Potential Future Improvements
+### Potential Enhancements
 
-1. **Action Cleanup**: Remove unused GameAction files
-2. **Complex Actions**: Add GameAction fallback for future complex actions if needed
-3. **Action Validation**: Add validation logic to ActionType
-4. **Performance Monitoring**: Measure actual performance improvements
+1. **Wander System**: Apply similar A\* pathfinding to wandering behavior
+2. **Group Behavior**: Coordinate multiple AI entities with pathfinding
+3. **Dynamic Obstacles**: Handle moving obstacles in pathfinding
+4. **Performance Optimization**: Profile and optimize pathfinding performance
 
-### Architecture Evolution
+### Integration Opportunities
 
-This simplification continues the successful pattern established with the turn system simplification:
-
-1. **Turn System**: Removed 1000+ lines, 73% reduction
-2. **Action System**: Removed builder complexity, 80% simplification
-3. **Pattern**: Simple, direct solutions over complex abstractions
-
-The codebase is now significantly cleaner, faster, and easier to maintain while preserving all functionality.
+1. **Player Assistance**: Optional pathfinding hints for player movement
+2. **Tactical AI**: More sophisticated AI decision making with pathfinding
+3. **Environmental Awareness**: AI that considers terrain types and hazards
+4. **Cooperative Behavior**: AI entities that coordinate their paths

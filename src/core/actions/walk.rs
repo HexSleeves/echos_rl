@@ -5,22 +5,23 @@ use crate::{
     core::{
         components::Position,
         resources::CurrentMap,
-        types::{ActionCategory, GameAction, GameError},
+        types::{ActionType, GameAction, GameError},
     },
     gameplay::world::components::TerrainType,
-    impl_debug_with_field, impl_game_action,
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Walk {
     entity: Entity,
     direction: Direction,
 }
 
-impl GameAction for Walk {
-    fn category(&self) -> ActionCategory { ActionCategory::Movement }
+impl Walk {
+    pub fn new(entity: Entity, direction: Direction) -> Self { Self { entity, direction } }
+}
 
-    fn entity(&self) -> Option<Entity> { Some(self.entity) }
+impl GameAction for Walk {
+    fn action_type(&self) -> ActionType { ActionType::MoveDelta(self.direction) }
 
     fn perform(&self, world: &mut World) -> Result<u64, GameError> {
         let mut state: SystemState<(ResMut<CurrentMap>, Query<&mut Position>)> = SystemState::new(world);
@@ -57,29 +58,6 @@ impl GameAction for Walk {
         // Return the system state to update the world
         state.apply(world);
 
-        Ok(1000)
+        Ok(self.duration())
     }
 }
-
-#[derive(Default, Clone)]
-pub struct WalkBuilder {
-    entity: Option<Entity>,
-    direction: Option<Direction>,
-}
-
-impl WalkBuilder {
-    pub fn new() -> Self { Self::default() }
-
-    pub fn with_entity(mut self, entity: Entity) -> Self {
-        self.entity = Some(entity);
-        self
-    }
-
-    pub fn with_direction(mut self, direction: Direction) -> Self {
-        self.direction = Some(direction);
-        self
-    }
-}
-
-impl_debug_with_field!(Walk, direction);
-impl_game_action!(Walk, WalkBuilder, entity, direction);

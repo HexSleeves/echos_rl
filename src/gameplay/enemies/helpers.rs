@@ -1,43 +1,74 @@
 use bevy::prelude::*;
 use brtk::prelude::Direction;
 
-use crate::core::{components::Position, resources::CurrentMap};
+use crate::core::{components::Position, pathfinding, resources::CurrentMap};
 
-/// Calculate the direction to move toward a target
+/// Calculate direction from one position to another using simple vector math
 pub fn calculate_direction_to_target(from: Position, to: Position) -> Option<Direction> {
-    let diff_x = to.x - from.x;
-    let diff_y = to.y - from.y;
+    let dx = to.x() - from.x();
+    let dy = to.y() - from.y();
 
-    if diff_x == 0 && diff_y == 0 {
-        return None; // Already at target
+    // If we're already at the target, no direction needed
+    if dx == 0 && dy == 0 {
+        return None;
     }
 
-    if diff_x.abs() > diff_y.abs() {
-        if diff_x > 0 { Some(Direction::EAST) } else { Some(Direction::WEST) }
-    } else if diff_y > 0 {
-        Some(Direction::SOUTH)
+    // Convert to unit direction (normalize to -1, 0, or 1)
+    let dir_x = dx.signum();
+    let dir_y = dy.signum();
+
+    Some(Direction::from_coord((dir_x, dir_y)))
+}
+
+/// Calculate direction away from a target position
+pub fn calculate_direction_away_from_target(from: Position, away_from: Position) -> Option<Direction> {
+    let dx = from.x() - away_from.x();
+    let dy = from.y() - away_from.y();
+
+    // If we're at the same position, pick a random direction
+    if dx == 0 && dy == 0 {
+        return Some(Direction::NORTH); // Default escape direction
+    }
+
+    // Convert to unit direction (normalize to -1, 0, or 1)
+    let dir_x = dx.signum();
+    let dir_y = dy.signum();
+
+    Some(Direction::from_coord((dir_x, dir_y)))
+}
+
+/// Enhanced direction calculation using A* pathfinding when map is available
+pub fn calculate_direction_to_target_with_pathfinding(
+    from: Position,
+    to: Position,
+    map: &mut CurrentMap,
+) -> Option<Direction> {
+    // Try A* pathfinding first
+    if let Some(next_pos) = pathfinding::utils::find_next_step(from, to, map) {
+        let dx = next_pos.x() - from.x();
+        let dy = next_pos.y() - from.y();
+        Some(Direction::from_coord((dx, dy)))
     } else {
-        Some(Direction::NORTH)
+        // Fallback to simple direction calculation
+        calculate_direction_to_target(from, to)
     }
 }
 
-/// Calculate the direction to move away from a target
-pub fn calculate_direction_away_from_target(from: Position, away_from: Position) -> Option<Direction> {
-    let diff = from.0 - away_from.0;
-
-    if diff.x == 0 && diff.y == 0 {
-        // At same position, pick a random direction
-        let directions: Vec<Direction> = Direction::iter_cardinal().collect();
-        return Some(directions[fastrand::usize(..directions.len())]);
-    }
-
-    // Prioritize the axis with the larger difference
-    if diff.x.abs() > diff.y.abs() {
-        if diff.x > 0 { Some(Direction::EAST) } else { Some(Direction::WEST) }
-    } else if diff.y > 0 {
-        Some(Direction::SOUTH)
+/// Enhanced flee direction calculation using escape route pathfinding
+pub fn calculate_direction_away_from_target_with_pathfinding(
+    from: Position,
+    away_from: Position,
+    map: &mut CurrentMap,
+    escape_distance: u32,
+) -> Option<Direction> {
+    // Try to find an intelligent escape route
+    if let Some(escape_pos) = pathfinding::utils::find_escape_route(from, away_from, map, escape_distance) {
+        let dx = escape_pos.x() - from.x();
+        let dy = escape_pos.y() - from.y();
+        Some(Direction::from_coord((dx, dy)))
     } else {
-        Some(Direction::NORTH)
+        // Fallback to simple direction calculation
+        calculate_direction_away_from_target(from, away_from)
     }
 }
 

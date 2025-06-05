@@ -3,10 +3,11 @@ use brtk::prelude::Direction;
 
 use crate::{
     core::{
+        actions::WaitAction,
         components::{PlayerTag, Position},
         resources::{CurrentMap, TurnQueue},
         states::GameState,
-        types::{ActionType, GameError},
+        types::{ActionType, GameAction, GameError},
     },
     gameplay::{
         player::components::AwaitingInput, turns::components::TurnActor, world::components::TerrainType,
@@ -34,34 +35,36 @@ pub fn process_turns(world: &mut World) {
         turn_queue.print_queue();
 
         while let Some((entity, time)) = turn_queue.get_next_actor() {
-            let (mut next_state, mut q_actor) = state.get_mut(world);
+            let (is_player, action_opt);
+            {
+                // Borrow world only for this inner scope
+                let (mut next_state, mut q_actor) = state.get_mut(world);
 
-            let Ok((entity, mut actor, player)) = q_actor.get_mut(entity) else {
-                error!("Actor not found: {entity:?}");
-                continue;
-            };
+                let Ok((_, mut actor, player)) = q_actor.get_mut(entity) else {
+                    error!("Actor not found: {entity:?}");
+                    continue;
+                };
 
-            if !actor.is_alive() {
-                info!("Actor is dead. Why is it still in the queue?");
-                continue;
-            }
+                if !actor.is_alive() {
+                    info!("Actor is dead. Why is it still in the queue?");
+                    continue;
+                }
 
-            let is_player = player.is_some();
-            let has_action = actor.peek_next_action().is_some();
+                is_player = player.is_some();
+                action_opt = actor.next_action();
 
-            // Player is waiting for input
-            if is_player && !has_action {
-                info!("Player is awaiting input: {:?}", entity);
-                next_state.set(GameState::GatherActions);
-                world.entity_mut(entity).insert(AwaitingInput);
-                turn_queue.schedule_turn(entity, time);
-                return;
-            }
+                if is_player && action_opt.is_none() {
+                    next_state.set(GameState::GatherActions);
+                    world.entity_mut(entity).insert(AwaitingInput);
+                    turn_queue.schedule_turn(entity, time);
+                    return;
+                }
+            } // ← all borrows of `world` released here
 
-            let Some(action) = actor.next_action() else {
+            let Some(action) = action_opt else {
                 info!("No action for entity: {:?}. Rescheduling turn.", entity);
                 turn_queue.schedule_turn(entity, time);
-                return;
+                continue;
             };
 
             // Process the action directly
@@ -84,15 +87,12 @@ pub fn process_turns(world: &mut World) {
 /// Perform an action for the given entity
 fn perform_action(world: &mut World, entity: Entity, action: ActionType) -> Result<u64, GameError> {
     match action {
-        ActionType::Wait => {
-            info!("Entity {} is waiting", entity);
-            Ok(action.get_base_time_to_perform())
-        }
+        ActionType::Wait => WaitAction::new(entity).perform(world),
         ActionType::MoveDelta(direction) => match perform_move_delta(world, entity, direction) {
             Ok(()) => Ok(action.get_base_time_to_perform()),
             Err(e) => Err(e),
         },
-        ActionType::Move(target_pos) => match perform_move_to_position(world, entity, target_pos) {
+        ActionType::Teleport(target_pos) => match perform_teleport(world, entity, target_pos) {
             Ok(()) => Ok(action.get_base_time_to_perform()),
             Err(e) => Err(e),
         },
@@ -100,6 +100,11 @@ fn perform_action(world: &mut World, entity: Entity, action: ActionType) -> Resu
             Ok(()) => Ok(action.get_base_time_to_perform()),
             Err(e) => Err(e),
         },
+        // ActionType::MoveTowards(target_pos) => match perform_move_towards(world, entity, target_pos) {
+        //     Ok(()) => Ok(action.get_base_time_to_perform()),
+        //     Err(e) => Err(e),
+        // },
+        _ => Err(GameError::Custom("Not implemented".to_string())),
     }
 }
 
@@ -141,11 +146,7 @@ fn perform_move_delta(world: &mut World, entity: Entity, direction: Direction) -
 }
 
 /// Perform a movement to a specific position
-fn perform_move_to_position(
-    world: &mut World,
-    entity: Entity,
-    target_pos: Position,
-) -> Result<(), GameError> {
+fn perform_teleport(world: &mut World, entity: Entity, target_pos: Position) -> Result<(), GameError> {
     let mut state: SystemState<(ResMut<CurrentMap>, Query<&mut Position>)> = SystemState::new(world);
     let (current_map, mut q_position) = state.get_mut(world);
 
