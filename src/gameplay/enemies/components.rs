@@ -60,37 +60,38 @@ pub struct FleeFromPlayerAction {
 }
 
 /// Action for wandering randomly
-#[derive(Component, Debug, Clone, ActionBuilder)]
-pub struct WanderAction;
+#[derive(Component, Debug, Clone, ActionBuilder, Default)]
+pub struct WanderAction {
+    /// Type of wandering behavior
+    pub wander_type: WanderType,
+    /// Current A* path for wandering
+    pub current_path: Vec<Position>,
+    /// Current index in the path (0 = current position, 1 = next step)
+    pub path_index: usize,
+    /// Current target position
+    pub current_target: Option<Position>,
+    /// AI position when path was generated (for regeneration detection)
+    pub ai_pos_when_path_generated: Option<Position>,
+    /// For patrol: list of patrol points
+    pub patrol_points: Vec<Position>,
+    /// For patrol: current patrol point index
+    pub current_patrol_index: usize,
+    /// For area wander: preferred area bounds
+    pub wander_area: Option<WanderArea>,
+    /// Time when last target was set (for target refresh)
+    pub last_target_time: Option<u64>,
+}
 
 /// Action for staying idle
 #[derive(Component, Debug, Clone, ActionBuilder)]
 pub struct IdleAction;
 
+#[derive(Component, Debug, Clone, ActionBuilder, Default)]
+pub struct AttackAction;
+
 // ============================================================================
 // HELPER COMPONENTS
 // ============================================================================
-
-#[derive(Debug, Clone, PartialEq, Reflect, Copy)]
-pub enum AIAction {
-    ChasePlayer,
-    FleeFromPlayer,
-    Wander,
-    Idle,
-}
-
-/// Component to track AI state for debugging and behavior
-#[derive(Component, Debug, Clone, Reflect, Copy)]
-#[reflect(Component)]
-pub struct AIState {
-    pub last_action_time: f32,
-    pub current_action: Option<AIAction>,
-    pub target_position: Option<Position>,
-}
-
-impl Default for AIState {
-    fn default() -> Self { Self { current_action: None, target_position: None, last_action_time: 0.0 } }
-}
 
 /// Component that marks an entity as having AI behavior
 #[derive(Component, Debug, Clone, Reflect, Copy)]
@@ -126,7 +127,7 @@ impl AIBehavior {
             detection_range,
             last_player_seen_turn: None,
             last_known_player_position: None,
-            turns_before_wander: turns_before_wander * 1000,
+            turns_before_wander: turns_before_wander.saturating_mul(1000),
         }
     }
 
@@ -153,37 +154,39 @@ impl AIBehavior {
 #[derive(Reflect, Component, Default, Clone, Copy)]
 #[reflect(Component)]
 pub struct AIComponent {
-    pub(crate) state: AIState,
     pub(crate) ai_type: AIBehaviorType,
     pub(crate) ai_behavior: AIBehavior,
 }
 
 impl AIComponent {
-    pub fn new(ai_type: AIBehaviorType) -> Self {
-        Self { state: AIState::default(), ai_type, ai_behavior: AIBehavior::default() }
-    }
+    pub fn new(ai_type: AIBehaviorType) -> Self { Self { ai_type, ai_behavior: AIBehavior::default() } }
 }
 
 impl AIComponent {
     pub fn passive() -> Self {
-        Self {
-            state: AIState::default(),
-            ai_type: AIBehaviorType::Passive,
-            ai_behavior: AIBehavior::passive(8),
-        }
+        Self { ai_type: AIBehaviorType::Passive, ai_behavior: AIBehavior::passive(8) }
     }
     pub fn hostile() -> Self {
-        Self {
-            state: AIState::default(),
-            ai_type: AIBehaviorType::Hostile,
-            ai_behavior: AIBehavior::hostile(8),
-        }
+        Self { ai_type: AIBehaviorType::Hostile, ai_behavior: AIBehavior::hostile(8) }
     }
     pub fn neutral() -> Self {
-        Self {
-            state: AIState::default(),
-            ai_type: AIBehaviorType::Neutral,
-            ai_behavior: AIBehavior::neutral(8),
-        }
+        Self { ai_type: AIBehaviorType::Neutral, ai_behavior: AIBehavior::neutral(8) }
     }
+}
+
+/// Different types of wandering behavior
+#[derive(Debug, Clone, PartialEq, Default)]
+pub enum WanderType {
+    #[default]
+    Random, // Simple random movement (current behavior)
+    AreaWander, // Wander within a specific area
+    Patrol,     // Move between specific patrol points
+    Explore,    // Seek unexplored areas
+}
+
+/// Area bounds for area-constrained wandering
+#[derive(Debug, Clone)]
+pub struct WanderArea {
+    pub center: Position,
+    pub radius: u32,
 }

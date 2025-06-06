@@ -54,6 +54,8 @@ pub fn process_turns(world: &mut World) {
                 action_opt = actor.next_action();
 
                 if is_player && action_opt.is_none() {
+                    info!("Player has no action. Scheduling turn.");
+
                     next_state.set(GameState::GatherActions);
                     world.entity_mut(entity).insert(AwaitingInput);
                     turn_queue.schedule_turn(entity, time);
@@ -86,6 +88,8 @@ pub fn process_turns(world: &mut World) {
 
 /// Perform an action for the given entity
 fn perform_action(world: &mut World, entity: Entity, action: ActionType) -> Result<u64, GameError> {
+    info!("Performing action: {:?}", action);
+
     match action {
         ActionType::Wait => WaitAction::new(entity).perform(world),
         ActionType::MoveDelta(direction) => match perform_move_delta(world, entity, direction) {
@@ -100,11 +104,6 @@ fn perform_action(world: &mut World, entity: Entity, action: ActionType) -> Resu
             Ok(()) => Ok(action.get_base_time_to_perform()),
             Err(e) => Err(e),
         },
-        // ActionType::MoveTowards(target_pos) => match perform_move_towards(world, entity, target_pos) {
-        //     Ok(()) => Ok(action.get_base_time_to_perform()),
-        //     Err(e) => Err(e),
-        // },
-        _ => Err(GameError::Custom("Not implemented".to_string())),
     }
 }
 

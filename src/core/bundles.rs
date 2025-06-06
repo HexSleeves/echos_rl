@@ -5,7 +5,7 @@ use leafwing_input_manager::prelude::InputMap;
 use crate::{
     core::components::*,
     gameplay::{
-        enemies::components::{AIBehavior, AIComponent, AIState},
+        enemies::components::{AIBehavior, AIComponent},
         player::{actions::PlayerAction, components::AwaitingInput},
     },
 };
@@ -48,8 +48,8 @@ impl PlayerBundle {
             position,
             player: PlayerTag,
             awaiting_input: AwaitingInput,
-            description: Description::new(name),
             input_map: Self::default_input_map(),
+            description: Description::new(name.to_string()),
         }
     }
 
@@ -83,12 +83,10 @@ impl PlayerBundle {
     }
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Default)]
 pub struct EnemyBundle {
     pub ai_tag: AITag,
-    pub ai_state: AIState,
     pub ai_behavior: AIBehavior,
-
     pub ai: AIComponent,
     pub actor: ActorBundle,
 }
@@ -101,12 +99,11 @@ impl EnemyBundle {
         behavior_type: AIBehaviorType,
     ) -> Self {
         let ai_tag = AITag;
-        let ai_state = AIState::default();
         let ai = AIComponent::new(behavior_type);
         let actor = ActorBundle::new(name, description, position);
         let ai_behavior = Self::create_ai_behavior_for_type(behavior_type);
 
-        Self { ai_tag, ai_state, ai_behavior, ai, actor }
+        Self { ai_tag, ai_behavior, ai, actor }
     }
 
     fn create_ai_behavior_for_type(behavior_type: AIBehaviorType) -> AIBehavior {

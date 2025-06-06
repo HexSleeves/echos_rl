@@ -2,21 +2,16 @@ use bevy::prelude::*;
 use big_brain::prelude::*;
 
 use crate::{
-    core::types::ActionType,
-    gameplay::{
-        enemies::components::{AIAction, AIState},
-        turns::components::TurnActor,
-    },
-    prelude::gameplay::enemies::IdleAction,
+    core::types::ActionType, gameplay::turns::components::TurnActor, prelude::gameplay::enemies::IdleAction,
 };
 
 /// System that handles idle behavior
 pub fn idle_action_system(
     mut action_query: Query<(&Actor, &mut ActionState), With<IdleAction>>,
-    mut ai_query: Query<(&mut TurnActor, &mut AIState)>,
+    mut ai_query: Query<&mut TurnActor>,
 ) {
     for (Actor(actor_entity), mut action_state) in action_query.iter_mut() {
-        if let Ok((mut turn_actor, mut ai_state)) = ai_query.get_mut(*actor_entity) {
+        if let Ok(mut turn_actor) = ai_query.get_mut(*actor_entity) {
             match *action_state {
                 ActionState::Init => {
                     *action_state = ActionState::Requested;
@@ -30,7 +25,6 @@ pub fn idle_action_system(
                     }
 
                     info!("AI entity {:?} performing idle action", actor_entity);
-                    ai_state.current_action = Some(AIAction::Idle);
 
                     // Add a wait action to the queue for idle behavior
                     turn_actor.queue_action(ActionType::Wait);
@@ -44,7 +38,7 @@ pub fn idle_action_system(
                     }
                 }
                 ActionState::Success | ActionState::Failure => {
-                    // Action completed, reset to init and wait for next decision cycle
+                    // Reset to init for next cycle
                     *action_state = ActionState::Init;
                 }
                 ActionState::Cancelled => {

@@ -23,7 +23,7 @@ pub enum ActionType {
     Wait,
 
     MoveDelta(Direction),
-    MoveTowards(Position),
+    // MoveTowards(Position),
     Teleport(Position),
 
     Attack(Position),
@@ -36,7 +36,7 @@ impl ActionType {
             Self::Attack(_) => ATTACK_TIME,
             Self::Teleport(_) => TELEPORT_TIME,
             Self::MoveDelta(_) => MOVE_DELTA_TIME,
-            Self::MoveTowards(_) => MOVE_DELTA_TIME,
+            // Self::MoveTowards(_) => MOVE_DELTA_TIME,
         }
     }
 }

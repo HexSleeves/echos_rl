@@ -14,7 +14,7 @@ pub struct Mob;
 pub struct PlayerTag;
 
 /// Component that marks an entity as AI-controlled
-#[derive(Component, Debug, Reflect)]
+#[derive(Component, Debug, Reflect, Default)]
 #[reflect(Component)]
 pub struct AITag;
 

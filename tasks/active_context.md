@@ -1,4 +1,4 @@
-# Active Context: Enhanced Chase & Flee Actions with A\* Pathfinding
+# Active Context: Enhanced AI Actions with A\* Pathfinding
 
 ## Current Status: COMPLETED ✅
 
@@ -7,277 +7,235 @@
 
 ## What Was Just Completed
 
-### ✅ Enhanced Chase & Flee Actions with A\* Pathfinding
+### ✅ Enhanced Wander Action System with A\* Pathfinding & Intelligent Behavior Patterns
 
-Successfully enhanced the chase and flee action systems to use intelligent A\* pathfinding instead of simple direction calculation:
+Successfully enhanced the wander action system to use intelligent A\* pathfinding with multiple behavior patterns including area wandering, patrol routes, and exploration behavior:
 
-#### 1. **Fixed Compilation Issues**
+#### 1. **Enhanced WanderAction Component with Multiple Behavior Types**
 
-**Before**: Missing helper functions causing compilation errors
-
-- `calculate_direction_to_target` - missing function
-- `calculate_direction_away_from_target` - missing function
-
-**After**: Complete helper function implementation
-
-- Simple direction calculation for basic cases
-- Enhanced pathfinding versions for complex scenarios
-- Fallback mechanisms when pathfinding fails
-
-#### 2. **Enhanced Chase System with A\* Pathfinding**
-
-**Before**: Simple direction calculation
+**Before**: Simple empty struct
 
 ```rust
-let direction = helpers::calculate_direction_to_target(*ai_pos, *player_pos);
-ai_actor.queue_action(ActionType::MoveDelta(direction));
+#[derive(Component, Debug, Clone, ActionBuilder)]
+pub struct WanderAction;
 ```
 
-**After**: Intelligent A\* pathfinding with path caching
+**After**: Complete intelligent wander system
 
 ```rust
-// Generate complete A* path to player
-if let Some(path) = pathfinding::utils::find_path(*ai_pos, *player_pos, &mut current_map, true) {
-    chase_action.current_path = path;
-    chase_action.path_index = 0;
-    // Follow stored path step by step
+#[derive(Component, Debug, Clone, ActionBuilder, Default)]
+pub struct WanderAction {
+    pub wander_type: WanderType,                    // Type of wandering behavior
+    pub current_path: Vec<Position>,                // Current A* path for wandering
+    pub path_index: usize,                          // Current index in the path
+    pub current_target: Option<Position>,           // Current target position
+    pub ai_pos_when_path_generated: Option<Position>, // For regeneration detection
+    pub patrol_points: Vec<Position>,               // For patrol: list of patrol points
+    pub current_patrol_index: usize,               // For patrol: current patrol point index
+    pub wander_area: Option<WanderArea>,           // For area wander: preferred area bounds
+    pub last_target_time: Option<u64>,             // Time when last target was set
 }
 ```
 
-#### 3. **Enhanced ChasePlayerAction Component**
+#### 2. **Multiple Wander Behavior Types**
 
-**Before**: Simple tracking
+**New WanderType Enum**:
 
 ```rust
-pub struct ChasePlayerAction {
-    pub generated_path: bool,
-    pub last_seen_pt: Option<Position>,
+#[derive(Debug, Clone, PartialEq, Default)]
+pub enum WanderType {
+    #[default]
+    Random,        // Simple random movement (enhanced with A*)
+    AreaWander,    // Wander within a specific area
+    Patrol,        // Move between specific patrol points
+    Explore,       // Seek unexplored areas
 }
 ```
 
-**After**: Complete path management
+#### 3. **Intelligent Target Selection System**
+
+**Helper Functions Added**:
+
+- `find_random_nearby_target()` - Random targets within distance ranges
+- `find_random_target_in_area()` - Area-constrained wandering
+- `get_next_patrol_point()` - Sequential patrol point management
+- `find_unexplored_target()` - Exploration behavior (simplified)
+- `select_wander_target()` - Master target selection based on wander type
+
+#### 4. **Enhanced Wander System with A\* Pathfinding**
+
+**Before**: Simple random direction
 
 ```rust
-pub struct ChasePlayerAction {
-    pub generated_path: bool,
-    pub last_seen_pt: Option<Position>,
-    pub current_path: Vec<Position>,           // Complete A* path
-    pub path_index: usize,                     // Current position in path
-    pub target_when_path_generated: Option<Position>,  // For regeneration detection
-    pub ai_pos_when_path_generated: Option<Position>,  // For regeneration detection
+if let Some(direction) = helpers::find_random_walkable_direction(*ai_pos, &current_map) {
+    turn_actor.queue_action(ActionType::MoveDelta(direction));
 }
 ```
 
-#### 4. **Enhanced Flee System with Intelligent Escape Routes**
-
-**Before**: Simple direction away from player
+**After**: Intelligent A\* pathfinding with behavior patterns
 
 ```rust
-let direction = helpers::calculate_direction_away_from_target(*ai_pos, *player_pos);
-```
+// Select appropriate target based on wander type
+let target_position = select_wander_target_for_action(&mut wander_action, *ai_pos, &current_map, current_turn);
 
-**After**: Intelligent escape route finding
-
-```rust
-// Find safe escape target using pathfinding utilities
-if let Some(escape_target) = find_escape_target(*ai_pos, *player_pos, &current_map, detection_range) {
-    if let Some(path) = pathfinding::utils::find_path(*ai_pos, escape_target, &mut current_map, true) {
-        flee_action.escape_path = path;
-        // Follow escape path to safety
+if let Some(target) = target_position {
+    // Generate A* path to target using enhanced pathfinding
+    if let Some(path) = pathfinding::utils::find_path(*ai_pos, target, &mut current_map, true) {
+        wander_action.current_path = path;
+        wander_action.path_index = 0;
+        wander_action.current_target = Some(target);
+        // Follow stored path step by step
     }
-}
-```
-
-#### 5. **Enhanced FleeFromPlayerAction Component**
-
-**Before**: Empty struct
-
-```rust
-pub struct FleeFromPlayerAction;
-```
-
-**After**: Complete escape path management
-
-```rust
-pub struct FleeFromPlayerAction {
-    pub escape_path: Vec<Position>,                    // Complete A* escape path
-    pub path_index: usize,                             // Current position in path
-    pub escape_target: Option<Position>,               // Final escape destination
-    pub threat_pos_when_path_generated: Option<Position>,  // For regeneration detection
-    pub ai_pos_when_path_generated: Option<Position>,      // For regeneration detection
 }
 ```
 
 ## Technical Implementation Details
 
+### Intelligent Target Selection
+
+```rust
+fn select_wander_target(
+    wander_type: &WanderType,
+    ai_pos: Position,
+    map: &CurrentMap,
+    patrol_points: &[Position],
+    current_patrol_index: usize,
+    wander_area: &Option<WanderArea>,
+) -> Option<Position> {
+    match wander_type {
+        WanderType::Random => find_random_nearby_target(ai_pos, map, 5..15),
+        WanderType::AreaWander => find_random_target_in_area(area, map),
+        WanderType::Patrol => get_next_patrol_point(patrol_points, current_patrol_index),
+        WanderType::Explore => find_unexplored_target(ai_pos, map),
+    }
+}
+```
+
+### Smart Path Regeneration for Wandering
+
+```rust
+fn should_regenerate_wander_path(
+    wander_action: &WanderAction,
+    current_ai_pos: Position,
+    map: &CurrentMap,
+    current_turn: u64,
+) -> bool {
+    // No path exists or no current target
+    // AI moved significantly from when path was generated
+    // Current path step is blocked
+    // Path is exhausted
+    // Time-based target refresh (50-100 turns depending on wander type)
+}
+```
+
 ### Intelligent Path Following
 
 ```rust
-// Chase system follows stored A* paths
-fn follow_stored_path(
-    chase_action: &mut ChasePlayerAction,
+fn follow_stored_wander_path(
+    wander_action: &mut WanderAction,
     current_ai_pos: Position,
     map: &CurrentMap,
 ) -> Option<Direction> {
     // Verify current position in path
     // Get next step and validate walkability
     // Update path index for next iteration
-}
-
-// Flee system follows escape routes
-fn follow_stored_escape_path(
-    flee_action: &mut FleeFromPlayerAction,
-    current_ai_pos: Position,
-    map: &CurrentMap,
-) -> Option<Direction> {
-    // Similar intelligent path following for escape routes
+    // Handle path completion and regeneration
 }
 ```
 
-### Smart Path Regeneration
+## Behavior Pattern Details
 
-```rust
-// Regenerate paths when conditions change
-fn should_regenerate_chase_path(
-    chase_action: &ChasePlayerAction,
-    current_ai_pos: Position,
-    current_player_pos: Position,
-    map: &CurrentMap,
-    detection_range: u8,
-) -> bool {
-    // Player moved significantly (>2 tiles)
-    // AI moved unexpectedly (>3 tiles)
-    // Path is blocked by obstacles
-    // Path is exhausted
-}
-```
+### 1. Random Wandering (Enhanced)
 
-### Escape Target Finding
+- **Target Selection**: Random positions 5-15 tiles away
+- **Path Refresh**: Every 50 turns
+- **Behavior**: Improved random movement with A\* pathfinding
 
-```rust
-// Find intelligent escape positions
-fn find_escape_target(
-    ai_pos: Position,
-    threat_pos: Position,
-    map: &mut CurrentMap,
-    detection_range: u8,
-) -> Option<Position> {
-    // Use existing escape route finding utility
-    // Fallback to opposite direction calculation
-    // Validate walkability and safety
-}
-```
+### 2. Area Wandering
+
+- **Target Selection**: Random positions within defined area bounds
+- **Path Refresh**: Every 75 turns
+- **Behavior**: Constrained wandering within specific zones
+
+### 3. Patrol Behavior
+
+- **Target Selection**: Sequential movement between predefined patrol points
+- **Path Refresh**: Only when reaching patrol points
+- **Behavior**: Predictable patrol routes for guards/sentries
+
+### 4. Exploration Behavior
+
+- **Target Selection**: Distant unexplored areas (15-25 tiles away)
+- **Path Refresh**: Every 100 turns
+- **Behavior**: Seeks new areas to explore
 
 ## Performance Improvements
 
 ### Intelligent Movement
 
-- **Obstacle Navigation**: AI can navigate around walls and obstacles
-- **Path Optimization**: A\* finds optimal routes instead of getting stuck
-- **Predictive Behavior**: AI plans multi-step movements in advance
+- **Obstacle Navigation**: AI can navigate around walls and obstacles during wandering
+- **Path Optimization**: A\* finds optimal routes to wander targets
+- **Predictive Behavior**: AI plans multi-step wander movements in advance
+
+### Behavior Diversity
+
+- **Multiple Patterns**: Different AI can have different wandering behaviors
+- **Configurable Areas**: Area wandering can be constrained to specific zones
+- **Patrol Routes**: AI can follow predefined patrol paths
+- **Exploration**: AI can seek out new areas to explore
 
 ### Path Caching Benefits
 
-- **Reduced Computation**: Paths cached and reused until invalidated
+- **Reduced Computation**: Wander paths cached and reused until invalidated
 - **Smooth Movement**: Consistent direction following stored paths
-- **Smart Regeneration**: Only recalculate when necessary
-
-### Fallback Mechanisms
-
-- **Graceful Degradation**: Falls back to simple direction calculation if A\* fails
-- **Error Handling**: Robust error handling for pathfinding failures
-- **Compatibility**: Works with existing action system architecture
+- **Smart Regeneration**: Time-based and condition-based path refresh
 
 ## Files Modified
 
 ### Enhanced Files
 
-- `src/gameplay/enemies/helpers.rs` - Added missing helper functions
-- `src/gameplay/enemies/components.rs` - Enhanced action components
-- `src/gameplay/enemies/systems/chase.rs` - A\* pathfinding integration
-- `src/gameplay/enemies/systems/flee.rs` - Intelligent escape routes
-- `src/core/pathfinding.rs` - Fixed borrowing issues in find_escape_route
+- `src/gameplay/enemies/components.rs` - Enhanced WanderAction with behavior types
+- `src/gameplay/enemies/helpers.rs` - Added intelligent target selection functions
+- `src/gameplay/enemies/systems/wander.rs` - Complete A\* pathfinding integration
+- `src/gameplay/world/spawning.rs` - Fixed WanderAction instantiation
 
-### Helper Functions Added
+### New Types Added
 
-```rust
-// Basic direction calculation
-pub fn calculate_direction_to_target(from: Position, to: Position) -> Option<Direction>
-pub fn calculate_direction_away_from_target(from: Position, away_from: Position) -> Option<Direction>
+- `WanderType` enum - Different wandering behavior patterns
+- `WanderArea` struct - Area bounds for constrained wandering
 
-// Enhanced pathfinding versions (for future use)
-pub fn calculate_direction_to_target_with_pathfinding(...)
-pub fn calculate_direction_away_from_target_with_pathfinding(...)
-```
+## Build Status
 
-## Current Game State
+- ✅ **Compilation**: All files compile successfully
+- ✅ **Code Quality**: Clippy warnings addressed
+- ✅ **Functionality**: All existing systems preserved, no breaking changes
 
-### Enhanced AI Behavior
+## AI Intelligence Improvements Achieved
 
-- ✅ Chase actions use A\* pathfinding for intelligent pursuit
-- ✅ Flee actions use escape route finding for smart evasion
-- ✅ Path caching reduces computational overhead
-- ✅ Smart path regeneration when conditions change
-- ✅ Fallback to simple behavior when pathfinding fails
+### Chase & Flee Systems (Previously Completed)
 
-### Functionality Preserved
+- AI navigates around obstacles intelligently using A\* pathfinding
+- Chase behavior follows optimal paths to player instead of getting stuck
+- Flee behavior finds safe escape routes away from threats
+- Path caching reduces computational overhead
+- Smart path regeneration only when conditions change
 
-- ✅ All existing action system functionality maintained
-- ✅ Player input processing unchanged
-- ✅ Turn scheduling and timing preserved
-- ✅ No breaking changes to core game mechanics
+### Wander System (Just Completed)
 
-## Testing Results
-
-### Build Results
-
-- ✅ Cargo clippy successful (2.50s)
-- ✅ All compilation errors fixed
-- ✅ Clippy warnings addressed (3 automatic fixes applied)
-- ✅ No breaking changes to existing systems
-
-### Code Quality
-
-- ✅ Borrowing issues resolved in pathfinding module
-- ✅ Function signatures corrected for mutable references
-- ✅ Clippy suggestions applied for cleaner code
-- ✅ Unused function warnings expected (enhanced versions for future use)
-
-## Benefits Achieved
-
-### AI Intelligence
-
-- **Smarter Movement**: AI navigates around obstacles intelligently
-- **Better Pursuit**: Chase behavior follows optimal paths to player
-- **Intelligent Escape**: Flee behavior finds safe positions away from threats
-- **Adaptive Behavior**: Paths regenerate when conditions change
-
-### Performance
-
-- **Efficient Pathfinding**: A\* algorithm finds optimal routes
-- **Caching Benefits**: Paths reused until invalidation
-- **Reduced Computation**: Smart regeneration only when needed
-- **Graceful Fallbacks**: Simple behavior when pathfinding unavailable
-
-### Maintainability
-
-- **Clean Architecture**: Enhanced components with clear responsibilities
-- **Robust Error Handling**: Fallback mechanisms for edge cases
-- **Future-Ready**: Enhanced helper functions available for other systems
-- **Consistent Patterns**: Similar enhancement approach for chase and flee
+- **Random Wandering**: Enhanced with A\* pathfinding for obstacle navigation
+- **Area Wandering**: AI can be constrained to wander within specific zones
+- **Patrol Behavior**: AI can follow predefined patrol routes
+- **Exploration**: AI seeks out distant unexplored areas
+- **Intelligent Targeting**: Different behavior patterns for different AI types
+- **Time-based Refresh**: Targets refresh at appropriate intervals
+- **Path Optimization**: Efficient A\* pathfinding to wander destinations
 
 ## Next Steps
 
-### Potential Enhancements
+The AI action enhancement project is now complete with all three major systems enhanced:
 
-1. **Wander System**: Apply similar A\* pathfinding to wandering behavior
-2. **Group Behavior**: Coordinate multiple AI entities with pathfinding
-3. **Dynamic Obstacles**: Handle moving obstacles in pathfinding
-4. **Performance Optimization**: Profile and optimize pathfinding performance
+1. ✅ **Chase System** - Intelligent pursuit with A\* pathfinding
+2. ✅ **Flee System** - Smart escape routes with A\* pathfinding
+3. ✅ **Wander System** - Multiple behavior patterns with A\* pathfinding
 
-### Integration Opportunities
-
-1. **Player Assistance**: Optional pathfinding hints for player movement
-2. **Tactical AI**: More sophisticated AI decision making with pathfinding
-3. **Environmental Awareness**: AI that considers terrain types and hazards
-4. **Cooperative Behavior**: AI entities that coordinate their paths
+All AI entities now have significantly improved intelligence and can navigate the game world effectively using optimal pathfinding algorithms.

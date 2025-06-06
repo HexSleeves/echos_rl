@@ -9,10 +9,7 @@ use crate::{
         resources::{CurrentMap, TurnQueue},
     },
     gameplay::{
-        enemies::components::{
-            ChasePlayerAction, ChasePlayerScorer, IdleAction,
-            WanderAction, WanderScorer,
-        },
+        enemies::components::{ChasePlayerAction, ChasePlayerScorer, IdleAction, WanderAction, WanderScorer},
         turns::components::TurnActor,
     },
     rendering::components::TileSprite,
@@ -81,7 +78,6 @@ pub fn spawn_random_ai_from_definition(
     turn_queue: &mut TurnQueue,
 ) -> Result<Entity, String> {
     let random_handle = entity_definitions.get_random_enemy().ok_or("No enemy definitions available")?;
-
     let definition = assets.get(random_handle).ok_or("Random enemy definition not loaded")?;
     spawn_ai_entity(commands, definition, position, current_map, turn_queue)
 }
@@ -101,6 +97,7 @@ fn spawn_ai_entity(
 
     // Add common components using helper function
     let config = EntitySpawnConfig::ai();
+
     // Add common components
     add_common_components(&mut entity_commands, definition, &config);
     // Add big-brain AI components based on behavior type
@@ -166,7 +163,7 @@ fn add_big_brain_components(entity_commands: &mut EntityCommands, behavior_type:
     let thinker = Thinker::build()
         .picker(FirstToScore { threshold: 0.6 })
         .when(ChasePlayerScorer, ChasePlayerAction::default())
-        .otherwise(WanderAction);
+        .otherwise(WanderAction::default());
     // .when(WanderScorer, WanderAction)
     // .otherwise(IdleAction);
 
@@ -175,7 +172,7 @@ fn add_big_brain_components(entity_commands: &mut EntityCommands, behavior_type:
         ChasePlayerScorer,
         WanderScorer,
         ChasePlayerAction::default(),
-        WanderAction,
+        WanderAction::default(),
         IdleAction,
     ));
 

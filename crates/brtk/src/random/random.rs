@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::random::Dice;
 
-#[derive(Resource, Serialize, Deserialize, Reflect, Clone)]
+#[derive(Resource, Serialize, Deserialize, Reflect, Clone, DerefMut, Deref)]
 pub struct Random {
     #[reflect(ignore, default = "default_pcg")]
     pub random: Pcg64,
@@ -30,6 +30,17 @@ impl Random {
 
     /// Generate a random usize value
     pub fn usize(&mut self, range: std::ops::Range<usize>) -> usize {
+        use rand::Rng;
+        self.random.random_range(range)
+    }
+
+    /// Generate a random f32 value
+    pub fn f32(&mut self, range: std::ops::Range<f32>) -> f32 {
+        use rand::Rng;
+        self.random.random_range(range)
+    }
+
+    pub fn f32_inclusive(&mut self, range: std::ops::RangeInclusive<f32>) -> f32 {
         use rand::Rng;
         self.random.random_range(range)
     }
