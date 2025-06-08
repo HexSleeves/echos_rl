@@ -1,0 +1,261 @@
+# Echos in the Dark - Product Requirements Document
+
+## Overview
+Echos in the Dark is a modern turn-based roguelike game built with Bevy Engine 0.16, featuring a sophisticated data-driven entity system. The game emphasizes strategic gameplay, procedural generation, and modular design through RON (Rust Object Notation) configuration files. Players navigate through procedurally generated dungeons, engaging in tactical turn-based combat while managing resources and character progression.
+
+## Core Features
+
+### Data-Driven Entity System
+- All game entities (players, enemies, items, environmental objects) defined through RON files
+- Hot reloading of entity definitions during development
+- Component-based architecture allowing flexible entity composition
+- Automatic entity spawning system with command-based queuing
+- Fallback mechanisms for missing or invalid entity definitions
+
+### Turn-Based Combat System
+- Strategic turn-based gameplay with action queuing
+- Speed-based initiative system where faster entities act more frequently
+- Multiple actions per turn capability
+- AI behavior system using Big Brain for enemy decision making
+- Combat actions include movement, attacks, item usage, and special abilities
+
+### Procedural Generation
+- Randomly generated dungeon layouts with configurable parameters
+- Dynamic enemy spawning based on level progression and encounter balance
+- Weighted spawn systems ensuring fair and challenging gameplay
+- Procedural item and treasure placement
+- Environmental hazards and interactive elements
+
+### Field of View & Lighting System
+- Dynamic line-of-sight calculations
+- Fog of war mechanics revealing explored areas
+- Light sources affecting visibility and gameplay
+- Shadow casting and occlusion systems
+
+### AI & Behavior Systems
+- Intelligent enemy AI using Big Brain behavior trees
+- Multiple AI behaviors: chase, flee, wander, patrol, guard
+- A* pathfinding for intelligent navigation around obstacles
+- Context-aware decision making based on player actions and environment
+- Configurable AI parameters through entity definitions
+
+## User Experience
+
+### Target Audience
+- Roguelike enthusiasts seeking strategic depth
+- Players who enjoy tactical turn-based gameplay
+- Modding community interested in data-driven game design
+- Developers learning modern Rust game development patterns
+
+### Core User Flows
+1. **Game Start**: Main menu → New Game → Character creation/selection → Enter dungeon
+2. **Exploration**: Move through dungeon → Discover rooms → Encounter enemies/items → Make tactical decisions
+3. **Combat**: Initiate combat → Plan actions → Execute turn-based moves → Resolve outcomes
+4. **Progression**: Gain experience → Level up → Acquire new abilities/items → Face greater challenges
+5. **Death/Victory**: Character death → Review run statistics → Start new run OR Complete dungeon → Victory screen
+
+### UI/UX Considerations
+- Clean, readable interface suitable for turn-based gameplay
+- Clear visual feedback for all player actions and game state changes
+- Intuitive controls supporting both keyboard and gamepad input
+- Debug UI for development and modding support
+- Accessibility features for colorblind players and screen readers
+
+## Technical Architecture
+
+### System Components
+- **ECS Architecture**: Built on Bevy's Entity Component System
+- **Modular Crate Structure**: Separated into brtk (utilities), echos_assets (data), and main game logic
+- **Asset Management**: Bevy's asset system with hot reloading capabilities
+- **Audio System**: Kira Audio integration for sound effects and music
+- **Input Handling**: Leafwing Input Manager for flexible control schemes
+
+### Data Models
+- **Entity Definitions**: RON-based entity configuration system
+- **Component System**: Modular components for health, movement, AI, rendering, etc.
+- **Resource Management**: Global game state, settings, and shared data
+- **Event System**: Decoupled communication between game systems
+
+### APIs and Integrations
+- **Bevy ECS**: Core engine integration
+- **Big Brain**: AI behavior tree system
+- **Tilemap Rendering**: Efficient 2D tile-based graphics
+- **Asset Loading**: Dynamic asset management with progress tracking
+
+### Infrastructure Requirements
+- **Development Environment**: Rust toolchain with Bevy 0.16+
+- **Build System**: Cargo with workspace configuration
+- **Testing Framework**: Rust's built-in testing with game-specific test utilities
+- **Asset Pipeline**: RON file validation and hot reloading system
+
+## Development Roadmap
+
+### Phase 1: Core Foundation (MVP)
+**Goal**: Establish basic playable game with essential systems
+
+**Core Systems**:
+- Basic player movement and input handling
+- Simple turn-based system with action queuing
+- Basic enemy AI with chase/flee behaviors
+- Fundamental combat mechanics (attack, defend, move)
+- Simple procedural dungeon generation
+- Basic field of view system
+- Essential UI elements (health, status, basic menus)
+
+**Data Infrastructure**:
+- RON entity definition system
+- Component registration and spawning
+- Basic asset loading and management
+- Development debugging tools
+
+### Phase 2: Enhanced Gameplay
+**Goal**: Expand gameplay depth and variety
+
+**Advanced Combat**:
+- Special abilities and skills system
+- Item usage and inventory management
+- Status effects and buffs/debuffs
+- Environmental interactions and hazards
+
+**Improved AI**:
+- Advanced behavior trees with multiple states
+- A* pathfinding for intelligent navigation
+- Group AI behaviors and coordination
+- Dynamic difficulty adjustment
+
+**Enhanced Generation**:
+- Multiple dungeon themes and layouts
+- Treasure and item placement algorithms
+- Environmental storytelling elements
+- Balanced encounter design
+
+### Phase 3: Polish & Content
+**Goal**: Content expansion and user experience refinement
+
+**Content Systems**:
+- Character progression and leveling
+- Diverse enemy types with unique behaviors
+- Varied item types and magical effects
+- Multiple victory conditions and endings
+
+**User Experience**:
+- Comprehensive UI/UX improvements
+- Audio integration and sound design
+- Visual effects and animations
+- Accessibility features
+
+**Modding Support**:
+- Enhanced RON definition capabilities
+- Modding documentation and tools
+- Community content integration systems
+
+### Phase 4: Advanced Features
+**Goal**: Distinguish from other roguelikes with unique features
+
+**Advanced Systems**:
+- Multi-level dungeon progression
+- Persistent world elements
+- Advanced AI storytelling
+- Dynamic narrative generation
+
+**Technical Excellence**:
+- Performance optimization
+- Cross-platform compatibility
+- Advanced graphics features
+- Networking capabilities (future multiplayer)
+
+## Logical Dependency Chain
+
+### Foundation Layer (Must be built first)
+1. **ECS Component System**: Core components (Position, Health, TurnActor, etc.)
+2. **Entity Definition System**: RON parsing and entity spawning
+3. **Basic Input Handling**: Player movement and action input
+4. **Turn Management**: Turn queue and processing system
+5. **Basic Rendering**: Tilemap display and entity visualization
+
+### Core Gameplay Layer (Builds on foundation)
+1. **Combat System**: Attack resolution, damage calculation, death handling
+2. **AI Behavior System**: Basic enemy behaviors (chase, flee, idle)
+3. **Field of View**: Line-of-sight and fog of war
+4. **Dungeon Generation**: Basic room and corridor generation
+5. **Game State Management**: Menu systems, game over conditions
+
+### Enhancement Layer (Expands core systems)
+1. **Advanced AI**: Pathfinding, complex behaviors, group coordination
+2. **Item System**: Inventory, equipment, consumables
+3. **Character Progression**: Experience, leveling, skill trees
+4. **Advanced Generation**: Multiple themes, balanced encounters
+5. **Audio Integration**: Sound effects, music, ambient audio
+
+### Polish Layer (Final refinements)
+1. **UI/UX Improvements**: Better interfaces, visual feedback
+2. **Performance Optimization**: Efficient rendering, memory management
+3. **Content Expansion**: More enemies, items, abilities
+4. **Modding Tools**: Enhanced RON capabilities, documentation
+
+## Risks and Mitigations
+
+### Technical Challenges
+**Risk**: Bevy ECS complexity and performance bottlenecks
+**Mitigation**: Incremental development with regular performance profiling, leverage Bevy community best practices
+
+**Risk**: RON system becoming too complex or limiting
+**Mitigation**: Start with simple entity definitions, gradually expand capabilities based on actual needs
+
+**Risk**: AI system performance with many entities
+**Mitigation**: Implement efficient spatial partitioning, limit AI processing per frame, use behavior caching
+
+### Development Challenges
+**Risk**: Scope creep leading to incomplete core features
+**Mitigation**: Strict adherence to MVP definition, feature freeze periods, regular milestone reviews
+
+**Risk**: Turn-based system complexity affecting gameplay flow
+**Mitigation**: Prototype core mechanics early, extensive playtesting, iterative refinement
+
+**Risk**: Asset pipeline complexity hindering development
+**Mitigation**: Start with simple assets, build pipeline incrementally, maintain fallback systems
+
+### Resource Constraints
+**Risk**: Single developer bandwidth limiting progress
+**Mitigation**: Focus on core systems first, leverage existing libraries, maintain clear documentation for future contributors
+
+**Risk**: Art and audio asset creation bottlenecks
+**Mitigation**: Use placeholder assets initially, focus on programmer art, consider asset store resources
+
+## Success Metrics
+
+### MVP Success Criteria
+- Playable game loop: start → explore → combat → death/victory
+- Stable turn-based combat system
+- Basic AI behaviors functioning correctly
+- Procedural generation creating playable levels
+- RON entity system working with hot reloading
+
+### Enhanced Version Success Criteria
+- Engaging gameplay lasting 30+ minutes per run
+- Balanced difficulty progression
+- Smooth 60fps performance on target platforms
+- Modding community adoption of RON system
+- Positive feedback from roguelike community
+
+## Appendix
+
+### Technical Specifications
+- **Engine**: Bevy 0.16.1
+- **Language**: Rust Edition 2024
+- **Target Platforms**: Windows, macOS, Linux (native), Web (WebGL2)
+- **Minimum System Requirements**: 4GB RAM, DirectX 11/OpenGL 3.3 support
+- **Development Tools**: Cargo, Clippy, Rustfmt, Bevy Inspector
+
+### Research Findings
+- **Roguelike Design Patterns**: Study of successful roguelikes (NetHack, DCSS, Brogue)
+- **ECS Best Practices**: Bevy community guidelines and performance patterns
+- **Turn-Based Systems**: Analysis of tactical RPG mechanics and pacing
+- **Procedural Generation**: Research into dungeon generation algorithms and balance
+
+### Asset Requirements
+- **Tileset**: 16x16 or 32x32 pixel art tiles for dungeon environments
+- **Character Sprites**: Player and enemy representations
+- **UI Elements**: Health bars, menus, buttons, icons
+- **Audio**: Sound effects for combat, movement, ambient dungeon sounds
+- **Music**: Background tracks for exploration and combat scenarios
