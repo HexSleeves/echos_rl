@@ -22,7 +22,7 @@ impl TeleportAction {
 impl GameAction for TeleportAction {
     fn action_type(&self) -> ActionType { ActionType::Teleport(self.target_position) }
 
-    fn execute(&self, world: &mut World) -> Result<u64, GameError> {
+    fn execute(&mut self, world: &mut World) -> Result<u64, GameError> {
         let mut state: SystemState<(ResMut<CurrentMap>, Query<&mut Position>)> = SystemState::new(world);
         let (current_map, mut q_position) = state.get_mut(world);
 

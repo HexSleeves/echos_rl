@@ -6,7 +6,7 @@ use crate::core::{components::Position, types::error::GameError};
 /// Simplified trait for game actions - focused on execution only
 pub trait GameAction: Send + Sync + 'static + std::fmt::Debug {
     /// Execute the action and return the time it took
-    fn execute(&self, world: &mut World) -> Result<u64, GameError>;
+    fn execute(&mut self, world: &mut World) -> Result<u64, GameError>;
 
     /// Get the action type for identification and time calculation
     fn action_type(&self) -> ActionType;
@@ -71,7 +71,7 @@ impl ActionTypeWrapper {
 impl GameAction for ActionTypeWrapper {
     fn action_type(&self) -> ActionType { self.action_type }
 
-    fn execute(&self, _world: &mut World) -> Result<u64, crate::core::types::GameError> {
+    fn execute(&mut self, _world: &mut World) -> Result<u64, crate::core::types::GameError> {
         // This is a placeholder - the actual execution will be handled by converting
         // to proper action types in the turn system
         Ok(self.action_type.get_base_time_to_perform())

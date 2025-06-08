@@ -21,7 +21,7 @@ impl AttackAction {
 impl GameAction for AttackAction {
     fn action_type(&self) -> ActionType { ActionType::Attack(self.target_position) }
 
-    fn execute(&self, _world: &mut World) -> Result<u64, GameError> {
+    fn execute(&mut self, _world: &mut World) -> Result<u64, GameError> {
         // Placeholder implementation - just log the attack for now
         debug_combat!("Entity {} attacks position {:?}", self.entity, self.target_position);
 
@@ -33,4 +33,6 @@ impl GameAction for AttackAction {
 
         Ok(self.duration())
     }
+
+    fn duration(&self) -> u64 { self.action_type().get_base_time_to_perform() }
 }

@@ -23,7 +23,7 @@ impl MoveAction {
 impl GameAction for MoveAction {
     fn action_type(&self) -> ActionType { ActionType::MoveDelta(self.direction) }
 
-    fn execute(&self, world: &mut World) -> Result<u64, GameError> {
+    fn execute(&mut self, world: &mut World) -> Result<u64, GameError> {
         let mut state: SystemState<(ResMut<CurrentMap>, Query<&mut Position>)> = SystemState::new(world);
 
         // Get references to the data
@@ -76,9 +76,8 @@ impl Walk {
 impl GameAction for Walk {
     fn action_type(&self) -> ActionType { ActionType::MoveDelta(self.direction) }
 
-    fn execute(&self, world: &mut World) -> Result<u64, GameError> {
+    fn execute(&mut self, world: &mut World) -> Result<u64, GameError> {
         // Delegate to MoveAction for the actual implementation
-        let move_action = MoveAction::new(self.entity, self.direction);
-        move_action.execute(world)
+        MoveAction::new(self.entity, self.direction).execute(world)
     }
 }

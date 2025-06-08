@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use bevy::{ecs::system::SystemState, prelude::*};
 
 use crate::{
@@ -5,7 +7,7 @@ use crate::{
         components::PlayerTag,
         resources::TurnQueue,
         states::GameState,
-        types::{GameAction, GameError},
+        types::{ActionTypeWrapper, GameAction, GameError},
     },
     debug_turns,
     gameplay::{player::components::AwaitingInput, turns::components::TurnActor},
@@ -69,7 +71,11 @@ pub fn process_turns(world: &mut World) {
 
             // Process the action using the new trait-based system
             match execute_action(world, entity, action) {
-                Ok(d_time) => turn_queue.schedule_turn(entity, time + d_time),
+                Ok(d_time) => {
+                    // Defensive check – keep the queue healthy
+                    let clamped = d_time.min(60_000); // 60 s upper bound (example)
+                    turn_queue.schedule_turn(entity, time.saturating_add(clamped));
+                }
                 Err(e) => {
                     error!("Failed to perform action: {e:?}");
 
@@ -84,20 +90,17 @@ pub fn process_turns(world: &mut World) {
     });
 }
 
-/// Execute an action using the new trait-based system
 fn execute_action(world: &mut World, entity: Entity, action: Box<dyn GameAction>) -> Result<u64, GameError> {
     debug_turns!("Executing action: {:?}", action.action_type());
 
-    // Check if this is a wrapper action that needs to be converted to a proper action
-    // We use a simple approach: check the debug string to identify wrapper actions
-    let debug_str = format!("{action:?}");
-    if debug_str.contains("ActionTypeWrapper") {
-        // This is a wrapper - extract the ActionType and convert to proper action
-        let action_type = action.action_type();
-        let proper_action = action_type.to_action(entity);
-        return proper_action.execute(world);
+    let any_action = &action as &dyn Any;
+    if let Some(wrapper) = any_action.downcast_ref::<ActionTypeWrapper>() {
+        let action_type = wrapper.action_type();
+        return action_type.to_action(entity).execute(world);
     }
 
-    // Execute the action directly
-    action.execute(world)
+    // This is a wrapper - extract the ActionType and convert to proper action
+    let action_type = action.action_type();
+    let mut proper_action = action_type.to_action(entity);
+    proper_action.execute(world)
 }
