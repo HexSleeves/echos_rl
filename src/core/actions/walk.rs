@@ -11,19 +11,19 @@ use crate::{
 };
 
 #[derive(Clone, Debug)]
-pub struct Walk {
+pub struct MoveAction {
     entity: Entity,
     direction: Direction,
 }
 
-impl Walk {
+impl MoveAction {
     pub fn new(entity: Entity, direction: Direction) -> Self { Self { entity, direction } }
 }
 
-impl GameAction for Walk {
+impl GameAction for MoveAction {
     fn action_type(&self) -> ActionType { ActionType::MoveDelta(self.direction) }
 
-    fn perform(&self, world: &mut World) -> Result<u64, GameError> {
+    fn execute(&self, world: &mut World) -> Result<u64, GameError> {
         let mut state: SystemState<(ResMut<CurrentMap>, Query<&mut Position>)> = SystemState::new(world);
 
         // Get references to the data
@@ -59,5 +59,26 @@ impl GameAction for Walk {
         state.apply(world);
 
         Ok(self.duration())
+    }
+}
+
+// Keep the old Walk struct for backward compatibility if needed
+#[derive(Clone, Debug)]
+pub struct Walk {
+    entity: Entity,
+    direction: Direction,
+}
+
+impl Walk {
+    pub fn new(entity: Entity, direction: Direction) -> Self { Self { entity, direction } }
+}
+
+impl GameAction for Walk {
+    fn action_type(&self) -> ActionType { ActionType::MoveDelta(self.direction) }
+
+    fn execute(&self, world: &mut World) -> Result<u64, GameError> {
+        // Delegate to MoveAction for the actual implementation
+        let move_action = MoveAction::new(self.entity, self.direction);
+        move_action.execute(world)
     }
 }

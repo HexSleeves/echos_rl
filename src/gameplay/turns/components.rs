@@ -4,7 +4,10 @@ use std::collections::VecDeque;
 use brtk::prelude::Direction;
 use echos_assets::entities::TurnActorData;
 
-use crate::core::{components::Position, types::ActionType};
+use crate::core::{
+    components::Position,
+    types::{ActionType, ActionTypeWrapper, GameAction},
+};
 
 /// Component for entities that participate in the turn-based system
 #[derive(Component, Debug)]
@@ -13,8 +16,8 @@ pub struct TurnActor {
     pub speed: u32,
     /// Whether this actor is alive and should participate in turns
     pub alive: bool,
-    /// Queue of actions to perform
-    pub actions: VecDeque<ActionType>,
+    /// Queue of actions to perform (using trait objects for flexibility)
+    pub actions: VecDeque<Box<dyn GameAction>>,
 }
 
 impl TurnActor {
@@ -22,13 +25,21 @@ impl TurnActor {
     pub fn new(speed: u32) -> Self { Self { speed, alive: true, actions: VecDeque::new() } }
 
     /// Get the next action
-    pub fn next_action(&mut self) -> Option<ActionType> { self.actions.pop_front() }
+    pub fn next_action(&mut self) -> Option<Box<dyn GameAction>> { self.actions.pop_front() }
 
     /// Peek at the next action without consuming it
-    pub fn peek_next_action(&self) -> Option<&ActionType> { self.actions.front() }
+    pub fn peek_next_action(&self) -> Option<&dyn GameAction> {
+        self.actions.front().map(|action| action.as_ref())
+    }
 
-    /// Queue an action
-    pub fn queue_action(&mut self, action: ActionType) { self.actions.push_back(action); }
+    /// Queue an action trait object
+    pub fn queue_action_trait(&mut self, action: Box<dyn GameAction>) { self.actions.push_back(action); }
+
+    /// Queue an ActionType (for backward compatibility with AI systems)
+    pub fn queue_action(&mut self, action: ActionType) {
+        // Store the ActionType directly - it will be converted to proper actions in the turn system
+        self.actions.push_back(Box::new(ActionTypeWrapper::new(action)));
+    }
 
     /// Check if actor has any pending actions
     pub fn has_action(&self) -> bool { !self.actions.is_empty() }

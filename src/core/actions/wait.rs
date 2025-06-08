@@ -19,8 +19,10 @@ impl WaitAction {
 impl GameAction for WaitAction {
     fn action_type(&self) -> ActionType { ActionType::Wait }
 
-    fn perform(&self, _world: &mut World) -> Result<u64, GameError> {
+    fn execute(&self, _world: &mut World) -> Result<u64, GameError> {
         info!("Entity {} is waiting", self.entity);
         Ok(self.duration)
     }
+
+    fn duration(&self) -> u64 { self.duration }
 }
