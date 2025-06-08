@@ -12,8 +12,6 @@ pub enum Distance {
     Chebyshev,
     /// Use a diagonal distance, the max of the x and y distances
     Diagonal,
-    /// Use Euclidean distance (sqrt(A^2 + B^2))
-    Euclidean,
     /// Use a diagonal distance, the max of the x and y distances
     DiagonalWithCosts(f32, f32),
 }
@@ -24,7 +22,6 @@ impl Distance {
             Distance::Pythagoras => pythagoras(start, end),
             Distance::PythagorasSquared => pythagoras_squared(start, end),
             Distance::Manhattan => manhattan(start, end),
-            Distance::Euclidean => euclidean(start, end),
             Distance::Chebyshev => chebyshev(start, end),
             Distance::Diagonal => diagonal(start, end),
             Distance::DiagonalWithCosts(d1, d2) => diagonal_with_costs(start, end, d1, d2),
@@ -56,13 +53,6 @@ fn diagonal_with_costs(start: (f32, f32), end: (f32, f32), cardinal_cost: f32, o
     let dx = (start.0 - end.0).abs();
     let dy = (start.1 - end.1).abs();
     cardinal_cost.mul_add(dx.max(dy), (ordinal_cost - cardinal_cost) * dx.min(dy))
-}
-
-/// Calculate Euclidean distance between two points
-fn euclidean(a: (f32, f32), b: (f32, f32)) -> f32 {
-    let dx = a.0 - b.0;
-    let dy = a.1 - b.1;
-    (dx * dx + dy * dy).sqrt()
 }
 
 #[cfg(test)]

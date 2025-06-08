@@ -33,7 +33,7 @@ impl Position {
     /// Distance calculation for field of view and visibility checks
     /// Uses Euclidean distance for realistic vision range calculations
     pub fn fov_range_distance(&self, other: &Position) -> f32 {
-        Distance::Euclidean.calculate(self.as_f32_tuple(), other.as_f32_tuple())
+        Distance::Pythagoras.calculate(self.as_f32_tuple(), other.as_f32_tuple())
     }
 
     /// Distance calculation for pathfinding and movement planning
@@ -199,7 +199,7 @@ mod tests {
 
         // Test different algorithms
         let manhattan = pos1.distance_with_algorithm(&pos2, Distance::Manhattan);
-        let euclidean = pos1.distance_with_algorithm(&pos2, Distance::Euclidean);
+        let euclidean = pos1.distance_with_algorithm(&pos2, Distance::Pythagoras);
         let chebyshev = pos1.distance_with_algorithm(&pos2, Distance::Chebyshev);
 
         assert_eq!(manhattan, 7.0);

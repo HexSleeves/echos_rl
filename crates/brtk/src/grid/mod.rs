@@ -9,6 +9,33 @@ use serde::{Deserialize, Serialize};
 
 use crate::grid::PointIterRowMajor;
 
+/// Iterator for Grid::enumerate_mut that yields ((x, y), &mut T) without allocations
+pub struct GridEnumerateMut<'a, T> {
+    width: u32,
+    current_index: usize,
+    iter: std::slice::IterMut<'a, T>,
+}
+
+impl<'a, T> Iterator for GridEnumerateMut<'a, T> {
+    type Item = ((i32, i32), &'a mut T);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(|item| {
+            // Calculate position from current index
+            let x = (self.current_index % self.width as usize) as i32;
+            let y = (self.current_index / self.width as usize) as i32;
+
+            self.current_index += 1;
+
+            ((x, y), item)
+        })
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) { self.iter.size_hint() }
+}
+
+impl<'a, T> ExactSizeIterator for GridEnumerateMut<'a, T> {}
+
 #[derive(Serialize, Deserialize, Reflect, Debug, Clone)]
 pub struct Grid<T> {
     size: (u32, u32),
@@ -286,19 +313,8 @@ impl<T> Grid<T> {
         items.into_iter()
     }
 
-    pub fn enumerate_mut(&mut self) -> impl Iterator<Item = ((i32, i32), &mut T)> {
-        let mut items = Vec::new();
-        for y in 0..self.size.1 as i32 {
-            for x in 0..self.size.0 as i32 {
-                let index = self.position_to_index_unchecked((x, y));
-                items.push(((x, y), &mut self.data[index] as *mut T));
-            }
-        }
-        items
-            .into_iter()
-            .map(|(position, ptr)| unsafe { (position, &mut *ptr) })
-            .collect::<Vec<((i32, i32), &mut T)>>()
-            .into_iter()
+    pub fn enumerate_mut(&mut self) -> GridEnumerateMut<T> {
+        GridEnumerateMut { iter: self.data.iter_mut(), width: self.size.0, current_index: 0 }
     }
 
     pub fn position_iter(&self) -> PointIterRowMajor { PointIterRowMajor::new(self.size) }
@@ -410,5 +426,27 @@ impl<T> IndexMut<(u32, u32)> for Grid<T> {
     fn index_mut(&mut self, index: (u32, u32)) -> &mut Self::Output {
         let index = (index.0 as i32, index.1 as i32);
         self.get_mut(index).expect("Invalid index position")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_grid() {
+        let grid = Grid::new((3, 3), vec![0; 9]);
+
+        let mut iter = grid.position_iter();
+        assert_eq!(iter.next(), Some((0, 0)));
+        assert_eq!(iter.next(), Some((1, 0)));
+        assert_eq!(iter.next(), Some((2, 0)));
+        assert_eq!(iter.next(), Some((0, 1)));
+        assert_eq!(iter.next(), Some((1, 1)));
+        assert_eq!(iter.next(), Some((2, 1)));
+        assert_eq!(iter.next(), Some((0, 2)));
+        assert_eq!(iter.next(), Some((1, 2)));
+        assert_eq!(iter.next(), Some((2, 2)));
+        assert_eq!(iter.next(), None);
     }
 }

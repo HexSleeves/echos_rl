@@ -6,6 +6,8 @@ use std::{
     time::SystemTime,
 };
 
+use chrono::TimeZone;
+
 use super::{DebugCategory, DebugConfig};
 
 /// File logger that handles writing debug messages to files
@@ -73,7 +75,8 @@ impl FileLogger {
         let extension = log_path.extension().unwrap_or_default();
 
         // Move existing rotated files
-        for i in (1..self.config.max_log_files).rev() {
+        // include the current log (index 0) and create space for `.1`
+        for i in (0..=self.config.max_log_files).rev() {
             let from_path = if i == 1 {
                 log_path.to_path_buf()
             } else {
@@ -81,7 +84,6 @@ impl FileLogger {
             };
 
             let to_path = base_path.with_extension(format!("{}.{}", extension.to_string_lossy(), i + 1));
-
             if from_path.exists() {
                 if i + 1 > self.config.max_log_files {
                     // Delete the oldest file
@@ -183,7 +185,7 @@ fn format_timestamp(time: SystemTime) -> String {
 
             // Convert to a readable format (simplified)
             let datetime =
-                chrono::DateTime::from_timestamp(secs as i64, nanos).unwrap_or_else(chrono::Utc::now);
+                chrono::Utc.timestamp_opt(secs as i64, nanos).single().unwrap_or_else(chrono::Utc::now);
 
             datetime.format("%Y-%m-%d %H:%M:%S%.3f").to_string()
         }

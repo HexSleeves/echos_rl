@@ -139,7 +139,10 @@ pub fn unified_debug_ui_system(world: &mut World) {
 
             ui.horizontal(|ui| {
                 ui.label("Log directory:");
-                ui.text_edit_singleline(&mut debug_config.log_file_path.to_string_lossy().to_string());
+                let mut path_string = debug_config.log_file_path.to_string_lossy().into_owned();
+                if ui.text_edit_singleline(&mut path_string).changed() {
+                    debug_config.log_file_path = PathBuf::from(path_string);
+                }
             });
 
             ui.horizontal(|ui| {
@@ -177,8 +180,8 @@ pub fn unified_debug_ui_system(world: &mut World) {
             }
 
             ui.label(
-                "Generates a comprehensive bug report with recent log entries from
-        all enabled debug categories.",
+                "Generates a comprehensive bug report with recent log entries from \
+                 all enabled debug categories.",
             );
         });
 

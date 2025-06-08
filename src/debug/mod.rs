@@ -55,15 +55,5 @@ fn toggle_debug_ui(mut options: ResMut<UiDebugOptions>) { options.toggle(); }
 pub fn is_category_enabled(category: DebugCategory) -> bool {
     // Try to get the config from the world, fallback to default behavior
     // This is a simplified check - in practice you'd want to access the actual resource
-    match category {
-        DebugCategory::AI => std::env::var("DEBUG_AI").is_ok(),
-        DebugCategory::Turns => std::env::var("DEBUG_TURNS").is_ok(),
-        DebugCategory::Combat => std::env::var("DEBUG_COMBAT").is_ok(),
-        DebugCategory::World => std::env::var("DEBUG_WORLD").is_ok(),
-        DebugCategory::Input => std::env::var("DEBUG_INPUT").is_ok(),
-        DebugCategory::Rendering => std::env::var("DEBUG_RENDERING").is_ok(),
-        DebugCategory::Performance => std::env::var("DEBUG_PERFORMANCE").is_ok(),
-        DebugCategory::General => std::env::var("DEBUG_GENERAL").is_ok(),
-        DebugCategory::StateTransitions => std::env::var("DEBUG_STATE_TRANSITIONS").is_ok(),
-    }
+    category.is_env_enabled()
 }

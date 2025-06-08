@@ -7,7 +7,7 @@
 macro_rules! debug_log_internal {
     ($category:expr, $level:expr, $($arg:tt)*) => {
         // Check environment variable first for quick enable/disable
-        if $category.is_env_enabled() {
+        if $category.is_env_enabled() || $crate::debug::DebugConfig::load_or_default().is_category_enabled($category) {
             let message = format!($($arg)*);
 
             // Log to console with category prefix
@@ -161,14 +161,17 @@ macro_rules! debug_time {
     ($category:expr, $operation:expr, $code:block) => {{
         #[cfg(feature = "debug")]
         {
+            // Execute the code block exactly once by wrapping it in a closure
+            let execute_code = || $code;
+
             if $category.is_env_enabled() {
                 let start = std::time::Instant::now();
-                let result = $code;
+                let result = execute_code();
                 let duration = start.elapsed();
                 $crate::debug_log_internal!($category, "INFO", "{} took {:?}", $operation, duration);
                 result
             } else {
-                $code
+                execute_code()
             }
         }
         #[cfg(not(feature = "debug"))]

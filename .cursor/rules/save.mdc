@@ -47,6 +47,7 @@ alwaysApply: false
 - Update `docs/tasks.json` with completion status to done, when available
 
 # Commit with comprehensive session message
+git add .
 git commit -m "session: [brief session description]
 
 ## Pre-save validation:

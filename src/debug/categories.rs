@@ -86,7 +86,9 @@ impl DebugCategory {
     }
 
     /// Check if this category is enabled via environment variable
-    pub fn is_env_enabled(&self) -> bool { std::env::var(self.env_var()).is_ok() }
+    pub fn is_env_enabled(&self) -> bool {
+        matches!(std::env::var(self.env_var()).as_deref(), Ok("1") | Ok("true"))
+    }
 }
 
 impl fmt::Display for DebugCategory {

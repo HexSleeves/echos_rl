@@ -26,7 +26,7 @@ impl Default for DistanceSettings {
     fn default() -> Self {
         Self {
             ai_detection: Distance::Manhattan,
-            fov_range: Distance::Euclidean,
+            fov_range: Distance::Pythagoras,
             pathfinding: Distance::Chebyshev,
             tactical: Distance::Diagonal,
         }
@@ -50,10 +50,10 @@ impl DistanceSettings {
     /// Create distance settings optimized for accuracy (more realistic algorithms)
     pub fn accuracy_optimized() -> Self {
         Self {
-            ai_detection: Distance::Euclidean,
-            fov_range: Distance::Euclidean,
-            pathfinding: Distance::Euclidean,
-            tactical: Distance::Euclidean,
+            ai_detection: Distance::Pythagoras,
+            fov_range: Distance::Pythagoras,
+            pathfinding: Distance::Pythagoras,
+            tactical: Distance::Pythagoras,
         }
     }
 
@@ -75,7 +75,6 @@ impl DistanceSettings {
             Distance::Manhattan => "Manhattan",
             Distance::Chebyshev => "Chebyshev",
             Distance::Diagonal => "Diagonal",
-            Distance::Euclidean => "Euclidean",
             Distance::DiagonalWithCosts(_, _) => "Diagonal with Costs",
         }
     }
@@ -88,7 +87,6 @@ impl DistanceSettings {
             Distance::Manhattan => "Grid-based distance (no diagonals)",
             Distance::Chebyshev => "Maximum of horizontal/vertical distances",
             Distance::Diagonal => "Allows diagonal movement at same cost",
-            Distance::Euclidean => "True geometric distance (most realistic)",
             Distance::DiagonalWithCosts(_, _) => "Diagonal movement with custom costs",
         }
     }
@@ -97,7 +95,6 @@ impl DistanceSettings {
     pub fn available_distances() -> Vec<Distance> {
         vec![
             Distance::Manhattan,
-            Distance::Euclidean,
             Distance::Chebyshev,
             Distance::Diagonal,
             Distance::Pythagoras,

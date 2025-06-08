@@ -91,10 +91,11 @@ mod tests {
         assert!(path.is_some());
 
         let path = path.unwrap();
-        assert_eq!(path.len(), 3); // Should be [(1,0), (2,0), (3,0)]
-        assert_eq!(path[0], (1, 0));
-        assert_eq!(path[1], (2, 0));
-        assert_eq!(path[2], (3, 0));
+        assert_eq!(path.len(), 4); // Should be [(0,0), (1,0), (2,0), (3,0)]
+        assert_eq!(path[0], (0, 0));
+        assert_eq!(path[1], (1, 0));
+        assert_eq!(path[2], (2, 0));
+        assert_eq!(path[3], (3, 0));
     }
 
     #[test]

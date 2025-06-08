@@ -23,3 +23,23 @@ impl Iterator for PointIterRowMajor {
         Some(point)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::PointIterRowMajor;
+
+    #[test]
+    fn test_point_iter_row_major() {
+        let mut iter = PointIterRowMajor::new((3, 3));
+        assert_eq!(iter.next(), Some((0, 0)));
+        assert_eq!(iter.next(), Some((1, 0)));
+        assert_eq!(iter.next(), Some((2, 0)));
+        assert_eq!(iter.next(), Some((0, 1)));
+        assert_eq!(iter.next(), Some((1, 1)));
+        assert_eq!(iter.next(), Some((2, 1)));
+        assert_eq!(iter.next(), Some((0, 2)));
+        assert_eq!(iter.next(), Some((1, 2)));
+        assert_eq!(iter.next(), Some((2, 2)));
+        assert_eq!(iter.next(), None);
+    }
+}
