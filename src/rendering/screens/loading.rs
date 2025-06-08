@@ -38,8 +38,6 @@ struct ProgressBar;
 
 /// Set up the loading screen UI
 fn setup_loading_screen(mut commands: Commands) {
-    info!("Setting up loading screen...");
-
     // Spawn camera for loading screen
     commands.spawn((Camera2d, LoadingScreen));
 
@@ -126,7 +124,6 @@ fn animate_loading_screen(
 
 /// Clean up loading screen entities
 fn cleanup_loading_screen(mut commands: Commands, loading_entities: Query<Entity, With<LoadingScreen>>) {
-    info!("Cleaning up loading screen...");
     for entity in &loading_entities {
         commands.entity(entity).despawn();
     }

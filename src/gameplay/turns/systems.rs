@@ -9,6 +9,7 @@ use crate::{
         states::GameState,
         types::{ActionType, GameAction, GameError},
     },
+    debug_turns,
     gameplay::{
         player::components::AwaitingInput, turns::components::TurnActor, world::components::TerrainType,
     },
@@ -27,9 +28,10 @@ pub fn process_turns(world: &mut World) {
 
         // Log significant cleanups
         if metrics.entities_removed > 10 {
-            info!(
+            debug_turns!(
                 "Turn queue cleanup: removed {} entities in {:?}",
-                metrics.entities_removed, metrics.processing_time
+                metrics.entities_removed,
+                metrics.processing_time
             );
         }
         turn_queue.print_queue();
@@ -46,7 +48,7 @@ pub fn process_turns(world: &mut World) {
                 };
 
                 if !actor.is_alive() {
-                    info!("Actor is dead. Why is it still in the queue?");
+                    error!("Actor is dead. Why is it still in the queue?");
                     continue;
                 }
 
@@ -54,7 +56,7 @@ pub fn process_turns(world: &mut World) {
                 action_opt = actor.next_action();
 
                 if is_player && action_opt.is_none() {
-                    info!("Player has no action. Scheduling turn.");
+                    debug_turns!("Player has no action. Scheduling turn.");
 
                     next_state.set(GameState::GatherActions);
                     world.entity_mut(entity).insert(AwaitingInput);
@@ -64,7 +66,7 @@ pub fn process_turns(world: &mut World) {
             } // ← all borrows of `world` released here
 
             let Some(action) = action_opt else {
-                info!("No action for entity: {:?}. Rescheduling turn.", entity);
+                debug_turns!("No action for entity: {:?}. Rescheduling turn.", entity);
                 turn_queue.schedule_turn(entity, time);
                 continue;
             };
@@ -88,7 +90,7 @@ pub fn process_turns(world: &mut World) {
 
 /// Perform an action for the given entity
 fn perform_action(world: &mut World, entity: Entity, action: ActionType) -> Result<u64, GameError> {
-    info!("Performing action: {:?}", action);
+    debug_turns!("Performing action: {:?}", action);
 
     match action {
         ActionType::Wait => WaitAction::new(entity).perform(world),
@@ -132,7 +134,7 @@ fn perform_move_delta(world: &mut World, entity: Entity, direction: Direction) -
             }
             _ => {
                 *current_pos = new_pos;
-                info!("Entity {} moved from {:?} to {:?}", entity, current_pos, new_pos);
+                debug_turns!("Entity {} moved from {:?} to {:?}", entity, current_pos, new_pos);
             }
         }
     } else {
@@ -167,7 +169,7 @@ fn perform_teleport(world: &mut World, entity: Entity, target_pos: Position) -> 
             }
             _ => {
                 *current_pos = target_pos;
-                info!("Entity {} moved to {:?}", entity, target_pos);
+                debug_turns!("Entity {} moved to {:?}", entity, target_pos);
             }
         }
     } else {
@@ -182,7 +184,7 @@ fn perform_teleport(world: &mut World, entity: Entity, target_pos: Position) -> 
 /// Perform an attack action (placeholder implementation)
 fn perform_attack(_world: &mut World, entity: Entity, target_pos: Position) -> Result<(), GameError> {
     // Placeholder implementation - just log the attack for now
-    info!("Entity {} attacks position {:?}", entity, target_pos);
+    debug_turns!("Entity {} attacks position {:?}", entity, target_pos);
 
     // TODO: Implement actual attack logic when combat system is added
     // - Check if target position has an entity

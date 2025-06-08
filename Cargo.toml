@@ -48,9 +48,10 @@ serde = { version = "1", features = [
 toml = "0.8.22" # A TOML-formatted file and stream encoder/decoder.
 
 ### Utilities ###
-bitvec    = { version = "1" } # A vector of bits.
-once_cell = { version = "1" } # A thread-safe once-cell implementation.
-regex     = "1.0"             # An implementation of regular expressions for Rust.
+bitvec    = { version = "1" }                         # A vector of bits.
+once_cell = { version = "1" }                         # A thread-safe once-cell implementation.
+regex     = "1.0"                                     # An implementation of regular expressions for Rust.
+chrono    = { version = "0.4", features = ["serde"] } # Date and time library.
 
 ### Logging ###
 # Compile low-severity logs out of native builds for performance.
@@ -63,6 +64,8 @@ tracing = { version = "0.1", features = [
   "max_level_debug",
   "release_max_level_warn",
 ] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-appender = { version = "0.2" }
 
 ### Platform dependencies ###
 winit = { version = "0.30", default-features = false }
@@ -88,13 +91,13 @@ dev_native = [
   "bevy/embedded_watcher",
 ]
 
-# configuration for debugging information
-debug = ["bevy-inspector-egui", "debug-graph"]
-
-debug-trace = ["debug", "trace"]
-
 # Parallelism
 parallel = ["rayon"]
+
+# configuration for debugging information
+debug         = ["bevy-inspector-egui", "debug-graph"]
+debug-logging = ["tracing-subscriber", "tracing-appender"]
+debug-trace   = ["debug", "trace"]
 
 # Debugging
 debug-graph = ["bevy_mod_debugdump"]
@@ -154,6 +157,7 @@ leafwing-input-manager = { workspace = true }
 # Error handling
 anyhow    = { workspace = true }
 bitvec    = { workspace = true }
+chrono    = { workspace = true }
 fastrand  = { workspace = true }
 once_cell = { workspace = true }
 rand      = { workspace = true }
@@ -164,8 +168,10 @@ thiserror = { workspace = true }
 toml      = { workspace = true }
 
 ### Logging ###
-log     = { workspace = true }
-tracing = { workspace = true }
+log                = { workspace = true }
+tracing            = { workspace = true }
+tracing-subscriber = { workspace = true, optional = true }
+tracing-appender   = { workspace = true, optional = true }
 
 ### Platform dependencies ###
 winit = { workspace = true }

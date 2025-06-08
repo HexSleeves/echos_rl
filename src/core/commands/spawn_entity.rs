@@ -46,7 +46,7 @@ pub fn process_spawn_commands(
                 &mut turn_queue,
             ) {
                 Ok(player_id) => {
-                    info!(
+                    debug!(
                         "Successfully spawned player from definition at {:?} with ID {:?}",
                         spawn_cmd.position, player_id
                     );

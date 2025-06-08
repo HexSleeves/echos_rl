@@ -120,8 +120,6 @@ impl Default for AIBehavior {
 
 impl AIBehavior {
     pub fn new(behavior_type: AIBehaviorType, detection_range: u8, turns_before_wander: u64) -> Self {
-        info!("AI behavior new: {:?}", behavior_type);
-
         Self {
             behavior_type,
             detection_range,

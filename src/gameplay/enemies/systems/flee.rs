@@ -9,6 +9,7 @@ use crate::{
         resources::{CurrentMap, FovMap, TurnQueue},
         types::ActionType,
     },
+    debug_ai,
     gameplay::{
         enemies::{
             components::{AIBehavior, FleeFromPlayerAction, FleeFromPlayerScorer},
@@ -93,16 +94,16 @@ pub fn flee_from_player_action_system(
 
         match *action_state {
             ActionState::Success | ActionState::Failure => {
-                info!("{} flee state: {:?}", ai_name, action_state);
+                debug_ai!("{} flee state: {:?}", ai_name, action_state);
                 continue;
             }
             ActionState::Cancelled => {
-                info!("{} cancelled flee!", ai_name);
+                debug_ai!("{} cancelled flee!", ai_name);
                 *action_state = ActionState::Failure;
                 continue;
             }
             ActionState::Init | ActionState::Requested => {
-                info!("{} gonna start fleeing!", ai_name);
+                debug_ai!("{} gonna start fleeing!", ai_name);
                 *action_state = ActionState::Executing;
 
                 // Generate escape path using enhanced pathfinding
@@ -110,7 +111,7 @@ pub fn flee_from_player_action_system(
                     if let Some(path) =
                         pathfinding::utils::find_path(*ai_pos, escape_target, &mut current_map, true)
                     {
-                        info!("{} generated A* escape path with {} steps", ai_name, path.len());
+                        debug_ai!("{} generated A* escape path with {} steps", ai_name, path.len());
 
                         // Store the complete escape path and tracking information
                         flee_action.escape_path = path;
@@ -128,38 +129,44 @@ pub fn flee_from_player_action_system(
                                 execute_flee_movement(&mut ai_actor, dir, next_pos, ai_name);
                                 flee_action.path_index = 1; // Mark that we're moving to step 1
                             } else {
-                                info!(
+                                debug_ai!(
                                     "{} A* escape path generated but cannot calculate direction, falling back",
                                     ai_name
                                 );
                                 *action_state = ActionState::Failure;
                             }
                         } else {
-                            info!("{} A* escape path too short, already at destination", ai_name);
+                            debug_ai!("{} A* escape path too short, already at destination", ai_name);
                             *action_state = ActionState::Success;
                         }
                     } else {
-                        info!("{} A* pathfinding to escape destination failed, using simple flee", ai_name);
+                        debug_ai!(
+                            "{} A* pathfinding to escape destination failed, using simple flee",
+                            ai_name
+                        );
                         // Fallback to simple direction calculation away from player
                         let direction = helpers::calculate_direction_away_from_target(*ai_pos, *player_pos);
                         if let Some(dir) = direction {
                             execute_flee_movement(&mut ai_actor, dir, escape_target, ai_name);
                         } else {
-                            info!("AI entity {:?} cannot find escape direction, action failed", actor_entity);
+                            debug_ai!(
+                                "AI entity {:?} cannot find escape direction, action failed",
+                                actor_entity
+                            );
                             *action_state = ActionState::Failure;
                         }
                     }
                 } else {
-                    info!("{} cannot find escape destination, action failed", ai_name);
+                    debug_ai!("{} cannot find escape destination, action failed", ai_name);
                     *action_state = ActionState::Failure;
                 }
             }
             ActionState::Executing => {
-                info!("{} executing flee!", ai_name);
+                debug_ai!("{} executing flee!", ai_name);
 
                 // Check if we need to regenerate the escape path
                 if should_regenerate_escape_path(&flee_action, *ai_pos, *player_pos, &current_map) {
-                    info!("{} regenerating A* escape path due to changed conditions", ai_name);
+                    debug_ai!("{} regenerating A* escape path due to changed conditions", ai_name);
 
                     if let Some(new_escape_target) =
                         find_escape_destination(*ai_pos, *player_pos, &current_map)
@@ -173,13 +180,13 @@ pub fn flee_from_player_action_system(
                             flee_action.threat_pos_when_path_generated = Some(*player_pos);
                             flee_action.ai_pos_when_path_generated = Some(*ai_pos);
 
-                            info!(
+                            debug_ai!(
                                 "{} regenerated A* escape path with {} steps",
                                 ai_name,
                                 flee_action.escape_path.len()
                             );
                         } else {
-                            info!(
+                            debug_ai!(
                                 "{} failed to regenerate A* escape path, falling back to simple flee",
                                 ai_name
                             );
@@ -201,7 +208,7 @@ pub fn flee_from_player_action_system(
                     let target_position = flee_action.escape_target.unwrap_or(*ai_pos);
                     execute_flee_movement(&mut ai_actor, direction, target_position, ai_name);
                 } else {
-                    info!("AI entity {:?} cannot find escape path, action failed", actor_entity);
+                    debug_ai!("AI entity {:?} cannot find escape path, action failed", actor_entity);
                     *action_state = ActionState::Failure;
                 }
             }
@@ -217,7 +224,7 @@ fn execute_flee_movement(
     ai_name: &str,
 ) {
     ai_actor.queue_action(ActionType::MoveDelta(direction));
-    info!("{} fleeing: moving {:?} towards {:?}", ai_name, direction, target_position);
+    debug_ai!("{} fleeing: moving {:?} towards {:?}", ai_name, direction, target_position);
 }
 
 /// Find a good escape destination away from the threat

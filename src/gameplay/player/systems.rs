@@ -55,16 +55,12 @@ pub fn player_input_system(
                 && timer.finished())
             && let Some(direction) = input_direction.direction()
         {
-            info!("Player pressed direction: {:?}", direction);
-
             timer.reset();
             action = Some(ActionType::MoveDelta(direction));
         }
     }
 
     if let Some(action) = action {
-        info!("Player gave input: {:?}", action);
-
         // Queue the action directly - no more builder pattern!
         p_actor.queue_action(action);
 

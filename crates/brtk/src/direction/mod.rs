@@ -7,5 +7,5 @@ pub use self::direction_iter::*;
 mod direction_table;
 pub(crate) use self::direction_table::*;
 
-mod direction;
-pub use self::direction::*;
+mod directions;
+pub use self::directions::*;

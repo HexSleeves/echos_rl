@@ -167,9 +167,7 @@ mod tests {
         let max_distance = receiver.get_max_distance_from_origin();
         assert!(
             max_distance <= range as f32 + 0.1,
-            "Maximum visible distance {} should not exceed range {}",
-            max_distance,
-            range
+            "Maximum visible distance {max_distance} should not exceed range {range}"
         );
     }
 
@@ -203,7 +201,7 @@ mod tests {
         provider.add_opaque((1, 0));
 
         // Compute FOV from origin with range 3
-        Shadowcast::compute_fov((0, 0), 0, 3, &mut provider, &mut receiver);
+        Shadowcast::compute_fov((0, 0), 0, 3, &provider, &mut receiver);
 
         // Origin should be visible
         assert!(receiver.get_visible((0, 0)));

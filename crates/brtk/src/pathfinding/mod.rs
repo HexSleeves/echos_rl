@@ -149,7 +149,7 @@ mod tests {
         assert!(path.len() > 1); // Should have more than just the origin
 
         // The path should get closer to the destination than the origin
-        let origin_to_dest_dist = ((9i32 - 0i32).pow(2) + (0i32 - 0i32).pow(2)) as f32;
+        let origin_to_dest_dist = (9i32.pow(2) + 0i32.pow(2)) as f32;
         let last_pos = path.last().unwrap();
         let last_to_dest_dist = ((9i32 - last_pos.0).pow(2) + (0i32 - last_pos.1).pow(2)) as f32;
         assert!(last_to_dest_dist < origin_to_dest_dist);

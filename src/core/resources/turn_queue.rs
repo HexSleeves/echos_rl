@@ -2,7 +2,7 @@ use std::{cmp::Reverse, collections::BinaryHeap};
 
 use bevy::prelude::*;
 
-use crate::{core::components::DeadTag, gameplay::turns::components::TurnActor};
+use crate::{core::components::DeadTag, debug_turns, gameplay::turns::components::TurnActor};
 
 #[derive(Resource, Default)]
 pub struct TurnQueue {
@@ -17,7 +17,7 @@ pub struct TurnQueue {
 
 impl TurnQueue {
     pub fn print_queue(&self) {
-        info!("Current time: {:?}, Turn queue: {:?}", self.current_time, self.turn_queue);
+        debug_turns!("Current time: {:?}, Turn queue: {:?}", self.current_time, self.turn_queue);
     }
 
     /// Check if the turn queue is empty
@@ -73,7 +73,7 @@ impl TurnQueue {
             return CleanupMetrics::default();
         }
 
-        info!("Cleaning up dead entities...");
+        debug_turns!("Cleaning up dead entities...");
 
         let queue_size_before = self.turn_queue.len();
         let start_time = std::time::Instant::now();
@@ -94,9 +94,9 @@ impl TurnQueue {
                 removed_count += 1;
 
                 if let Some(entity_name) = get_entity_debug_name(world, entity) {
-                    log::debug!("Removed dead entity from turn queue: {entity_name}");
+                    debug_turns!("Removed dead entity from turn queue: {entity_name}");
                 } else {
-                    log::debug!("Removed dead entity from turn queue: {entity:?}");
+                    debug_turns!("Removed dead entity from turn queue: {entity:?}");
                 }
             }
         }

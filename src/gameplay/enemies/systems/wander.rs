@@ -9,6 +9,8 @@ use crate::{
         resources::{CurrentMap, FovMap, TurnQueue},
         types::ActionType,
     },
+    // Import debug macros
+    debug_ai,
     gameplay::{
         enemies::{
             components::{AIBehavior, WanderAction, WanderScorer, WanderType},
@@ -17,6 +19,7 @@ use crate::{
         turns::components::TurnActor,
     },
     prelude::assets::AIBehaviorType,
+    warn_ai,
 };
 
 // ============================================================================
@@ -39,7 +42,7 @@ pub fn wander_scorer_system(
 
     for (Actor(actor_entity), mut score) in scorer_query.iter_mut() {
         let Ok((&ai_pos, mut ai_behavior)) = ai_query.get_mut(*actor_entity) else {
-            warn!("Actor must have required components");
+            warn_ai!("Actor must have required components");
             continue;
         };
 
@@ -92,7 +95,7 @@ pub fn wander_action_system(
 
     for (Actor(actor_entity), mut action_state, mut wander_action) in action_query.iter_mut() {
         let Ok((ai_pos, mut ai_actor, ai_name)) = ai_query.get_mut(*actor_entity) else {
-            warn!("Actor must have required components");
+            warn_ai!("Actor must have required components");
             continue;
         };
 
@@ -102,16 +105,16 @@ pub fn wander_action_system(
 
         match *action_state {
             ActionState::Success | ActionState::Failure => {
-                info!("{} wander state: {:?}", ai_name, action_state);
+                debug_ai!("{} wander state: {:?}", ai_name, action_state);
                 continue;
             }
             ActionState::Cancelled => {
-                info!("{} cancelled wander!", ai_name);
+                debug_ai!("{} cancelled wander!", ai_name);
                 *action_state = ActionState::Failure;
                 continue;
             }
             ActionState::Init | ActionState::Requested => {
-                info!("{} gonna start wandering!", ai_name);
+                debug_ai!("{} gonna start wandering!", ai_name);
                 *action_state = ActionState::Executing;
 
                 let target_position = select_wander_target(
@@ -126,7 +129,7 @@ pub fn wander_action_system(
                     // Generate A* path to wander target
                     if let Some(path) = pathfinding::utils::find_path(*ai_pos, target, &mut current_map, true)
                     {
-                        info!("{} generated A* wander path with {} steps", ai_name, path.len());
+                        debug_ai!("{} generated A* wander path with {} steps", ai_name, path.len());
 
                         // Store the complete path and tracking information
                         wander_action.current_path = path;
@@ -142,16 +145,19 @@ pub fn wander_action_system(
                                 execute_wander_movement(&mut ai_actor, dir, target, ai_name);
                                 wander_action.path_index = 1; // Mark that we're moving to step 1
                             } else {
-                                info!("{} A* wander path generated but cannot calculate direction", ai_name);
+                                debug_ai!(
+                                    "{} A* wander path generated but cannot calculate direction",
+                                    ai_name
+                                );
                                 *action_state = ActionState::Failure;
                             }
                         } else {
-                            info!("{} A* wander path too short, already at target", ai_name);
+                            debug_ai!("{} A* wander path too short, already at target", ai_name);
                             *action_state = ActionState::Success;
                         }
                     } else {
                         // Fallback to simple random direction
-                        info!("{} A* wander pathfinding failed, using simple movement", ai_name);
+                        debug_ai!("{} A* wander pathfinding failed, using simple movement", ai_name);
                         wander_action.current_path.clear();
                         wander_action.current_target = Some(target);
 
@@ -159,21 +165,24 @@ pub fn wander_action_system(
                         if let Some(dir) = direction {
                             execute_wander_movement(&mut ai_actor, dir, target, ai_name);
                         } else {
-                            info!("AI entity {:?} cannot find wander direction, action failed", actor_entity);
+                            debug_ai!(
+                                "AI entity {:?} cannot find wander direction, action failed",
+                                actor_entity
+                            );
                             *action_state = ActionState::Failure;
                         }
                     }
                 } else {
-                    info!("{} cannot find wander target, action failed", ai_name);
+                    debug_ai!("{} cannot find wander target, action failed", ai_name);
                     *action_state = ActionState::Failure;
                 }
             }
             ActionState::Executing => {
-                info!("{} executing wander!", ai_name);
+                debug_ai!("{} executing wander!", ai_name);
 
                 // Check if we need to regenerate the wander path or select new target
                 if should_regenerate_wander_path(&wander_action, *ai_pos, &current_map, current_turn) {
-                    info!("{} regenerating wander path or selecting new target", ai_name);
+                    debug_ai!("{} regenerating wander path or selecting new target", ai_name);
 
                     let new_target = select_wander_target(
                         &mut wander_action,
@@ -191,13 +200,13 @@ pub fn wander_action_system(
                             wander_action.current_target = Some(target);
                             wander_action.ai_pos_when_path_generated = Some(*ai_pos);
 
-                            info!(
+                            debug_ai!(
                                 "{} regenerated wander path with {} steps",
                                 ai_name,
                                 wander_action.current_path.len()
                             );
                         } else {
-                            info!("{} failed to regenerate wander path, using simple movement", ai_name);
+                            debug_ai!("{} failed to regenerate wander path, using simple movement", ai_name);
                             wander_action.current_path.clear();
                             wander_action.current_target = Some(target);
                         }
@@ -209,7 +218,7 @@ pub fn wander_action_system(
 
                 // Check if we've reached our target
                 if target_position == *ai_pos {
-                    info!("{} reached wander target, selecting new target", ai_name);
+                    debug_ai!("{} reached wander target, selecting new target", ai_name);
                     *action_state = ActionState::Success;
                     continue;
                 }
@@ -225,7 +234,7 @@ pub fn wander_action_system(
                 if let Some(direction) = next_move_result {
                     execute_wander_movement(&mut ai_actor, direction, target_position, ai_name);
                 } else {
-                    info!("AI entity {:?} cannot find wander path, action failed", actor_entity);
+                    debug_ai!("AI entity {:?} cannot find wander path, action failed", actor_entity);
                     *action_state = ActionState::Failure;
                 }
             }
@@ -241,7 +250,13 @@ fn execute_wander_movement(
     ai_name: &str,
 ) {
     ai_actor.queue_action(ActionType::MoveDelta(direction));
-    info!("{} wandering: moving {:?} towards {:?}", ai_name, direction, target_position);
+    debug_ai!("{} wandering: moving {:?} towards {:?}", ai_name, direction, target_position);
+
+    // Suppress unused variable warnings when debug feature is disabled
+    #[cfg(not(feature = "debug"))]
+    {
+        let _ = (target_position, ai_name);
+    }
 }
 
 /// Select an appropriate wander target based on the wander type
@@ -373,7 +388,7 @@ fn should_regenerate_wander_path(
     if let Some(last_target_time) = wander_action.last_target_time {
         let time_units_since_target = current_turn.saturating_sub(last_target_time);
         let turns_since_target = time_units_since_target / 1000;
-        info!("turns since target: {turns_since_target} (time units: {time_units_since_target})");
+        debug_ai!("turns since target: {turns_since_target} (time units: {time_units_since_target})");
         if turns_since_target > 75 {
             // Time to pick a new target
             return true;
@@ -382,7 +397,7 @@ fn should_regenerate_wander_path(
 
     // No path exists
     if wander_action.current_path.is_empty() {
-        info!("path is empty");
+        debug_ai!("path is empty");
         return true;
     }
 
@@ -390,7 +405,7 @@ fn should_regenerate_wander_path(
     if let Some(old_ai_pos) = wander_action.ai_pos_when_path_generated {
         let ai_moved_distance = old_ai_pos.distance(&current_ai_pos);
         if ai_moved_distance > 10.0 {
-            info!("ai moved significantly from when path was generated");
+            debug_ai!("ai moved significantly from when path was generated");
             return true;
         }
     }
@@ -399,13 +414,13 @@ fn should_regenerate_wander_path(
     if let Some(next_pos) = wander_action.current_path.get(wander_action.path_index + 1)
         && !map.is_walkable(*next_pos)
     {
-        info!("current path step is blocked");
+        debug_ai!("current path step is blocked");
         return true;
     }
 
     // Path is exhausted
     if wander_action.path_index >= wander_action.current_path.len().saturating_sub(1) {
-        info!("path is exhausted");
+        debug_ai!("path is exhausted");
         return true;
     }
 

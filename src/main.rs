@@ -9,20 +9,16 @@ use bevy::{
 };
 use brtk::prelude::BrtkPlugin;
 
-// New module structure
 pub mod core;
+
+pub mod debug;
+#[cfg(feature = "dev")]
+pub mod dev;
 pub mod gameplay;
 pub mod prelude;
 pub mod rendering;
-
-// Existing modules (to be migrated)
-// pub mod controller; // Deleted - migrated to gameplay modules
-#[cfg(feature = "dev")]
-pub mod dev;
-// pub mod model; // Deleted - migrated to core and gameplay modules
 pub mod ui;
 pub mod utils;
-// pub mod view; // Deleted - migrated to rendering
 
 mod app;
 pub use self::app::*;
@@ -114,17 +110,17 @@ impl EchosInTheDark {
     }
 
     fn app_plugins(&mut self) -> &mut Self {
-        // Assign plugins
-        self.app.add_plugins((
-            self.brt_plugin.clone(),
-            echos_assets::EchosAssetsPlugin,
-            core::plugin,
-            gameplay::plugin,
-            rendering::plugin,
-            ui::plugin,
-            #[cfg(feature = "dev")]
-            dev::plugin,
-        ));
+        // Add BRTK and EchosAssets plugins
+        self.app.add_plugins((self.brt_plugin.clone(), echos_assets::EchosAssetsPlugin));
+
+        // Add Core, Gameplay, Rendering, and UI plugins
+        self.app.add_plugins((core::plugin, gameplay::plugin, rendering::plugin, ui::plugin));
+
+        // Add Dev plugin + Debug plugin
+        #[cfg(feature = "dev")]
+        {
+            self.app.add_plugins(dev::plugin);
+        }
 
         self
     }

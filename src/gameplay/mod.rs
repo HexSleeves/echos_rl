@@ -5,14 +5,7 @@ pub mod player;
 pub mod turns;
 pub mod world;
 
-use crate::{
-    core::{
-        components::{AITag, PlayerTag},
-        states::GameState,
-    },
-    rendering::screens::ScreenState,
-    ui,
-};
+use crate::{core::states::GameState, debug_turns, rendering::screens::ScreenState, ui};
 
 /// System sets for organizing gameplay systems
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
@@ -53,10 +46,10 @@ pub fn plugin(app: &mut App) {
     );
 
     // Add monitoring systems for debugging
-    app.add_systems(
-        Update,
-        monitor_gameplay_state.run_if(in_state(ScreenState::Gameplay)).in_set(GameplaySystemSet::WorldUpdate),
-    );
+    // app.add_systems(
+    //     Update,
+    //     monitor_gameplay_state.run_if(in_state(ScreenState::Gameplay)).
+    // in_set(GameplaySystemSet::WorldUpdate), );
 
     // Add gameplay plugins
     app.add_plugins((player::plugin, enemies::plugin, turns::plugin, world::plugin));
@@ -80,39 +73,35 @@ fn spawn_initial_entities(
         });
 
     commands.spawn_player(player_position);
-    info!("Queued player spawn at {:?}", player_position);
 
     let mut occupied: HashSet<Position> = HashSet::from([player_position]);
-    if let Some(enemy_pos) = current_map.get_random_walkable_position().filter(|p| occupied.insert(*p))
-    // only accept if not already taken
-    {
+    if let Some(enemy_pos) = current_map.get_random_walkable_position().filter(|p| occupied.insert(*p)) {
         commands.spawn_ai("hostile_guard", enemy_pos);
-        info!("Queued enemy spawn at {:?}", enemy_pos);
     }
 }
 
 /// System to start the first turn after initialization
 fn start_first_turn(mut next_state: ResMut<NextState<GameState>>) {
-    info!("Starting first turn - transitioning to ProcessTurns state");
+    debug_turns!("Starting first turn - transitioning to ProcessTurns state");
     next_state.set(GameState::ProcessTurns);
 }
 
-/// System to monitor gameplay state for debugging
-fn monitor_gameplay_state(
-    game_state: Res<State<GameState>>,
-    players: Query<Entity, With<PlayerTag>>,
-    enemies: Query<Entity, With<AITag>>,
-) {
-    let player_count = players.iter().count();
-    let enemy_count = enemies.iter().count();
+// /// System to monitor gameplay state for debugging
+// fn monitor_gameplay_state(
+//     game_state: Res<State<GameState>>,
+//     players: Query<Entity, With<PlayerTag>>,
+//     enemies: Query<Entity, With<AITag>>,
+// ) {
+//     let player_count = players.iter().count();
+//     let enemy_count = enemies.iter().count();
 
-    // Only log when we have entities to avoid spam
-    if player_count > 0 || enemy_count > 0 {
-        debug!(
-            "Gameplay State: {:?} | Players: {} | Enemies: {}",
-            game_state.get(),
-            player_count,
-            enemy_count
-        );
-    }
-}
+//     // Only log when we have entities to avoid spam
+//     if player_count > 0 || enemy_count > 0 {
+//         debug!(
+//             "Gameplay State: {:?} | Players: {} | Enemies: {}",
+//             game_state.get(),
+//             player_count,
+//             enemy_count
+//         );
+//     }
+// }

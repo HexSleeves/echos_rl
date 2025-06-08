@@ -2,7 +2,8 @@ use bevy::prelude::*;
 use big_brain::prelude::*;
 
 use crate::{
-    core::types::ActionType, gameplay::turns::components::TurnActor, prelude::gameplay::enemies::IdleAction,
+    core::types::ActionType, debug_ai, gameplay::turns::components::TurnActor,
+    prelude::gameplay::enemies::IdleAction,
 };
 
 /// System that handles idle behavior
@@ -24,7 +25,7 @@ pub fn idle_action_system(
                         continue;
                     }
 
-                    info!("AI entity {:?} performing idle action", actor_entity);
+                    debug_ai!("AI entity {:?} performing idle action", actor_entity);
 
                     // Add a wait action to the queue for idle behavior
                     turn_actor.queue_action(ActionType::Wait);

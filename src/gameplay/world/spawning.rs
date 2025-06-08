@@ -47,7 +47,7 @@ pub fn spawn_player_from_definition(
     let player_id = entity_commands.id();
 
     // Finalize spawn using helper function
-    finalize_entity_spawn(player_id, position, "player", &definition.name, current_map, turn_queue)
+    finalize_entity_spawn(player_id, position, "player", current_map, turn_queue)
 }
 
 /// Spawn a specific AI entity from definition data
@@ -106,7 +106,7 @@ fn spawn_ai_entity(
     let ai_id = entity_commands.id();
 
     // Finalize spawn using helper function
-    finalize_entity_spawn(ai_id, position, "AI", &definition.name, current_map, turn_queue)
+    finalize_entity_spawn(ai_id, position, "AI", current_map, turn_queue)
 }
 
 /// Helper function to add common components from entity definition
@@ -140,7 +140,6 @@ fn finalize_entity_spawn(
     entity_id: Entity,
     position: Position,
     entity_type: &str,
-    entity_name: &str,
     current_map: &mut CurrentMap,
     turn_queue: &mut TurnQueue,
 ) -> Result<Entity, String> {
@@ -152,7 +151,6 @@ fn finalize_entity_spawn(
         .place_actor(position, entity_id)
         .map_err(|e| format!("Failed to place {entity_type}: {e}"))?;
 
-    info!("Spawned {} '{}' at {:?}", entity_type, entity_name, position);
     Ok(entity_id)
 }
 

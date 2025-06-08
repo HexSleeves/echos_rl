@@ -6,9 +6,17 @@ pub use brtk::prelude::*;
 
 pub use crate::core::states::{GameState, ScreenState};
 
+pub mod assets {
+    pub use echos_assets::entities::*;
+}
+
 // Specific areas nested within their own module for self-documenting use
 pub mod core {
     pub use crate::core::{components::*, events::*, resources::*, states::*};
+}
+
+pub mod debug {
+    pub use crate::debug::{categories::*, config::*, file_logger::*};
 }
 
 pub mod gameplay {
@@ -35,10 +43,6 @@ pub mod rendering {
 
 pub mod ui {
     pub use crate::ui::{components::*, systems::*};
-}
-
-pub mod assets {
-    pub use echos_assets::entities::*;
 }
 
 pub mod utils {

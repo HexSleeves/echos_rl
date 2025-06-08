@@ -9,6 +9,7 @@ use crate::{
         resources::{CurrentMap, FovMap, TurnQueue},
         types::ActionType,
     },
+    debug_ai,
     gameplay::{
         enemies::{
             components::{AIBehavior, ChasePlayerAction, ChasePlayerScorer},
@@ -32,7 +33,7 @@ fn generate_chase_path(
     ai_name: &str,
 ) -> bool {
     if let Some(path) = pathfinding::utils::find_path(ai_pos, target_pos, current_map, true) {
-        info!("{} generated A* path with {} steps", ai_name, path.len());
+        debug_ai!("{} generated A* path with {} steps", ai_name, path.len());
 
         chase_action.current_path = path;
         chase_action.path_index = 0;
@@ -43,7 +44,7 @@ fn generate_chase_path(
 
         true
     } else {
-        info!("{} A* pathfinding failed", ai_name);
+        debug_ai!("{} A* pathfinding failed", ai_name);
         chase_action.generated_path = false;
         chase_action.current_path.clear();
         chase_action.last_seen_pt = Some(target_pos);
@@ -60,7 +61,7 @@ fn execute_chase_movement(
     ai_name: &str,
 ) {
     ai_actor.queue_action(ActionType::MoveDelta(direction));
-    info!("{} chasing: moving {:?} towards {:?}", ai_name, direction, target_position);
+    debug_ai!("{} chasing: moving {:?} towards {:?}", ai_name, direction, target_position);
 }
 
 /// Determine the target position for chasing based on visibility and stored paths
@@ -221,16 +222,16 @@ pub fn chase_player_action_system(
 
         match *action_state {
             ActionState::Success | ActionState::Failure => {
-                info!("{} chase state: {:?}", ai_name, action_state);
+                debug_ai!("{} chase state: {:?}", ai_name, action_state);
                 continue;
             }
             ActionState::Cancelled => {
-                info!("{} cancelled chase!", ai_name);
+                debug_ai!("{} cancelled chase!", ai_name);
                 *action_state = ActionState::Failure;
                 continue;
             }
             ActionState::Init | ActionState::Requested => {
-                info!("{} gonna start chasing!", ai_name);
+                debug_ai!("{} gonna start chasing!", ai_name);
                 *action_state = ActionState::Executing;
 
                 // Generate initial path
@@ -243,35 +244,35 @@ pub fn chase_player_action_system(
                             execute_chase_movement(&mut ai_actor, dir, next_pos, ai_name);
                             chase_action.path_index = 1; // Mark that we're moving to step 1
                         } else {
-                            info!(
+                            debug_ai!(
                                 "{} A* path generated but cannot calculate direction, falling back",
                                 ai_name
                             );
                             *action_state = ActionState::Failure;
                         }
                     } else {
-                        info!("{} A* path too short, already at target", ai_name);
+                        debug_ai!("{} A* path too short, already at target", ai_name);
                         *action_state = ActionState::Success;
                     }
                 } else {
                     // Fallback to simple direction calculation
-                    info!("{} using simple direction fallback", ai_name);
+                    debug_ai!("{} using simple direction fallback", ai_name);
 
                     let direction = helpers::calculate_direction_to_target(*ai_pos, *player_pos);
                     if let Some(dir) = direction {
                         execute_chase_movement(&mut ai_actor, dir, *player_pos, ai_name);
                     } else {
-                        info!("AI entity {:?} cannot find path to player, action failed", actor_entity);
+                        debug_ai!("AI entity {:?} cannot find path to player, action failed", actor_entity);
                         *action_state = ActionState::Failure;
                     }
                 }
             }
             ActionState::Executing => {
-                info!("{} executing chase!", ai_name);
+                debug_ai!("{} executing chase!", ai_name);
 
                 // Check if we need to regenerate the path
                 if should_regenerate_chase_path(&chase_action, *ai_pos, *player_pos, &current_map) {
-                    info!("{} regenerating A* path due to changed conditions", ai_name);
+                    debug_ai!("{} regenerating A* path due to changed conditions", ai_name);
                     generate_chase_path(&mut chase_action, *ai_pos, *player_pos, &mut current_map, ai_name);
                 }
 
@@ -292,7 +293,7 @@ pub fn chase_player_action_system(
                 let Some(direction) =
                     get_next_chase_direction(&mut chase_action, *ai_pos, target_position, &current_map)
                 else {
-                    info!("AI entity {:?} cannot find path to player, action failed", actor_entity);
+                    debug_ai!("AI entity {:?} cannot find path to player, action failed", actor_entity);
                     *action_state = ActionState::Failure;
                     continue;
                 };

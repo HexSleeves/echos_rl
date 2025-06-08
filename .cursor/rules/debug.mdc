@@ -1,28 +1,64 @@
 ---
-description: Always include while DEBUGGING
-globs: 
+description: when user mentions /debug, apply this rule
+globs:
 alwaysApply: false
 ---
----
-description: Include these rules while DEBUGGING.
-globs: 
-alwaysApply: true
----
-<DEBUGGING>
-Below debugging routine is for persistent errors or incomplete fixes. So use this routine only when got stuck.
-<DIAGNOSE>
-- Gather all error messages, logs, and behavioral symptoms
-- Add relevant context from files
-- Retrieve relevant project architecture, plan and current working task as specified in @memory.mdc 
-</DIAGNOSE>
+## Rule to help debug errors
 
-- Whenever you fail with any test result, always add more context using <DIAGNOSE> and debug the issue effectively first, then when you have complete information move towards a fix. 
-- Explain your OBSERVATIONS and then give your REASONINGS to explain why this is EXACTLY the issue and not anything else. 
-- If you aren't sure, first get more OBSERVATIONS by adding more <DIAGNOSE> context to the issue so you exactly and specifically know what's wrong. Additionally you can seek <CLARIFICATION> if required.
-- Understand architecture using <ANALYZE CODE> (defined in [implement.mdc](mdc:.cursor/rules/implement.mdc) ) relevant to the issue.
-- Use <STEP BY STEP REASONING> to think of all possible causes like architectural misalignment, design flaw rather than just a bug, etc.
-- Look for similar patterns already solved elsewhere in the codebase in  @error-documentation.mdc and <WEB USE> if needed
-- Present your fix using <REASONING PRESENTATION> for validation.
-- Start modifying code to update and fix things using <SYSTEMATIC CODE PROTOCOL> and <TESTING> (both defined in [implement.mdc](mdc:.cursor/rules/implement.mdc) ).
+# Debug engine
+Act as a quality expert to perform systematic debugging of issues within the code with larger context in mind
 
-</DEBUGGING>
+**Usage** - /debug [error description and context]
+
+## Root Cause Analysis
+Systematic Investigation:
+
+<thinking>
+- What are the possible underlying causes?
+- What evidence supports each hypothesis?
+- What would a proper fix look like that addresses the root cause?
+</thinking>
+
+**Root Cause Principles**
+
+- Fix underlying problems, never just symptoms
+- Understand why the problem occurred, not just what happened
+- Implement prevention measures when possible
+- Validate fix doesn't introduce new issues
+- Identify systemic issues that could cause similar problems
+
+## Systematic investigation
+- Gather error messages, user actions, environment, recent changes or any related updates
+- Understanding the chain of causation
+- Identifying the minimal fix that addresses core issue
+- Ensuring fix doesn't introduce new problems
+
+## MCP servers (if available)
+
+- Use playwright MCP or browser-tools MCP to collect console and network logs
+- If the issue is frontend-related, take a screenshot of the app using playwright MCP
+
+## Hypothesis Generation (3-5 possibilities):
+
+- Hypothesis 1: [Potential root cause with supporting evidence]
+- Hypothesis 2: [Alternative cause with different evidence pattern]
+- Hypothesis 3: [Environmental/configuration cause with context]
+- Hypothesis 4: [Integration/dependency cause with system analysis]
+
+## Resolution proposal & approval
+
+Provide below details to the user for resolution
+- Root cause: [underlying problem identified]
+- Solution: [approach taken and why]
+- Prevention: [measures to avoid recurrence]
+
+Implement the above on user confirmation and confirm;
+- Notify the user once the fix is implemented
+- Do NOT restart the frontend or backend server unless explicitly instructed
+- User will confirm if the fix resolves the issue
+
+## Additional Iterations (if needed):
+
+- Refine solution based on testing and feedback
+- Address any secondary issues discovered
+- Improve error handling and user experience
