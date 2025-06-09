@@ -147,9 +147,9 @@ bevy = { workspace = true, default-features = false, features = [
   "webgl2",
   "x11",
 ] }
-bevy_ecs_tilemap = { workspace = true }
-bevy_common_assets = { workspace = true }
 bevy_asset_loader = { workspace = true }
+bevy_common_assets = { workspace = true }
+bevy_ecs_tilemap = { workspace = true }
 bevy_kira_audio = { workspace = true }
 big-brain = { workspace = true }
 iyes_progress = { workspace = true }
@@ -165,16 +165,16 @@ rand       = { workspace = true }
 rand_distr = { workspace = true }
 
 ### Serialization ###
-serde = { workspace = true }
 ron   = { workspace = true }
+serde = { workspace = true }
 toml  = { workspace = true }
 
 ### Utilities ###
 bitvec      = { workspace = true }
+chrono      = { workspace = true }
+once_cell   = { workspace = true }
 parking_lot = { workspace = true }
 regex       = { workspace = true }
-once_cell   = { workspace = true }
-chrono      = { workspace = true }
 
 ### Logging ###
 log                = { workspace = true }
