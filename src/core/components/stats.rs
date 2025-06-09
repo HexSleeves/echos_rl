@@ -73,7 +73,7 @@ impl Stats {
 
     /// Calculate critical hit chance from luck (as percentage)
     pub fn critical_chance(&self) -> f32 {
-        (self.luck as f32 * 0.5).min(25.0) // Max 25% crit chance
+        (self.luck as f32 * 0.5).max(0.0).min(25.0) // Cap at 25 %
     }
 
     /// Calculate initiative bonus for turn order
@@ -82,12 +82,12 @@ impl Stats {
     /// Modify a specific stat by a given amount
     pub fn modify_stat(&mut self, stat: StatType, amount: i32) {
         match stat {
-            StatType::Strength => self.strength += amount,
-            StatType::Defense => self.defense += amount,
-            StatType::Intelligence => self.intelligence += amount,
-            StatType::Agility => self.agility += amount,
-            StatType::Vitality => self.vitality += amount,
-            StatType::Luck => self.luck += amount,
+            StatType::Strength => self.strength = self.strength.saturating_add(amount),
+            StatType::Defense => self.defense = self.defense.saturating_add(amount),
+            StatType::Intelligence => self.intelligence = self.intelligence.saturating_add(amount),
+            StatType::Agility => self.agility = self.agility.saturating_add(amount),
+            StatType::Vitality => self.vitality = self.vitality.saturating_add(amount),
+            StatType::Luck => self.luck = self.luck.saturating_add(amount),
         }
     }
 

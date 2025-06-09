@@ -141,7 +141,7 @@ pub fn unified_debug_ui_system(world: &mut World) {
                 ui.label("Log directory:");
                 let mut path_string = debug_config.log_file_path.to_string_lossy().into_owned();
                 if ui.text_edit_singleline(&mut path_string).changed() {
-                    debug_config.log_file_path = PathBuf::from(path_string);
+                    debug_config.log_file_path = std::path::PathBuf::from(path_string);
                 }
             });
 

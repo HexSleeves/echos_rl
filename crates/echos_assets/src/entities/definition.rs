@@ -22,6 +22,12 @@ pub struct EntityComponents {
     pub field_of_view: Option<FieldOfViewData>,
     pub tile_sprite: Option<TileSpriteData>,
 
+    // core components from enhanced ECS system
+    pub health: Option<HealthData>,
+    pub stats: Option<StatsData>,
+    pub inventory: Option<InventoryData>,
+    pub description: Option<DescriptionData>,
+
     // Entity type tags
     pub is_player: Option<bool>,
     pub is_ai: Option<bool>,
@@ -57,6 +63,99 @@ impl EntityDefinition {
 
     /// Get AI behavior type (defaults to Neutral if not specified)
     pub fn ai_behavior_type(&self) -> AIBehaviorType { self.components.ai_behavior_type.unwrap_or_default() }
+
+    /// Validate the entity definition for correctness
+    pub fn validate(&self) -> Result<(), Vec<String>> {
+        let mut errors = Vec::new();
+
+        // Validate name
+        if self.name.trim().is_empty() {
+            errors.push("Entity name cannot be empty".to_string());
+        }
+
+        // Validate health data
+        if let Some(health) = &self.components.health {
+            if health.max <= 0 {
+                errors.push("Health max must be positive".to_string());
+            }
+            if health.current < 0 {
+                errors.push("Health current cannot be negative".to_string());
+            }
+            if health.current > health.max {
+                errors.push("Health current cannot exceed max".to_string());
+            }
+        }
+
+        // Validate stats data
+        if let Some(stats) = &self.components.stats {
+            let stat_values = [
+                ("strength", stats.strength),
+                ("defense", stats.defense),
+                ("intelligence", stats.intelligence),
+                ("agility", stats.agility),
+                ("vitality", stats.vitality),
+                ("luck", stats.luck),
+            ];
+
+            for (name, value) in stat_values {
+                if value < 0 {
+                    errors.push(format!("Stat '{name}' cannot be negative"));
+                }
+                if value > 100 {
+                    errors.push(format!("Stat '{name}' cannot exceed 100"));
+                }
+            }
+        }
+
+        // Validate turn actor data
+        if let Some(turn_actor) = &self.components.turn_actor {
+            if turn_actor.speed == 0 {
+                errors.push("Turn actor speed must be positive".to_string());
+            }
+            if turn_actor.speed > 10000 {
+                errors.push("Turn actor speed cannot exceed 10000".to_string());
+            }
+        }
+
+        // Validate field of view data
+        if let Some(fov) = &self.components.field_of_view {
+            if fov.0 == 0 {
+                errors.push("Field of view radius must be positive".to_string());
+            }
+            if fov.0 > 50 {
+                errors.push("Field of view radius cannot exceed 50".to_string());
+            }
+        }
+
+        // Validate inventory data
+        if let Some(inventory) = &self.components.inventory {
+            if inventory.max_slots == 0 {
+                errors.push("Inventory max slots must be positive".to_string());
+            }
+            if inventory.max_weight <= 0.0 {
+                errors.push("Inventory max weight must be positive".to_string());
+            }
+        }
+
+        // Validate level range
+        if let Some((min, max)) = self.components.level_range {
+            if min > max {
+                errors.push(format!("Level range minimum ({min}) cannot exceed maximum ({max})"));
+            }
+            if min == 0 {
+                errors.push("Level range minimum must be at least 1".to_string());
+            }
+        }
+
+        // Validate spawn weight
+        if let Some(weight) = self.components.spawn_weight
+            && weight < 0.0
+        {
+            errors.push("Spawn weight cannot be negative".to_string());
+        }
+
+        if errors.is_empty() { Ok(()) } else { Err(errors) }
+    }
 }
 
 impl EntityComponents {
@@ -78,6 +177,30 @@ impl EntityComponents {
     /// Set tile sprite data
     pub fn with_tile_sprite(mut self, data: TileSpriteData) -> Self {
         self.tile_sprite = Some(data);
+        self
+    }
+
+    /// Set health data
+    pub fn with_health(mut self, data: HealthData) -> Self {
+        self.health = Some(data);
+        self
+    }
+
+    /// Set stats data
+    pub fn with_stats(mut self, data: StatsData) -> Self {
+        self.stats = Some(data);
+        self
+    }
+
+    /// Set inventory data
+    pub fn with_inventory(mut self, data: InventoryData) -> Self {
+        self.inventory = Some(data);
+        self
+    }
+
+    /// Set description data
+    pub fn with_description(mut self, data: DescriptionData) -> Self {
+        self.description = Some(data);
         self
     }
 

@@ -41,12 +41,12 @@ impl Default for DebugConfig {
 
         Self {
             categories,
-            file_logging_enabled: std::env::var("DEBUG_FILE_LOGGING").is_ok(),
+            max_log_files: 5,
+            console_colors: true,
+            console_timestamps: true,
             log_file_path: PathBuf::from("logs"),
             max_log_file_size: 10 * 1024 * 1024, // 10MB
-            max_log_files: 5,
-            console_timestamps: true,
-            console_colors: true,
+            file_logging_enabled: std::env::var("DEBUG_FILE_LOGGING").is_ok(),
         }
     }
 }
@@ -108,7 +108,7 @@ impl DebugConfig {
     }
 
     /// Get the default config file path
-    pub fn default_config_path() -> PathBuf { PathBuf::from("settings/debug_config.toml") }
+    pub fn default_config_path() -> PathBuf { PathBuf::from("assets/settings/debug_config.toml") }
 
     /// Load configuration with fallback to default
     pub fn load_or_default() -> Self {
@@ -120,7 +120,7 @@ impl DebugConfig {
                 config
             }
             Err(e) => {
-                info!("Failed to load debug config ({}), using defaults", e);
+                warn!("Failed to load debug config ({}), using defaults", e);
                 let default_config = Self::default();
 
                 // Try to save the default config for next time
@@ -137,6 +137,10 @@ impl DebugConfig {
 /// System to save debug configuration periodically or on changes
 pub fn save_debug_config_system(config: Res<DebugConfig>) {
     if config.is_changed() {
+        // Config Changed
+        info!("Config Changed");
+        info!("Config: {:?}", config);
+
         let config_path = DebugConfig::default_config_path();
         if let Err(e) = config.save_to_file(&config_path) {
             warn!("Failed to save debug configuration: {}", e);

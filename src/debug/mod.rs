@@ -28,23 +28,23 @@ impl Plugin for DebugPlugin {
         // Initialize debug config
         app.init_resource::<DebugConfig>();
 
-        #[cfg(feature = "debug")]
-        app.add_plugins((
-            EguiPlugin { enable_multipass_for_primary_context: true },
-            DefaultInspectorConfigPlugin,
-        ))
-        .add_systems(EguiContextPass, systems::unified_debug_ui_system)
-        .add_systems(
-            Update,
-            (
-                // Log `ScreenState` state transitions.
-                systems::log_transitions::<ScreenState>,
-                // Log `GameState` state transitions.
-                systems::log_transitions::<GameState>,
-                // Toggle the debug overlay for UI.
-                toggle_debug_ui.run_if(input_just_pressed(KeyCode::Backquote)),
-            ),
-        );
+        // #[cfg(feature = "debug")]
+        // app.add_plugins((
+        //     EguiPlugin { enable_multipass_for_primary_context: true },
+        //     DefaultInspectorConfigPlugin,
+        // ))
+        // .add_systems(EguiContextPass, systems::unified_debug_ui_system)
+        // .add_systems(
+        //     Update,
+        //     (
+        //         // Log `ScreenState` state transitions.
+        //         systems::log_transitions::<ScreenState>,
+        //         // Log `GameState` state transitions.
+        //         systems::log_transitions::<GameState>,
+        //         // Toggle the debug overlay for UI.
+        //         toggle_debug_ui.run_if(input_just_pressed(KeyCode::Backquote)),
+        //     ),
+        // );
     }
 }
 

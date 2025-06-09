@@ -16,5 +16,12 @@ pub(super) fn plugin(app: &mut App) {
         .register_type::<components::TurnActorData>()
         .register_type::<components::FieldOfViewData>()
         .register_type::<components::TileSpriteData>()
-        .register_type::<components::AIBehaviorType>();
+        .register_type::<components::AIBehaviorType>()
+        .register_type::<components::HealthData>()
+        .register_type::<components::StatsData>()
+        .register_type::<components::InventoryData>()
+        .register_type::<components::DescriptionData>();
+
+    // Add validation system that runs after assets are loaded
+    app.add_systems(Update, loader::validate_entity_definitions);
 }

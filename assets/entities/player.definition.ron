@@ -1,25 +1,54 @@
 EntityDefinition(
     name: "Player",
-    description: "The main character controlled by the player",
-    components: EntityComponents(
-        // Core gameplay components matching current hardcoded values
-        turn_actor: Some(TurnActorData(
-            speed: 100,
+    description: "The brave adventurer controlled by the player",
+    components: (
+        // Core gameplay components
+        turn_actor: Some((
+            speed: 1000,
             action_queue_size: Some(5),
         )),
         field_of_view: Some(FieldOfViewData(8)),
-        tile_sprite: Some(TileSpriteData(
+        tile_sprite: Some((
             tile_coords: (0, 16),
             tile_size: Some((12.0, 12.0)),
             tint: None,
         )),
 
-        // Entity type tags
+        // New enhanced components
+        health: Some((
+            current: 100,
+            max: 100,
+        )),
+        stats: Some((
+            strength: 12,
+            defense: 11,
+            intelligence: 14,
+            agility: 13,
+            vitality: 15,
+            luck: 10,
+        )),
+        inventory: Some((
+            max_slots: 30,
+            max_weight: 150.0,
+            starting_items: Some([
+                ("health_potion", 3),
+                ("torch", 5),
+                ("rations", 10),
+            ]),
+        )),
+        description: Some((
+            text: "A brave adventurer seeking fortune and glory in the depths below. Armed with courage and determination, they venture into the unknown.",
+        )),
+
+        // Entity type flags
         is_player: Some(true),
         is_ai: Some(false),
 
-        // Spawning properties (not used for player but included for completeness)
-        spawn_weight: Some(1.0),
+        // AI behavior (not used for player)
+        ai_behavior_type: None,
+
+        // Spawning properties (not used for player)
+        spawn_weight: None,
         level_range: None,
     ),
 )

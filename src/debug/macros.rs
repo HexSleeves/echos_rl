@@ -7,7 +7,8 @@
 macro_rules! debug_log_internal {
     ($category:expr, $level:expr, $($arg:tt)*) => {
         // Check environment variable first for quick enable/disable
-        if $category.is_env_enabled() || $crate::debug::DebugConfig::load_or_default().is_category_enabled($category) {
+        // if $category.is_env_enabled() || $crate::debug::DebugConfig::load_or_default().is_category_enabled($category) {
+        if $category.is_env_enabled() {
             let message = format!($($arg)*);
 
             // Log to console with category prefix

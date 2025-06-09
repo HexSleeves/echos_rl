@@ -3,7 +3,7 @@ target/
 .DS_Store
 
 dist/
- 
+
 .aider*
 
 # Added by Task Master AI
@@ -29,4 +29,6 @@ node_modules/
 # OS specific
 # Task files
 tasks.json
-tasks/ 
+tasks/
+
+.cursor/mcp.json

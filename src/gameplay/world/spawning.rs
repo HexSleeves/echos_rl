@@ -5,7 +5,7 @@ use echos_assets::entities::{AIBehaviorType, EntityDefinition, EntityDefinitions
 use crate::{
     core::{
         bundles::{EnemyBundle, PlayerBundle},
-        components::{FieldOfView, Position},
+        components::{Description, FieldOfView, Health, Inventory, InventoryItem, Position, Stats},
         resources::{CurrentMap, TurnQueue},
     },
     gameplay::{
@@ -124,6 +124,60 @@ fn add_common_components(
     entity_commands.insert(FieldOfView::new(
         definition.components.field_of_view.as_ref().map(|data| data.0).unwrap_or(config.default_view_radius),
     ));
+
+    // Add Health component
+    if let Some(health_data) = &definition.components.health {
+        entity_commands.insert(Health::new_with_current(health_data.current, health_data.max));
+    } else {
+        // Default health if not specified
+        entity_commands.insert(Health::new(100));
+    }
+
+    // Add Stats component
+    if let Some(stats_data) = &definition.components.stats {
+        entity_commands.insert(Stats {
+            strength: stats_data.strength,
+            defense: stats_data.defense,
+            intelligence: stats_data.intelligence,
+            agility: stats_data.agility,
+            vitality: stats_data.vitality,
+            luck: stats_data.luck,
+        });
+    } else {
+        // Default balanced stats if not specified
+        entity_commands.insert(Stats::balanced(10));
+    }
+
+    // Add Inventory component (only if specified)
+    if let Some(inventory_data) = &definition.components.inventory {
+        let mut inventory = Inventory::new(inventory_data.max_slots, inventory_data.max_weight);
+
+        // Add starting items if specified
+        if let Some(starting_items) = &inventory_data.starting_items {
+            for (item_id, quantity) in starting_items {
+                // Create a basic inventory item (in a real game, you'd look up item definitions)
+                let item = InventoryItem::new(
+                    item_id.clone(),
+                    item_id.clone(), // Use ID as name for now
+                    *quantity,
+                    99,                     // Default max stack
+                    1.0,                    // Default weight
+                    format!("A {item_id}"), // Default description
+                );
+
+                if let Err(e) = inventory.add_item(item) {
+                    warn!("Failed to add starting item '{}' to inventory: {:?}", item_id, e);
+                }
+            }
+        }
+
+        entity_commands.insert(inventory);
+    }
+
+    // Add Description component
+    if let Some(description_data) = &definition.components.description {
+        entity_commands.insert(Description::new(&description_data.text));
+    }
 
     // Add TileSprite component
     if let Some(sprite_data) = &definition.components.tile_sprite {

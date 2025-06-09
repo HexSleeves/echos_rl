@@ -298,9 +298,9 @@ impl<T> Grid<T> {
 
 // Iterators
 impl<T> Grid<T> {
-    pub fn iter(&self) -> slice::Iter<T> { self.data.iter() }
+    pub fn iter(&self) -> slice::Iter<'_, T> { self.data.iter() }
 
-    pub fn iter_mut(&mut self) -> slice::IterMut<T> { self.data.iter_mut() }
+    pub fn iter_mut(&mut self) -> slice::IterMut<'_, T> { self.data.iter_mut() }
 
     pub fn enumerate(&self) -> impl Iterator<Item = ((i32, i32), &T)> {
         let mut items = Vec::new();
@@ -313,13 +313,13 @@ impl<T> Grid<T> {
         items.into_iter()
     }
 
-    pub fn enumerate_mut(&mut self) -> GridEnumerateMut<T> {
+    pub fn enumerate_mut(&mut self) -> GridEnumerateMut<'_, T> {
         GridEnumerateMut { iter: self.data.iter_mut(), width: self.size.0, current_index: 0 }
     }
 
     pub fn position_iter(&self) -> PointIterRowMajor { PointIterRowMajor::new(self.size) }
 
-    pub fn row(&self, y: usize) -> Option<slice::Iter<T>> {
+    pub fn row(&self, y: usize) -> Option<slice::Iter<'_, T>> {
         if y < self.size.1 as usize {
             let start = y * self.size.0 as usize;
             Some(self.data[start..start + self.size.0 as usize].iter())
@@ -328,7 +328,7 @@ impl<T> Grid<T> {
         }
     }
 
-    pub fn row_mut(&mut self, y: usize) -> Option<slice::IterMut<T>> {
+    pub fn row_mut(&mut self, y: usize) -> Option<slice::IterMut<'_, T>> {
         if y < self.size.1 as usize {
             let start = y * self.size.0 as usize;
             Some(self.data[start..start + self.size.0 as usize].iter_mut())
@@ -337,13 +337,13 @@ impl<T> Grid<T> {
         }
     }
 
-    pub fn rows(&self) -> slice::ChunksExact<T> { self.data.chunks_exact(self.size.0 as usize) }
+    pub fn rows(&self) -> slice::ChunksExact<'_, T> { self.data.chunks_exact(self.size.0 as usize) }
 
-    pub fn rows_mut(&mut self) -> slice::ChunksExactMut<T> {
+    pub fn rows_mut(&mut self) -> slice::ChunksExactMut<'_, T> {
         self.data.chunks_exact_mut(self.size.0 as usize)
     }
 
-    pub fn column(&self, x: usize) -> Option<std::iter::StepBy<slice::Iter<T>>> {
+    pub fn column(&self, x: usize) -> Option<std::iter::StepBy<slice::Iter<'_, T>>> {
         if x < self.size.0 as usize {
             Some(self.data[x..].iter().step_by(self.size.0 as usize))
         } else {
@@ -351,7 +351,7 @@ impl<T> Grid<T> {
         }
     }
 
-    pub fn column_mut(&mut self, x: usize) -> Option<std::iter::StepBy<slice::IterMut<T>>> {
+    pub fn column_mut(&mut self, x: usize) -> Option<std::iter::StepBy<slice::IterMut<'_, T>>> {
         if x < self.size.0 as usize {
             Some(self.data[x..].iter_mut().step_by(self.size.0 as usize))
         } else {
