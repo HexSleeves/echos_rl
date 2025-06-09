@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::core::types::{ActionType, GameAction, GameError};
+use crate::{
+    core::types::{ActionType, GameAction, GameError},
+    prelude::core::PlayerTag,
+};
 
 #[derive(Debug, Clone)]
 pub struct WaitAction {
@@ -19,8 +22,14 @@ impl WaitAction {
 impl GameAction for WaitAction {
     fn action_type(&self) -> ActionType { ActionType::Wait }
 
-    fn execute(&mut self, _world: &mut World) -> Result<u64, GameError> {
-        info!("Entity {} is waiting", self.entity);
+    fn execute(&mut self, world: &mut World) -> Result<u64, GameError> {
+        let mut q = world.query::<&PlayerTag>();
+        if q.get(world, self.entity).is_ok() {
+            info!("Player is waiting");
+        } else {
+            info!("Entity {} is waiting", self.entity);
+        }
+
         Ok(self.duration)
     }
 

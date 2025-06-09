@@ -72,9 +72,7 @@ impl Stats {
     pub fn health_bonus(&self) -> i32 { (self.vitality - 10) * 5 }
 
     /// Calculate critical hit chance from luck (as percentage)
-    pub fn critical_chance(&self) -> f32 {
-        (self.luck as f32 * 0.5).max(0.0).min(25.0) // Cap at 25 %
-    }
+    pub fn critical_chance(&self) -> f32 { (self.luck as f32 * 0.5).clamp(0.0, 25.0) }
 
     /// Calculate initiative bonus for turn order
     pub fn initiative_bonus(&self) -> i32 { self.agility + (self.luck / 2) }

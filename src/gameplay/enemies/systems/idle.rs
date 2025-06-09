@@ -28,7 +28,7 @@ pub fn idle_action_system(
                     debug_ai!("AI entity {:?} performing idle action", actor_entity);
 
                     // Add a wait action to the queue for idle behavior
-                    turn_actor.queue_action(ActionType::Wait);
+                    turn_actor.queue_wait();
 
                     *action_state = ActionState::Executing;
                 }

@@ -219,18 +219,20 @@ fn add_big_brain_components(entity_commands: &mut EntityCommands, behavior_type:
             // Higher threshold (0.7) means they need strong conviction to act
             // They will chase when they see the player, otherwise wander to search
             let thinker = Thinker::build()
+                .label("Hostile")
                 .picker(FirstToScore { threshold: 0.7 })
                 .when(ChasePlayerScorer, ChasePlayerAction::default())
-                .when(WanderScorer, WanderAction::default())
-                .otherwise(IdleAction);
+                .otherwise(WanderAction::default());
+            // .when(WanderScorer, WanderAction::default())
+            // .otherwise(IdleAction);
 
             entity_commands.insert((
                 thinker,
                 ChasePlayerScorer,
-                WanderScorer,
                 ChasePlayerAction::default(),
+                WanderScorer,
                 WanderAction::default(),
-                IdleAction,
+                // IdleAction,
             ));
         }
         AIBehaviorType::Passive => {
@@ -238,6 +240,7 @@ fn add_big_brain_components(entity_commands: &mut EntityCommands, behavior_type:
             // Lower threshold (0.5) means they're more reactive to danger
             // They will flee when threatened, otherwise wander peacefully
             let thinker = Thinker::build()
+                .label("Passive")
                 .picker(FirstToScore { threshold: 0.5 })
                 .when(FleeFromPlayerScorer, FleeFromPlayerAction::default())
                 .when(WanderScorer, WanderAction::default())
@@ -257,6 +260,7 @@ fn add_big_brain_components(entity_commands: &mut EntityCommands, behavior_type:
             // Very low threshold (0.3) means they're content to just wander
             // They ignore the player completely and focus on their own activities
             let thinker = Thinker::build()
+                .label("Neutral")
                 .picker(FirstToScore { threshold: 0.3 })
                 .when(WanderScorer, WanderAction::default())
                 .otherwise(IdleAction);
