@@ -1,10 +1,7 @@
 use bevy::prelude::*;
 use big_brain::prelude::*;
 
-use crate::{
-    core::types::ActionType, debug_ai, gameplay::turns::components::TurnActor,
-    prelude::gameplay::enemies::IdleAction,
-};
+use crate::{debug_ai, gameplay::turns::components::TurnActor, prelude::gameplay::enemies::IdleAction};
 
 /// System that handles idle behavior
 pub fn idle_action_system(

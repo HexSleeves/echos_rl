@@ -111,3 +111,4 @@ This is a Bevy-based roguelike with a sophisticated turn-based system:
 - Turn-based architecture enables deterministic gameplay and easy debugging
 - Spatial systems are optimized for performance with bit-packed storage
 - Follow existing patterns in core modules when adding new systems
+- Always run `cargo build` to check progress in rust

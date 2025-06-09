@@ -5,26 +5,46 @@
 use crate::core::{components::Position, resources::CurrentMap};
 use brtk::pathfinding::{PathCacheConfig, PathProvider, PathfindingManager};
 use once_cell::sync::Lazy;
-use std::{sync::Mutex, time::Duration};
+use parking_lot::RwLock;
+use std::time::Duration;
 
 /// Global pathfinding manager for the game
-static PATHFINDING_MANAGER: Lazy<Mutex<PathfindingManager>> = Lazy::new(|| {
+static PATHFINDING_MANAGER: Lazy<RwLock<PathfindingManager>> = Lazy::new(|| {
     // Initialize the global pathfinding manager
     let cache_config = PathCacheConfig {
         max_entries: 2000,                // Larger cache for game use
         max_age: Duration::from_secs(60), // Paths valid for 1 minute
         enable_stats: true,
     };
-    Mutex::new(PathfindingManager::new(brtk::pathfinding::PathFinder::AStar, cache_config))
+    RwLock::new(PathfindingManager::new(brtk::pathfinding::PathFinder::AStar, cache_config))
 });
 
-/// Get a reference to the global pathfinding manager
-fn with_pathfinding_manager<F, R>(f: F) -> R
+/// Get a reference to the global pathfinding manager for read operations
+fn with_pathfinding_manager_read<F, R>(f: F) -> Option<R>
+where
+    F: FnOnce(&PathfindingManager) -> R,
+{
+    match PATHFINDING_MANAGER.try_read() {
+        Some(guard) => Some(f(&guard)),
+        None => {
+            log::warn!("Failed to acquire read lock on pathfinding manager, operation skipped");
+            None
+        }
+    }
+}
+
+/// Get a reference to the global pathfinding manager for write operations
+fn with_pathfinding_manager_write<F, R>(f: F) -> Option<R>
 where
     F: FnOnce(&mut PathfindingManager) -> R,
 {
-    let mut guard = PATHFINDING_MANAGER.lock().unwrap();
-    f(&mut guard)
+    match PATHFINDING_MANAGER.try_write() {
+        Some(mut guard) => Some(f(&mut guard)),
+        None => {
+            log::warn!("Failed to acquire write lock on pathfinding manager, operation skipped");
+            None
+        }
+    }
 }
 
 /// PathProvider implementation for CurrentMap
@@ -71,7 +91,7 @@ pub mod utils {
         map: &mut CurrentMap,
         allow_partial: bool,
     ) -> Option<Vec<Position>> {
-        with_pathfinding_manager(|manager| {
+        with_pathfinding_manager_write(|manager| {
             let path_coords = manager.find_path(
                 (origin.x(), origin.y()),
                 (destination.x(), destination.y()),
@@ -82,6 +102,11 @@ pub mod utils {
 
             // Convert coordinates back to Position
             Some(path_coords.into_iter().map(|(x, y)| Position::new(x, y)).collect())
+        })
+        .flatten()
+        .or_else(|| {
+            log::warn!("Pathfinding failed, trying uncached path");
+            find_path_uncached(origin, destination, map, allow_partial)
         })
     }
 
@@ -141,7 +166,7 @@ pub mod utils {
 
         // Normalize the escape direction
         let distance =
-            ((threat_vector.0 * threat_vector.0 + threat_vector.1 * threat_vector.1) as f32).sqrt();
+            (((threat_vector.0 as i64).pow(2) + (threat_vector.1 as i64).pow(2)) as f64).sqrt() as f32;
         if distance < 1.0 {
             // If we're at the same position, pick a random direction
             return find_random_escape_position(origin, map, escape_distance);
@@ -210,7 +235,7 @@ pub mod utils {
 
     /// Get pathfinding performance statistics
     pub fn get_pathfinding_stats() -> String {
-        with_pathfinding_manager(|manager| {
+        with_pathfinding_manager_read(|manager| {
             let stats = manager.stats();
             let (cache_size, cache_capacity, hit_rate) = manager.cache_stats();
 
@@ -237,13 +262,18 @@ pub mod utils {
                 hit_rate * 100.0
             )
         })
+        .unwrap_or_else(|| "Pathfinding stats unavailable (lock contention)".to_string())
     }
 
     /// Clear the pathfinding cache (useful for debugging or when map changes significantly)
     pub fn clear_pathfinding_cache() {
-        with_pathfinding_manager(|manager| {
+        if with_pathfinding_manager_write(|manager| {
             manager.clear_cache();
         })
+        .is_none()
+        {
+            log::warn!("Failed to clear pathfinding cache due to lock contention");
+        }
     }
 
     /// Validate a path to ensure it's still walkable
