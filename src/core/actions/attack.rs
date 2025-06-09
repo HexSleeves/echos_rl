@@ -74,8 +74,16 @@ impl GameAction for AttackAction {
         };
 
         // Get attacker stats
-        let attacker_stats = world.get::<Stats>(self.entity).cloned().unwrap_or_default();
-        let defender_stats = world.get::<Stats>(target_entity).cloned().unwrap_or_default();
+        let attacker_stats = world.get::<Stats>(self.entity).cloned().ok_or(GameError::MissingComponent {
+            entity: self.entity,
+            component: std::any::type_name::<Stats>(),
+        })?;
+
+        let defender_stats =
+            world.get::<Stats>(target_entity).cloned().ok_or(GameError::MissingComponent {
+                entity: target_entity,
+                component: std::any::type_name::<Stats>(),
+            })?;
 
         // Calculate hit chance
         if !self.calculate_accuracy(&attacker_stats, &defender_stats) {
