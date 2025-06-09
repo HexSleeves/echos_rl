@@ -171,9 +171,36 @@ fn calculate_visible_player_score(
 ) -> f32 {
     let distance = ai_pos.ai_detection_distance(player_pos);
     if distance <= ai_behavior.detection_range as f32 {
-        let chase_score = 1.0;
         ai_behavior.update_player_sighting(*player_pos, current_turn);
-        chase_score
+
+        // Base chase score starts high when player is visible
+        let mut chase_score = 0.9;
+
+        // Enhanced proximity bonus - closer means much higher priority
+        // Use exponential scaling for more dramatic proximity effects
+        let proximity_ratio =
+            (ai_behavior.detection_range as f32 - distance) / ai_behavior.detection_range as f32;
+        let proximity_bonus = proximity_ratio.powf(1.5) * 0.3; // Up to 0.3 bonus with exponential scaling
+        chase_score += proximity_bonus;
+
+        // Enhanced persistence bonus - reward sustained tracking
+        if let Some(last_seen_turn) = ai_behavior.last_player_seen_turn {
+            let turns_tracking = current_turn.saturating_sub(last_seen_turn);
+            if turns_tracking > 0 && turns_tracking <= 10 {
+                // Escalating commitment bonus for sustained tracking
+                let persistence_bonus = (turns_tracking as f32 / 10.0).powf(0.8) * 0.15;
+                chase_score += persistence_bonus;
+            }
+        }
+
+        // Context-aware urgency modifier based on distance
+        // Very close targets get an urgency spike
+        if distance <= 2.0 {
+            chase_score += 0.1; // Immediate threat bonus
+        }
+
+        // Ensure we don't exceed 1.0
+        chase_score.min(1.0)
     } else {
         0.0
     }

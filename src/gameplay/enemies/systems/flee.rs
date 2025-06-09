@@ -62,7 +62,33 @@ fn calculate_flee_score(
         let distance = ai_pos.ai_detection_distance(player_pos);
         if distance <= ai_behavior.detection_range as f32 {
             ai_behavior.update_player_sighting(*player_pos, current_turn);
-            1.0 // High priority to flee when player is visible
+
+            // Base flee score starts high when threat is visible
+            let mut flee_score = 0.8;
+
+            // Enhanced threat proximity calculation with exponential scaling
+            // Closer threats cause exponentially higher panic
+            let threat_proximity = 1.0 - (distance / ai_behavior.detection_range as f32);
+            let proximity_bonus = threat_proximity.powf(2.0) * 0.4; // Up to 0.4 bonus with quadratic scaling
+            flee_score += proximity_bonus;
+
+            // Enhanced panic bonus - escalating fear from sustained threat exposure
+            if let Some(last_seen_turn) = ai_behavior.last_player_seen_turn {
+                let turns_in_danger = current_turn.saturating_sub(last_seen_turn);
+                if turns_in_danger > 0 && turns_in_danger <= 5 {
+                    // Escalating panic for sustained threat exposure
+                    let panic_bonus = (turns_in_danger as f32 / 5.0).powf(1.2) * 0.25;
+                    flee_score += panic_bonus;
+                }
+            }
+
+            // Critical distance modifier - immediate panic when very close
+            if distance <= 1.5 {
+                flee_score += 0.15; // Critical proximity panic bonus
+            }
+
+            // Ensure we don't exceed 1.0
+            flee_score.min(1.0)
         } else {
             0.0
         }

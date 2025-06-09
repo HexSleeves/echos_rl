@@ -9,7 +9,10 @@ use crate::{
         resources::{CurrentMap, TurnQueue},
     },
     gameplay::{
-        enemies::components::{ChasePlayerAction, ChasePlayerScorer, IdleAction, WanderAction, WanderScorer},
+        enemies::components::{
+            ChasePlayerAction, ChasePlayerScorer, FleeFromPlayerAction, FleeFromPlayerScorer, IdleAction,
+            WanderAction, WanderScorer,
+        },
         turns::components::TurnActor,
     },
     rendering::components::TileSprite,
@@ -210,67 +213,55 @@ fn finalize_entity_spawn(
 
 /// Add big-brain components to an AI entity based on its behavior type
 fn add_big_brain_components(entity_commands: &mut EntityCommands, behavior_type: AIBehaviorType) {
-    let _ = behavior_type;
+    match behavior_type {
+        AIBehaviorType::Hostile => {
+            // Hostile enemies are aggressive and prioritize chasing
+            // Higher threshold (0.7) means they need strong conviction to act
+            // They will chase when they see the player, otherwise wander to search
+            let thinker = Thinker::build()
+                .picker(FirstToScore { threshold: 0.7 })
+                .when(ChasePlayerScorer, ChasePlayerAction::default())
+                .when(WanderScorer, WanderAction::default())
+                .otherwise(IdleAction);
 
-    let thinker = Thinker::build()
-        .picker(FirstToScore { threshold: 0.6 })
-        .when(ChasePlayerScorer, ChasePlayerAction::default())
-        .otherwise(WanderAction::default());
-    // .when(WanderScorer, WanderAction)
-    // .otherwise(IdleAction);
+            entity_commands.insert((
+                thinker,
+                ChasePlayerScorer,
+                WanderScorer,
+                ChasePlayerAction::default(),
+                WanderAction::default(),
+                IdleAction,
+            ));
+        }
+        AIBehaviorType::Passive => {
+            // Passive enemies prioritize survival and flee from threats
+            // Lower threshold (0.5) means they're more reactive to danger
+            // They will flee when threatened, otherwise wander peacefully
+            let thinker = Thinker::build()
+                .picker(FirstToScore { threshold: 0.5 })
+                .when(FleeFromPlayerScorer, FleeFromPlayerAction::default())
+                .when(WanderScorer, WanderAction::default())
+                .otherwise(IdleAction);
 
-    entity_commands.insert((
-        thinker,
-        ChasePlayerScorer,
-        WanderScorer,
-        ChasePlayerAction::default(),
-        WanderAction::default(),
-        IdleAction,
-    ));
+            entity_commands.insert((
+                thinker,
+                FleeFromPlayerScorer,
+                WanderScorer,
+                FleeFromPlayerAction::default(),
+                WanderAction::default(),
+                IdleAction,
+            ));
+        }
+        AIBehaviorType::Neutral => {
+            // Neutral enemies are peaceful and just go about their business
+            // Very low threshold (0.3) means they're content to just wander
+            // They ignore the player completely and focus on their own activities
+            let thinker = Thinker::build()
+                .picker(FirstToScore { threshold: 0.3 })
+                .when(WanderScorer, WanderAction::default())
+                .otherwise(IdleAction);
 
-    // match behavior_type {
-    //     AIBehaviorType::Hostile => {
-    //         // Hostile enemies prioritize chasing when they see the player
-    //         let thinker = Thinker::build()
-    //             .picker(FirstToScore { threshold: 0.6 })
-    //             .when(ChasePlayerScorer, ChasePlayerAction::default())
-    //             .when(WanderScorer, WanderAction)
-    //             .otherwise(IdleAction);
-
-    //         entity_commands.insert((
-    //             thinker,
-    //             ChasePlayerScorer,
-    //             WanderScorer,
-    //             ChasePlayerAction::default(),
-    //             WanderAction,
-    //             IdleAction,
-    //         ));
-    //     }
-    //     AIBehaviorType::Passive => {
-    //         // Passive enemies prioritize fleeing from threats
-    //         let thinker = Thinker::build()
-    //             .picker(FirstToScore { threshold: 0.5 })
-    //             .when(FleeFromPlayerScorer, FleeFromPlayerAction)
-    //             .when(WanderScorer, WanderAction)
-    //             .otherwise(IdleAction);
-
-    //         entity_commands.insert((
-    //             thinker,
-    //             FleeFromPlayerScorer,
-    //             WanderScorer,
-    //             FleeFromPlayerAction,
-    //             WanderAction,
-    //             IdleAction,
-    //         ));
-    //     }
-    //     AIBehaviorType::Neutral => {
-    //         // Neutral enemies just wander around
-    //         let thinker = Thinker::build()
-    //             .picker(FirstToScore { threshold: 0.3 })
-    //             .when(WanderScorer, WanderAction)
-    //             .otherwise(IdleAction);
-
-    //         entity_commands.insert((thinker, WanderScorer, WanderAction, IdleAction));
-    //     }
-    // }
+            entity_commands.insert((thinker, WanderScorer, WanderAction::default(), IdleAction));
+        }
+    }
 }
