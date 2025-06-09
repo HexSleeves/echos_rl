@@ -5,21 +5,6 @@ use crate::core::{
     resources::{CurrentMap, FovMap},
 };
 
-/// Generic cleanup system for removing entities with a specific component
-pub fn cleanup_system<T: Component>(mut commands: Commands, q: Query<Entity, With<T>>) {
-    for entity in q.iter() {
-        commands.entity(entity).despawn();
-    }
-}
-
-/// Cleanup component for entities that should be removed when the game exits
-#[derive(Component)]
-pub struct CleanupOnGameExit;
-
-// ============================================================================
-// FOV SYSTEMS
-// ============================================================================
-
 /// System that computes FOV for all entities with a ViewShed component
 pub fn compute_fov(
     map: Res<CurrentMap>,

@@ -45,12 +45,6 @@ pub fn plugin(app: &mut App) {
             .in_set(GameplaySystemSet::Initialization),
     );
 
-    // Add monitoring systems for debugging
-    // app.add_systems(
-    //     Update,
-    //     monitor_gameplay_state.run_if(in_state(ScreenState::Gameplay)).
-    // in_set(GameplaySystemSet::WorldUpdate), );
-
     // Add gameplay plugins
     app.add_plugins((player::plugin, enemies::plugin, turns::plugin, world::plugin));
 }
@@ -85,23 +79,3 @@ fn start_first_turn(mut next_state: ResMut<NextState<GameState>>) {
     debug_turns!("Starting first turn - transitioning to ProcessTurns state");
     next_state.set(GameState::ProcessTurns);
 }
-
-// /// System to monitor gameplay state for debugging
-// fn monitor_gameplay_state(
-//     game_state: Res<State<GameState>>,
-//     players: Query<Entity, With<PlayerTag>>,
-//     enemies: Query<Entity, With<AITag>>,
-// ) {
-//     let player_count = players.iter().count();
-//     let enemy_count = enemies.iter().count();
-
-//     // Only log when we have entities to avoid spam
-//     if player_count > 0 || enemy_count > 0 {
-//         debug!(
-//             "Gameplay State: {:?} | Players: {} | Enemies: {}",
-//             game_state.get(),
-//             player_count,
-//             enemy_count
-//         );
-//     }
-// }

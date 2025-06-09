@@ -49,8 +49,6 @@ pub fn wander_scorer_system(
         let wander_score =
             calculate_wander_score(&ai_pos, &mut ai_behavior, player_pos, current_turn, &current_map);
 
-        println!("wander_score: {:?}", wander_score);
-
         score.set(wander_score);
     }
 }

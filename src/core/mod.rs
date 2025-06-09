@@ -37,22 +37,46 @@ pub fn plugin(app: &mut App) {
         .register_type::<resources::DistanceSettings>();
 
     // Register core events
-    app.add_event::<events::GameStarted>().add_event::<events::GameEnded>();
+    app.add_event::<events::GameStarted>()
+        .add_event::<events::GameEnded>()
+        .add_event::<events::CombatEvent>()
+        .add_event::<events::DamageDealtEvent>()
+        .add_event::<events::EntityDeathEvent>();
 
-    // Add core systems organized by function
     app.add_systems(
-        Update,
+        PreUpdate,
         (
-            // Process spawn commands during gameplay - this should run early
+            // Process spawn commands during gameplay
             commands::process_spawn_commands
                 .run_if(in_state(ScreenState::Gameplay))
                 .in_set(crate::gameplay::GameplaySystemSet::Spawning),
-            // Always-running systems
-            systems::cleanup_system::<systems::CleanupOnGameExit>,
-            systems::compute_fov
-                .run_if(in_state(ScreenState::Gameplay))
-                .run_if(in_state(GameState::ProcessTurns))
-                .in_set(crate::gameplay::GameplaySystemSet::WorldUpdate),
         ),
+    );
+
+    // Add fov systems
+    app.add_systems(
+        Update,
+        systems::fov::compute_fov
+            .run_if(in_state(ScreenState::Gameplay))
+            .run_if(in_state(GameState::ProcessTurns))
+            .in_set(crate::gameplay::GameplaySystemSet::WorldUpdate),
+    );
+
+    // Add combat systems
+    app.add_systems(
+        Update,
+        (
+            systems::combat::handle_entity_death,
+            systems::combat::handle_combat_events,
+            systems::combat::handle_damage_events,
+        )
+            .run_if(in_state(ScreenState::Gameplay))
+            .in_set(crate::gameplay::GameplaySystemSet::ActionProcessing),
+    );
+
+    // Add cleanup system
+    app.add_systems(
+        Update,
+        systems::cleanup_system::<systems::CleanupOnGameExit>.run_if(in_state(ScreenState::Gameplay)),
     );
 }

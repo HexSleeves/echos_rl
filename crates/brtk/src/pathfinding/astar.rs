@@ -199,6 +199,7 @@ impl PathAlgorithm for AStar {
 
             // Performance optimization: limit search space
             if nodes_explored > MAX_SEARCH_NODES {
+                log::warn!("A* search exceeded MAX_SEARCH_NODES limit of {MAX_SEARCH_NODES}");
                 break;
             }
 

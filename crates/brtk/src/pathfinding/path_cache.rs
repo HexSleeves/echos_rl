@@ -3,7 +3,7 @@
 //! LRU cache with expiration for pathfinding results to avoid redundant computations.
 
 use std::{
-    collections::HashMap,
+    collections::{HashMap, VecDeque},
     time::{Duration, Instant},
 };
 
@@ -79,7 +79,7 @@ pub struct PathCache {
     config: PathCacheConfig,
     // TODO: access_order is a plain Vec, so every cache hit (update_access_order) and every eviction
     // (evict_lru) performs a linear retain / remove(0) – worst-case O(n) with n = max_entries.
-    access_order: Vec<PathCacheKey>, // For LRU eviction
+    access_order: VecDeque<PathCacheKey>, // For LRU eviction
 }
 
 impl PathCache {
@@ -89,7 +89,7 @@ impl PathCache {
         Self {
             cache: HashMap::with_capacity(max_entries),
             config,
-            access_order: Vec::with_capacity(max_entries),
+            access_order: VecDeque::with_capacity(max_entries),
         }
     }
 
@@ -193,16 +193,18 @@ impl PathCache {
     /// Update the access order for LRU eviction
     fn update_access_order(&mut self, key: &PathCacheKey) {
         // Remove the key if it already exists
-        self.access_order.retain(|k| k != key);
+        if let Some(pos) = self.access_order.iter().position(|k| k == key) {
+            self.access_order.remove(pos);
+        }
+
         // Add it to the end (most recently used)
-        self.access_order.push(key.clone());
+        self.access_order.push_back(key.clone());
     }
 
     /// Evict the least recently used entry
     fn evict_lru(&mut self) {
-        if let Some(lru_key) = self.access_order.first().cloned() {
+        if let Some(lru_key) = self.access_order.pop_front() {
             self.cache.remove(&lru_key);
-            self.access_order.remove(0);
         }
     }
 
