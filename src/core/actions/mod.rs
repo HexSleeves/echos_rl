@@ -9,3 +9,6 @@ pub use teleport::*;
 
 mod attack;
 pub use attack::*;
+
+mod swipe_attack;
+pub use swipe_attack::*;

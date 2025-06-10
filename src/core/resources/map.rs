@@ -66,6 +66,17 @@ impl Map {
         }
     }
 
+    pub fn new_with_terrain(size: (u32, u32), terrain: TerrainType) -> Self {
+        let tiles = Grid::new_fill(size, Tile { terrain, ..Default::default() });
+
+        Self {
+            size,
+            tiles,
+            actor_positions: HashMap::new(),
+            tile_storage: TileStorage::empty(TilemapSize::new(size.0, size.1)),
+        }
+    }
+
     // Position utilities
     pub fn pos_to_idx(&self, position: Position) -> usize {
         self.tiles.position_to_index_unchecked(position.into())

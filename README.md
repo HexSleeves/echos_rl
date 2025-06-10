@@ -16,12 +16,14 @@ A modern roguelike game built with [Bevy Engine](https://bevyengine.org/) featur
 
 - **🔧 Data-Driven Architecture**: All entities defined in RON files for easy modification
 - **⚡ Modern Bevy ECS**: Built on Bevy 0.16 with full ECS architecture
-- **🎯 Turn-Based Combat**: Strategic turn-based gameplay with action queuing
-- **👁️ Field of View**: Dynamic lighting and vision system
-- **🗺️ Procedural Generation**: Randomly generated maps and encounters
+- **🎯 Turn-Based Combat**: Strategic turn-based gameplay with sophisticated action system
+- **👁️ Field of View**: Bit-optimized shadowcasting FOV system
+- **🗺️ Procedural Generation**: Room-based map generation with configurable parameters
+- **🤖 Advanced AI**: Multi-behavior AI system (chase, flee, wander, idle) with scoring
+- **⚔️ Combat System**: Health, stats, and damage calculations with event-driven architecture
+- **🧭 Pathfinding**: A* pathfinding with terrain-aware cost calculations and caching
 - **🔄 Hot Reloading**: Real-time asset reloading during development
-- **🎨 Tilemap Rendering**: Efficient tilemap-based graphics
-- **🎵 Audio System**: Integrated audio with Kira Audio
+- **🎨 Tilemap Rendering**: Efficient tilemap-based graphics with multiple tilesets
 
 ## 🚀 Quick Start
 
@@ -62,25 +64,41 @@ cargo run --features dev_log
 
 ```
 src/
-├── controller/          # Input handling and game control
-│   └── systems/        # Controller systems
-├── model/              # Game logic and data
-│   ├── components/     # ECS components
-│   ├── entities/       # Data-driven entity system
-│   ├── resources/      # Game resources
-│   ├── commands/       # Entity commands
-│   └── systems/        # Game logic systems
-└── view/               # Rendering and UI
-    ├── screens/        # Game screens
-    ├── systems/        # Rendering systems
-    └── resources/      # View resources
+├── core/               # Core game mechanics
+│   ├── actions/        # Action system (walk, attack, wait, teleport)
+│   ├── commands/       # Entity spawn commands
+│   ├── components/     # Core ECS components (position, health, stats)
+│   ├── resources/      # Game resources (maps, FOV, turn queue)
+│   ├── systems/        # Core systems (combat, FOV)
+│   └── types/          # Core types and error handling
+├── gameplay/           # High-level game logic
+│   ├── enemies/        # AI system with multiple behaviors
+│   ├── player/         # Player input and actions
+│   ├── turns/          # Turn-based system management
+│   └── world/          # Map generation and spawning
+├── rendering/          # Display and graphics
+│   ├── screens/        # Game screens (loading, gameplay)
+│   └── systems/        # Rendering systems
+├── ui/                 # User interface
+│   ├── components/     # UI components (camera, interaction)
+│   ├── systems/        # UI systems
+│   └── utils/          # UI utilities and widgets
+└── utils/              # General utilities
+
+crates/
+├── brtk/               # Custom roguelike toolkit
+│   ├── fov/            # Field of view algorithms
+│   ├── pathfinding/    # A* pathfinding with caching
+│   ├── grid/           # Grid utilities and shapes
+│   └── random/         # Dice rolling system
+└── echos_assets/       # Asset loading system
 
 assets/
 ├── entities/           # Entity definitions (RON files)
-│   ├── player.ron     # Player definition
-│   └── enemies/       # Enemy definitions
-├── textures/          # Game textures
-└── settings/          # Configuration files
+│   ├── player.definition.ron
+│   └── enemies/        # Enemy definitions
+├── textures/           # Game textures and tilesets
+└── settings/           # Configuration files
 ```
 
 ### Data-Driven Entity System
@@ -88,16 +106,17 @@ assets/
 Entities are defined using RON files, making the game highly moddable:
 
 ```ron
-// assets/entities/player.ron
+// assets/entities/player.definition.ron
 EntityDefinition(
     name: "Player",
     description: Some("The player character"),
     components: EntityComponents(
         turn_actor: Some(TurnActorData(speed: 100)),
-        view_shed: Some(ViewShedData(radius: 8)),
+        field_of_view: Some(FieldOfViewData(radius: 8)),
         tile_sprite: Some(TileSpriteData(tile_coords: (10, 18))),
-        is_player: Some(true),
-        is_ai: Some(false),
+        health: Some(HealthData(max_health: 30, current_health: 30)),
+        stats: Some(StatsData(strength: 3, defense: 2)),
+        player_tag: Some(true),
     ),
 )
 ```
@@ -108,32 +127,38 @@ The game uses a command-based entity spawning system:
 
 ```rust
 // Queue entity spawning
-commands.spawn_player(position);
-commands.spawn_enemy("whale", position);
-commands.spawn_random_enemy(position);
+commands.spawn(SpawnPlayerCommand { position });
+commands.spawn(SpawnAICommand { 
+    entity_key: "hostile_guard".to_string(), 
+    position 
+});
 
 // Commands are processed by the spawn system with automatic fallback
+// to default entities if the specified entity is not found
 ```
 
 ## 🎯 Game Features
 
 ### Turn-Based System
 
-- **Action Queue**: Queue multiple actions per turn
-- **Speed-Based Timing**: Faster entities act more frequently
-- **Strategic Depth**: Plan your moves carefully
+- **Priority Queue**: Binary heap-based turn scheduling with overflow handling
+- **Speed-Based Timing**: Faster entities act more frequently based on speed stats
+- **Action Types**: Walk, attack, wait, and teleport actions with validation
+- **Strategic Depth**: Plan your moves carefully with full turn preview
 
-### Entity System
+### Advanced AI System
 
-- **Flexible Components**: Mix and match components for unique entities
-- **Data-Driven**: Modify entities without code changes
-- **Hot Reloading**: See changes instantly during development
+- **Behavior Scoring**: AI entities score different behaviors (chase, flee, wander, idle)
+- **Dynamic Decision Making**: AI chooses best action based on current situation
+- **Configurable Behaviors**: Each enemy type has different behavioral parameters
+- **Performance Optimized**: Efficient pathfinding with caching and distance-based updates
 
 ### Procedural Generation
 
-- **Random Maps**: Each playthrough features unique layouts
-- **Dynamic Spawning**: Enemies spawn based on level and conditions
-- **Balanced Encounters**: Weighted spawn systems for fair gameplay
+- **Room-Based Maps**: Configurable room generation with corridors
+- **Dynamic Spawning**: Enemies spawn based on room size and type
+- **Weighted Encounters**: Different enemy types spawn with configurable probabilities
+- **Configurable Parameters**: Map size, room count, and generation rules easily modified
 
 ## 🛠️ Development
 
@@ -258,16 +283,20 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 - [x] Asset loading integration
 - [x] Hot reloading support
 
-### Phase 2: Core Gameplay 🚧
+### Phase 2: Core Gameplay ✅
 
-- [ ] Combat system
+- [x] Combat system with health and damage
+- [x] Advanced AI with multiple behaviors
+- [x] Turn-based action system
+- [x] Field of view and pathfinding
 - [ ] Inventory management
 - [ ] Character progression
 - [ ] Save/load system
 
-### Phase 3: Content 📋
+### Phase 3: Content 🚧
 
-- [ ] Multiple enemy types
+- [x] Multiple enemy types (hostile guards, wanderers, critters)
+- [x] Procedural map generation
 - [ ] Items and equipment
 - [ ] Special abilities
 - [ ] Multiple levels/areas

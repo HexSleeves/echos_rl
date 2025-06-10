@@ -7,9 +7,7 @@ use crate::{
         components::{PlayerTag, Position},
         pathfinding,
         resources::{CurrentMap, FovMap, TurnQueue},
-        types::ActionType,
     },
-    // Import debug macros
     debug_ai,
     gameplay::{
         enemies::{
@@ -139,7 +137,7 @@ pub fn wander_action_system(
 
                         // Use first step of path for immediate movement
                         if let Some(&next_pos) = wander_action.current_path.get(1) {
-                            let direction = helpers::calculate_direction_to_target(*ai_pos, next_pos);
+                            let direction = helpers::calculate_direction_to_target(ai_pos, &next_pos);
 
                             if let Some(dir) = direction {
                                 execute_wander_movement(&mut ai_actor, dir, target, ai_name);
@@ -161,7 +159,7 @@ pub fn wander_action_system(
                         wander_action.current_path.clear();
                         wander_action.current_target = Some(target);
 
-                        let direction = helpers::calculate_direction_to_target(*ai_pos, target);
+                        let direction = helpers::calculate_direction_to_target(ai_pos, &target);
                         if let Some(dir) = direction {
                             execute_wander_movement(&mut ai_actor, dir, target, ai_name);
                         } else {
@@ -227,7 +225,7 @@ pub fn wander_action_system(
                 let next_move_result = if !wander_action.current_path.is_empty() {
                     follow_stored_wander_path(&mut wander_action, *ai_pos, &current_map)
                 } else {
-                    helpers::calculate_direction_to_target(*ai_pos, target_position)
+                    helpers::calculate_direction_to_target(ai_pos, &target_position)
                 };
 
                 // Execute the movement
@@ -249,7 +247,7 @@ fn execute_wander_movement(
     target_position: Position,
     ai_name: &str,
 ) {
-    ai_actor.queue_action(ActionType::MoveDelta(direction));
+    ai_actor.queue_move_delta(direction);
     debug_ai!("{} wandering: moving {:?} towards {:?}", ai_name, direction, target_position);
 
     // Suppress unused variable warnings when debug feature is disabled
@@ -465,7 +463,7 @@ fn follow_stored_wander_path(
         }
 
         // Calculate direction to next position
-        let direction = helpers::calculate_direction_to_target(current_ai_pos, *next_pos);
+        let direction = helpers::calculate_direction_to_target(&current_ai_pos, next_pos);
 
         // Update path index for next time
         wander_action.path_index = next_index;

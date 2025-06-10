@@ -7,7 +7,6 @@ use crate::{
         components::{PlayerTag, Position},
         pathfinding,
         resources::{CurrentMap, FovMap, TurnQueue},
-        types::ActionType,
     },
     debug_ai,
     gameplay::{
@@ -149,7 +148,7 @@ pub fn flee_from_player_action_system(
                         // Use first step of path for immediate movement
                         if let Some(&next_pos) = flee_action.escape_path.get(1) {
                             // Skip current position (index 0)
-                            let direction = helpers::calculate_direction_to_target(*ai_pos, next_pos);
+                            let direction = helpers::calculate_direction_to_target(ai_pos, &next_pos);
 
                             if let Some(dir) = direction {
                                 execute_flee_movement(&mut ai_actor, dir, next_pos, ai_name);
@@ -171,7 +170,7 @@ pub fn flee_from_player_action_system(
                             ai_name
                         );
                         // Fallback to simple direction calculation away from player
-                        let direction = helpers::calculate_direction_away_from_target(*ai_pos, *player_pos);
+                        let direction = helpers::calculate_direction_away_from_target(ai_pos, player_pos);
                         if let Some(dir) = direction {
                             execute_flee_movement(&mut ai_actor, dir, escape_target, ai_name);
                         } else {
@@ -226,7 +225,7 @@ pub fn flee_from_player_action_system(
                     follow_stored_escape_path(&mut flee_action, *ai_pos, &current_map)
                 } else {
                     // Fallback to simple direction calculation away from player
-                    helpers::calculate_direction_away_from_target(*ai_pos, *player_pos)
+                    helpers::calculate_direction_away_from_target(ai_pos, player_pos)
                 };
 
                 // Execute the movement
@@ -249,7 +248,7 @@ fn execute_flee_movement(
     target_position: Position,
     ai_name: &str,
 ) {
-    ai_actor.queue_action(ActionType::MoveDelta(direction));
+    ai_actor.queue_move_delta(direction);
     debug_ai!("{} fleeing: moving {:?} towards {:?}", ai_name, direction, target_position);
 }
 
@@ -395,7 +394,7 @@ fn follow_stored_escape_path(
         }
 
         // Calculate direction to next position
-        let direction = helpers::calculate_direction_to_target(current_ai_pos, *next_pos);
+        let direction = helpers::calculate_direction_to_target(&current_ai_pos, next_pos);
 
         // Update path index for next time
         flee_action.path_index = next_index;

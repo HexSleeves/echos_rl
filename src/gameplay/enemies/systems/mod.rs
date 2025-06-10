@@ -1,3 +1,6 @@
+pub mod attack;
+pub use attack::*;
+
 pub mod chase;
 pub use chase::*;
 

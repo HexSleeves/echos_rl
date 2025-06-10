@@ -97,16 +97,26 @@ impl Default for TurnActor {
 // Convenience methods for common action types
 impl TurnActor {
     /// Quick method to queue a wait action
-    pub fn queue_wait(&mut self) { self.queue_action(ActionType::Wait); }
+    pub fn queue_wait(&mut self) {
+        info!("Queueing wait action");
+        self.queue_action(ActionType::Wait);
+    }
 
     /// Quick method to queue a teleport action
-    pub fn queue_teleport(&mut self, position: Position) { self.queue_action(ActionType::Teleport(position)) }
+    pub fn queue_teleport(&mut self, position: Position) {
+        info!("Queueing teleport action to {position:?}");
+        self.queue_action(ActionType::Teleport(position))
+    }
 
     /// Quick method to queue an attack action
-    pub fn queue_attack(&mut self, position: Position) { self.queue_action(ActionType::Attack(position)) }
+    pub fn queue_attack(&mut self, position: Position) {
+        info!("Queueing attack action to {position:?}");
+        self.queue_action(ActionType::Attack(position))
+    }
 
     /// Quick method to queue a move delta action
     pub fn queue_move_delta(&mut self, direction: Direction) {
+        info!("Queueing move delta action to {direction:?}");
         self.queue_action(ActionType::MoveDelta(direction))
     }
 }

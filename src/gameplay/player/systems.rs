@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use crate::{
     core::{states::GameState, types::ActionType},
+    debug_turns,
     gameplay::{
         player::{actions::PlayerAction, components::AwaitingInput},
         turns::components::TurnActor,
@@ -61,6 +62,8 @@ pub fn player_input_system(
     }
 
     if let Some(action) = action {
+        debug_turns!("Player queued action: {:?}", action);
+
         // Queue the action directly - no more builder pattern!
         p_actor.queue_action(action);
 

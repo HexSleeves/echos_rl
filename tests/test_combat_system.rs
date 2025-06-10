@@ -2,15 +2,18 @@ use bevy::prelude::*;
 use echos_in_the_dark::{
     core::{
         actions::AttackAction,
-        components::{Position, Health, Stats},
+        components::{Health, Position, Stats},
         resources::CurrentMap,
         types::GameAction,
     },
+    gameplay::world::components::TerrainType,
 };
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use echos_in_the_dark::{Grid, prelude::core::Tile};
 
     fn setup_test_world() -> (World, Entity, Entity) {
         let mut world = World::new();
@@ -20,21 +23,26 @@ mod tests {
         world.insert_resource(map);
 
         // Create attacker entity
-        let attacker = world.spawn((
-            Position::new(0, 0),
-            Stats::warrior(), // High strength for testing
-            Health::new(100),
-        )).id();
+        let attacker = world
+            .spawn((
+                Position::new(0, 0),
+                Stats::warrior(), // High strength for testing
+                Health::new(100),
+            ))
+            .id();
 
         // Create target entity
-        let target = world.spawn((
-            Position::new(1, 0),
-            Stats::balanced(8), // Lower stats for easier testing
-            Health::new(50),
-        )).id();
+        let target = world
+            .spawn((
+                Position::new(1, 0),
+                Stats::balanced(8), // Lower stats for easier testing
+                Health::new(50),
+            ))
+            .id();
 
-        // Place entities on the map
+        // Set up walkable terrain and place entities on the map
         let mut map = world.resource_mut::<CurrentMap>();
+        map.tiles = Grid::new_fill(map.size, Tile { terrain: TerrainType::Floor, ..Default::default() });
         map.place_actor(Position::new(0, 0), attacker).unwrap();
         map.place_actor(Position::new(1, 0), target).unwrap();
 

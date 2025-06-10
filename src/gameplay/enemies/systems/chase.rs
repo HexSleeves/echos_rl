@@ -7,7 +7,6 @@ use crate::{
         components::{PlayerTag, Position},
         pathfinding,
         resources::{CurrentMap, FovMap, TurnQueue},
-        types::ActionType,
     },
     debug_ai,
     gameplay::{
@@ -19,98 +18,6 @@ use crate::{
     },
     prelude::assets::AIBehaviorType,
 };
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-/// Generate or regenerate A* path for chasing
-fn generate_chase_path(
-    chase_action: &mut ChasePlayerAction,
-    ai_pos: Position,
-    target_pos: Position,
-    current_map: &mut CurrentMap,
-    ai_name: &str,
-) -> bool {
-    if let Some(path) = pathfinding::utils::find_path(ai_pos, target_pos, current_map, true) {
-        debug_ai!("{} generated A* path with {} steps", ai_name, path.len());
-
-        chase_action.current_path = path;
-        chase_action.path_index = 0;
-        chase_action.target_when_path_generated = Some(target_pos);
-        chase_action.ai_pos_when_path_generated = Some(ai_pos);
-        chase_action.generated_path = true;
-        chase_action.last_seen_pt = Some(target_pos);
-
-        true
-    } else {
-        debug_ai!("{} A* pathfinding failed", ai_name);
-        chase_action.generated_path = false;
-        chase_action.current_path.clear();
-        chase_action.last_seen_pt = Some(target_pos);
-
-        false
-    }
-}
-
-/// Execute movement towards target
-fn execute_chase_movement(
-    ai_actor: &mut TurnActor,
-    direction: Direction,
-    target_position: Position,
-    ai_name: &str,
-) {
-    ai_actor.queue_action(ActionType::MoveDelta(direction));
-    debug_ai!("{} chasing: moving {:?} towards {:?}", ai_name, direction, target_position);
-}
-
-/// Determine the target position for chasing based on visibility and stored paths
-fn determine_chase_target(
-    chase_action: &mut ChasePlayerAction,
-    ai_pos: Position,
-    player_pos: Position,
-    ai_behavior: &AIBehavior,
-    current_map: &mut CurrentMap,
-    ai_name: &str,
-) -> Option<Position> {
-    let player_visible = FovMap::can_see_entity(ai_pos, ai_behavior.detection_range, player_pos, current_map);
-
-    if player_visible {
-        // Player is visible - update last seen position and potentially regenerate path
-        chase_action.last_seen_pt = Some(player_pos);
-
-        // If we don't have a current path or it's to a different target, regenerate
-        if !chase_action.generated_path || chase_action.target_when_path_generated != Some(player_pos) {
-            generate_chase_path(chase_action, ai_pos, player_pos, current_map, ai_name);
-        }
-
-        Some(player_pos)
-    } else {
-        // Player not visible - use last known position
-        let last_seen = chase_action.last_seen_pt?;
-
-        // Check if we've reached the last seen position
-        if last_seen == ai_pos {
-            return None; // Signal failure
-        }
-
-        Some(last_seen)
-    }
-}
-
-/// Get the next movement direction, either from stored path or direct calculation
-fn get_next_chase_direction(
-    chase_action: &mut ChasePlayerAction,
-    ai_pos: Position,
-    target_position: Position,
-    current_map: &CurrentMap,
-) -> Option<Direction> {
-    if chase_action.generated_path && !chase_action.current_path.is_empty() {
-        follow_stored_path(chase_action, ai_pos, current_map)
-    } else {
-        helpers::calculate_direction_to_target(ai_pos, target_position)
-    }
-}
 
 // ============================================================================
 // SCORER SYSTEMS (Evaluate what the AI should do)
@@ -265,7 +172,7 @@ pub fn chase_player_action_system(
                 if generate_chase_path(&mut chase_action, *ai_pos, *player_pos, &mut current_map, ai_name) {
                     // Use first step of path for immediate movement
                     if let Some(&next_pos) = chase_action.current_path.get(1) {
-                        let direction = helpers::calculate_direction_to_target(*ai_pos, next_pos);
+                        let direction = helpers::calculate_direction_to_target(ai_pos, &next_pos);
 
                         if let Some(dir) = direction {
                             execute_chase_movement(&mut ai_actor, dir, next_pos, ai_name);
@@ -282,10 +189,10 @@ pub fn chase_player_action_system(
                         *action_state = ActionState::Success;
                     }
                 } else {
-                    // Fallback to simple direction calculation
-                    debug_ai!("{} using simple direction fallback", ai_name);
+                    // Fallback to tactical direction calculation
+                    debug_ai!("{} using tactical direction fallback", ai_name);
 
-                    let direction = helpers::calculate_direction_to_target(*ai_pos, *player_pos);
+                    let direction = helpers::calculate_tactical_direction_to_target(ai_pos, player_pos);
                     if let Some(dir) = direction {
                         execute_chase_movement(&mut ai_actor, dir, *player_pos, ai_name);
                     } else {
@@ -316,6 +223,8 @@ pub fn chase_player_action_system(
                     continue;
                 };
 
+                // Always attempt to move toward target - bump-to-attack will handle occupied spaces
+
                 // Get next movement direction
                 let Some(direction) =
                     get_next_chase_direction(&mut chase_action, *ai_pos, target_position, &current_map)
@@ -329,6 +238,55 @@ pub fn chase_player_action_system(
                 execute_chase_movement(&mut ai_actor, direction, target_position, ai_name);
             }
         }
+    }
+}
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/// Execute movement towards target
+fn execute_chase_movement(
+    ai_actor: &mut TurnActor,
+    direction: Direction,
+    target_position: Position,
+    ai_name: &str,
+) {
+    ai_actor.queue_move_delta(direction);
+    debug_ai!("{} chasing: moving {:?} towards {:?}", ai_name, direction, target_position);
+}
+
+/// Determine the target position for chasing based on visibility and stored paths
+fn determine_chase_target(
+    chase_action: &mut ChasePlayerAction,
+    ai_pos: Position,
+    player_pos: Position,
+    ai_behavior: &AIBehavior,
+    current_map: &mut CurrentMap,
+    ai_name: &str,
+) -> Option<Position> {
+    let player_visible = FovMap::can_see_entity(ai_pos, ai_behavior.detection_range, player_pos, current_map);
+
+    if player_visible {
+        // Player is visible - update last seen position and potentially regenerate path
+        chase_action.last_seen_pt = Some(player_pos);
+
+        // If we don't have a current path or it's to a different target, regenerate
+        if !chase_action.generated_path || chase_action.target_when_path_generated != Some(player_pos) {
+            generate_chase_path(chase_action, ai_pos, player_pos, current_map, ai_name);
+        }
+
+        Some(player_pos)
+    } else {
+        // Player not visible - use last known position
+        let last_seen = chase_action.last_seen_pt?;
+
+        // Check if we've reached the last seen position
+        if last_seen == ai_pos {
+            return None; // Signal failure
+        }
+
+        Some(last_seen)
     }
 }
 
@@ -360,11 +318,12 @@ fn should_regenerate_chase_path(
         }
     }
 
-    // Current path step is blocked
-    if let Some(next_pos) = chase_action.current_path.get(chase_action.path_index + 1)
-        && !map.is_walkable(*next_pos)
-    {
-        return true;
+    // Skip walkability check for the final step – bump-to-attack will resolve it
+    if let Some(next_pos) = chase_action.current_path.get(chase_action.path_index + 1) {
+        let is_final_step = chase_action.path_index + 2 >= chase_action.current_path.len();
+        if !is_final_step && !map.is_walkable(*next_pos) {
+            return true;
+        }
     }
 
     // Path is exhausted
@@ -373,6 +332,49 @@ fn should_regenerate_chase_path(
     }
 
     false
+}
+
+/// Generate or regenerate A* path for chasing
+fn generate_chase_path(
+    chase_action: &mut ChasePlayerAction,
+    ai_pos: Position,
+    target_pos: Position,
+    current_map: &mut CurrentMap,
+    ai_name: &str,
+) -> bool {
+    if let Some(path) = pathfinding::utils::find_path(ai_pos, target_pos, current_map, true) {
+        debug_ai!("{} generated A* path with {} steps", ai_name, path.len());
+
+        chase_action.current_path = path;
+        chase_action.path_index = 0;
+        chase_action.target_when_path_generated = Some(target_pos);
+        chase_action.ai_pos_when_path_generated = Some(ai_pos);
+        chase_action.generated_path = true;
+        chase_action.last_seen_pt = Some(target_pos);
+
+        true
+    } else {
+        debug_ai!("{} A* pathfinding failed", ai_name);
+        chase_action.generated_path = false;
+        chase_action.current_path.clear();
+        chase_action.last_seen_pt = Some(target_pos);
+
+        false
+    }
+}
+
+/// Get the next movement direction, either from stored path or direct calculation
+fn get_next_chase_direction(
+    chase_action: &mut ChasePlayerAction,
+    ai_pos: Position,
+    target_position: Position,
+    current_map: &CurrentMap,
+) -> Option<Direction> {
+    if chase_action.generated_path && !chase_action.current_path.is_empty() {
+        follow_stored_path(chase_action, ai_pos, current_map)
+    } else {
+        helpers::calculate_tactical_direction_to_target(&ai_pos, &target_position)
+    }
 }
 
 /// Follow the stored A* path and return the next direction to move
@@ -413,7 +415,7 @@ fn follow_stored_path(
         }
 
         // Calculate direction to next position
-        let direction = helpers::calculate_direction_to_target(current_ai_pos, *next_pos);
+        let direction = helpers::calculate_tactical_direction_to_target(&current_ai_pos, next_pos);
 
         // Update path index for next time
         chase_action.path_index = next_index;

@@ -13,6 +13,7 @@ pub fn plugin(app: &mut App) {
         (
             // Actions
             (
+                systems::attack_player_action_system,
                 systems::chase_player_action_system,
                 systems::flee_from_player_action_system,
                 systems::wander_action_system,

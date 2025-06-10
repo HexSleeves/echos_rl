@@ -13,6 +13,8 @@ use crate::{
     gameplay::{player::components::AwaitingInput, turns::components::TurnActor},
 };
 
+const MAX_ITERATIONS: u32 = 1000;
+
 /// System that processes turns in the turn queue
 pub fn process_turns(world: &mut World) {
     let mut state: SystemState<(
@@ -34,7 +36,16 @@ pub fn process_turns(world: &mut World) {
         }
         turn_queue.print_queue();
 
+        let mut iterations = 0;
         while let Some((entity, time)) = turn_queue.get_next_actor() {
+            iterations += 1;
+            if iterations == MAX_ITERATIONS {
+                debug_turns!(
+                    "Turn queue processing reached maximum iterations ({MAX_ITERATIONS}). Breaking loop."
+                );
+                break;
+            }
+
             let (is_player, action_opt);
             {
                 // Borrow world only for this inner scope
@@ -72,6 +83,8 @@ pub fn process_turns(world: &mut World) {
             // Process the action using the new trait-based system
             match execute_action(world, entity, action) {
                 Ok(d_time) => {
+                    debug_turns!("Action executed took {d_time}ms");
+
                     // Defensive check – keep the queue healthy
                     let clamped = d_time.min(60_000); // 60 s upper bound (example)
                     turn_queue.schedule_turn(entity, time.saturating_add(clamped));

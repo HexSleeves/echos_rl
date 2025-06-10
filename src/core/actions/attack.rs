@@ -105,7 +105,10 @@ impl GameAction for AttackAction {
                 (actual_damage, target_died)
             } else {
                 debug_combat!("Target has no health component!");
-                return Err(GameError::InvalidWeapon("Target cannot take damage".to_string()));
+                return Err(GameError::MissingComponent {
+                    entity: target_entity,
+                    component: std::any::type_name::<Health>(),
+                });
             }
         };
 

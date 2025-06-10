@@ -15,6 +15,7 @@ use crate::{
         },
         turns::components::TurnActor,
     },
+    prelude::gameplay::enemies::AttackAction,
     rendering::components::TileSprite,
 };
 
@@ -221,10 +222,8 @@ fn add_big_brain_components(entity_commands: &mut EntityCommands, behavior_type:
             let thinker = Thinker::build()
                 .label("Hostile")
                 .picker(FirstToScore { threshold: 0.7 })
-                .when(ChasePlayerScorer, ChasePlayerAction::default())
+                .when(ChasePlayerScorer, Steps::build().step(ChasePlayerAction::default()).step(AttackAction))
                 .otherwise(WanderAction::default());
-            // .when(WanderScorer, WanderAction::default())
-            // .otherwise(IdleAction);
 
             entity_commands.insert((
                 thinker,
@@ -232,7 +231,6 @@ fn add_big_brain_components(entity_commands: &mut EntityCommands, behavior_type:
                 ChasePlayerAction::default(),
                 WanderScorer,
                 WanderAction::default(),
-                // IdleAction,
             ));
         }
         AIBehaviorType::Passive => {
