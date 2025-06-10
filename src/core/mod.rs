@@ -25,7 +25,8 @@ pub fn plugin(app: &mut App) {
         .init_resource::<resources::TurnQueue>()
         .init_resource::<resources::FovMap>()
         .init_resource::<resources::SpawnPoint>()
-        .init_resource::<resources::DistanceSettings>();
+        .init_resource::<resources::DistanceSettings>()
+        .init_resource::<resources::LightMap>();
 
     // Register core components for reflection
     app.register_type::<components::Position>()
@@ -34,6 +35,7 @@ pub fn plugin(app: &mut App) {
         .register_type::<components::PlayerTag>()
         .register_type::<components::AITag>()
         .register_type::<components::DeadTag>()
+        .register_type::<components::Light>()
         .register_type::<resources::DistanceSettings>();
 
     // Register core events
@@ -56,7 +58,7 @@ pub fn plugin(app: &mut App) {
     // Add fov systems
     app.add_systems(
         Update,
-        systems::fov::compute_fov
+        (systems::fov::compute_fov, systems::light::calculate_light_map)
             .run_if(in_state(ScreenState::Gameplay))
             .run_if(in_state(GameState::ProcessTurns))
             .in_set(crate::gameplay::GameplaySystemSet::WorldUpdate),

@@ -18,6 +18,9 @@ pub use stats::*;
 mod inventory;
 pub use inventory::*;
 
+pub mod light;
+pub use light::*;
+
 // Re-export commonly used types for convenience
 pub use bevy::prelude::{Component, Entity};
 

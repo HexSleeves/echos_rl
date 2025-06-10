@@ -13,14 +13,10 @@ pub struct Tile {
     pub terrain: TerrainType,
     pub tile_entity: Option<Entity>,
     pub actor: Option<Entity>,
-    pub visible: bool,
-    pub explored: bool,
 }
 
 impl Default for Tile {
-    fn default() -> Self {
-        Self { terrain: TerrainType::Wall, tile_entity: None, actor: None, visible: false, explored: false }
-    }
+    fn default() -> Self { Self { terrain: TerrainType::Wall, tile_entity: None, actor: None } }
 }
 
 #[derive(Reflect, Clone, Resource)]
@@ -185,69 +181,6 @@ impl Map {
         }
     }
 
-    // Visibility and exploration
-    pub fn set_visible(&mut self, position: Position, visible: bool) {
-        if let Some(tile) = self.tiles.get_mut(position.into()) {
-            tile.visible = visible;
-            if visible {
-                tile.explored = true;
-            }
-        }
-    }
-
-    pub fn is_visible(&self, position: Position) -> bool {
-        self.tiles.get(position.into()).map(|tile| tile.visible).unwrap_or(false)
-    }
-
-    pub fn is_explored(&self, position: Position) -> bool {
-        self.tiles.get(position.into()).map(|tile| tile.explored).unwrap_or(false)
-    }
-
-    pub fn clear_visibility(&mut self) {
-        for tile in self.tiles.iter_mut() {
-            tile.visible = false;
-        }
-    }
-
-    // Spatial queries for roguelike features
-    pub fn get_neighbors(&self, position: Position) -> Vec<Position> {
-        let mut neighbors = Vec::new();
-        let (x, y) = position.into();
-
-        for dx in -1..=1 {
-            for dy in -1..=1 {
-                if dx == 0 && dy == 0 {
-                    continue;
-                }
-                let neighbor = Position::new(x + dx, y + dy);
-                if self.in_bounds(neighbor) {
-                    neighbors.push(neighbor);
-                }
-            }
-        }
-        neighbors
-    }
-
-    pub fn get_actors_in_radius(&self, center: Position, radius: i32) -> Vec<(Position, Entity)> {
-        let mut actors = Vec::new();
-        let (cx, cy) = center.into();
-
-        for x in (cx - radius)..=(cx + radius) {
-            for y in (cy - radius)..=(cy + radius) {
-                let pos = Position::new(x, y);
-                if self.in_bounds(pos) {
-                    let distance_sq = (x - cx).pow(2) + (y - cy).pow(2);
-                    if distance_sq <= radius.pow(2)
-                        && let Some(actor) = self.get_actor(pos)
-                    {
-                        actors.push((pos, actor));
-                    }
-                }
-            }
-        }
-        actors
-    }
-
     // Tile entity management for rendering
     pub fn get_tile_entity(&self, position: Position) -> Option<Entity> {
         self.tiles.get(position.into()).and_then(|tile| tile.tile_entity)
@@ -288,5 +221,44 @@ impl Map {
         }
 
         Some(positions[rng.usize(0..positions.len())])
+    }
+
+    // Spatial queries for roguelike features
+    pub fn get_neighbors(&self, position: Position) -> Vec<Position> {
+        let mut neighbors = Vec::new();
+        let (x, y) = position.into();
+
+        for dx in -1..=1 {
+            for dy in -1..=1 {
+                if dx == 0 && dy == 0 {
+                    continue;
+                }
+                let neighbor = Position::new(x + dx, y + dy);
+                if self.in_bounds(neighbor) {
+                    neighbors.push(neighbor);
+                }
+            }
+        }
+        neighbors
+    }
+
+    pub fn get_actors_in_radius(&self, center: Position, radius: i32) -> Vec<(Position, Entity)> {
+        let mut actors = Vec::new();
+        let (cx, cy) = center.into();
+
+        for x in (cx - radius)..=(cx + radius) {
+            for y in (cy - radius)..=(cy + radius) {
+                let pos = Position::new(x, y);
+                if self.in_bounds(pos) {
+                    let distance_sq = (x - cx).pow(2) + (y - cy).pow(2);
+                    if distance_sq <= radius.pow(2)
+                        && let Some(actor) = self.get_actor(pos)
+                    {
+                        actors.push((pos, actor));
+                    }
+                }
+            }
+        }
+        actors
     }
 }

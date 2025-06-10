@@ -6,8 +6,7 @@ use super::ScreenState;
 use crate::{
     core::states::GameState,
     rendering::systems::{
-        add_sprite_to_entities, debug_fov_visualization, position_to_transform, update_sprite_visibility,
-        update_tilemap_visibility,
+        add_sprite_to_entities, position_to_transform, update_sprite_visibility, update_tilemap_visibility,
     },
 };
 
@@ -41,7 +40,7 @@ pub fn plugin(app: &mut App) {
     // Rendering updates after turn processing
     app.add_systems(
         PostUpdate,
-        (update_tilemap_visibility, update_sprite_visibility, debug_fov_visualization)
+        (update_tilemap_visibility, update_sprite_visibility)
             .chain()
             .in_set(RenderingSystems::Rendering)
             .run_if(in_state(GameState::ProcessTurns))
@@ -55,3 +54,33 @@ pub fn plugin(app: &mut App) {
         position_to_transform.in_set(RenderingSystems::Presentation).run_if(in_state(ScreenState::Gameplay)),
     );
 }
+
+// /// System that provides visual feedback for FOV debugging
+// ///
+// /// Adds colored borders to tiles based on their FOV state:
+// /// - Green border: Currently visible
+// /// - Blue border: Revealed but not visible
+// /// - No border: Unexplored
+// ///
+// /// Enable this system only during development/debugging.
+// #[allow(dead_code)]
+// pub fn debug_fov_visualization(fov_map: Res<FovMap>, mut q_tiles: Query<(&mut TileColor,
+// &TilePos)>) {     if !fov_map.is_changed() {
+//         return;
+//     }
+
+//     for (mut tile_color, tile_pos) in &mut q_tiles {
+//         let position = Position::from(*tile_pos);
+
+//         if fov_map.is_visible(position) {
+//             let (r, g, b, a) = RenderingConstants::DEBUG_VISIBLE_COLOR;
+//             tile_color.0 = Color::srgba(r, g, b, a);
+//         } else if fov_map.is_revealed(position) {
+//             let (r, g, b, a) = RenderingConstants::DEBUG_REVEALED_COLOR;
+//             tile_color.0 = Color::srgba(r, g, b, a);
+//         } else {
+//             let (r, g, b, a) = RenderingConstants::DEBUG_UNEXPLORED_COLOR;
+//             tile_color.0 = Color::srgba(r, g, b, a);
+//         }
+//     }
+// }

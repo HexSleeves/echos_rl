@@ -5,7 +5,9 @@ use echos_assets::entities::{AIBehaviorType, EntityDefinition, EntityDefinitions
 use crate::{
     core::{
         bundles::{EnemyBundle, PlayerBundle},
-        components::{Description, FieldOfView, Health, Inventory, InventoryItem, Position, Stats},
+        components::{
+            Description, FieldOfView, Health, Inventory, InventoryItem, Position, Stats, light::Light,
+        },
         resources::{CurrentMap, TurnQueue},
     },
     gameplay::{
@@ -47,6 +49,13 @@ pub fn spawn_player_from_definition(
     // Add common components using helper function
     let config = EntitySpawnConfig::player();
     add_common_components(&mut entity_commands, definition, &config);
+
+    // Add a light source to the player (torch-like)
+    entity_commands.insert(Light {
+        range: 8,
+        color: Color::srgb(1.0, 0.9, 0.7), // Warm torch light
+        falloff: 1.5,
+    });
 
     let player_id = entity_commands.id();
 
@@ -107,6 +116,37 @@ fn spawn_ai_entity(
 
     // Add big-brain AI components based on behavior type
     add_big_brain_components(&mut entity_commands, behavior_type);
+
+    // Add light sources to certain AI entities
+    match definition.name.as_str() {
+        "Hostile Guard" => {
+            // Guards carry lanterns
+            entity_commands.insert(Light {
+                range: 6,
+                color: Color::srgb(0.9, 0.9, 1.0), // Cool lantern light
+                falloff: 2.0,
+            });
+        }
+        "Fire Elemental" | "Flame Spirit" => {
+            // Fire creatures emit red/orange light
+            entity_commands.insert(Light {
+                range: 10,
+                color: Color::srgb(1.0, 0.5, 0.2), // Fiery orange light
+                falloff: 1.2,
+            });
+        }
+        "Crystal Golem" | "Magic User" => {
+            // Magical creatures emit blue/purple light
+            entity_commands.insert(Light {
+                range: 7,
+                color: Color::srgb(0.5, 0.7, 1.0), // Magical blue light
+                falloff: 1.8,
+            });
+        }
+        _ => {
+            // Most AI entities don't emit light
+        }
+    }
 
     let ai_id = entity_commands.id();
 

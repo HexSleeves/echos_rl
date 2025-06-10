@@ -15,3 +15,6 @@ pub use self::spawn_point::*;
 
 mod distance_settings;
 pub use self::distance_settings::*;
+
+mod light_map;
+pub use self::light_map::*;

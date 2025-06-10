@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 pub mod combat;
 pub mod fov;
+pub mod light;
 
 /// Cleanup component for entities that should be removed when the game exits
 #[derive(Component)]
