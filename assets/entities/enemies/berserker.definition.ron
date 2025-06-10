@@ -1,0 +1,46 @@
+EntityDefinition(
+    name: "Berserker",
+    description: "A wild warrior that attacks everything around them with devastating swipe attacks",
+    components: (
+        // Core gameplay components
+        turn_actor: Some((
+            speed: 900,
+            action_queue_size: Some(3),
+        )),
+        field_of_view: Some(FieldOfViewData(5)),
+        tile_sprite: Some((
+            tile_coords: (27, 2),
+            tile_size: Some((12.0, 12.0)),
+            tint: Some((1.0, 0.6, 0.6, 1.0)), // Red tint for berserker rage
+        )),
+
+        // Enhanced combat stats for berserker
+        health: Some((
+            current: 120,
+            max: 120,
+        )),
+        stats: Some((
+            strength: 18,
+            defense: 10,
+            intelligence: 6,
+            agility: 14,
+            vitality: 16,
+            luck: 8,
+        )),
+        inventory: None,
+        description: Some((
+            text: "A frenzied warrior with wild eyes and blood-stained weapons. They attack with reckless abandon, striking at everything within reach. Their berserker rage makes them incredibly dangerous in close combat.",
+        )),
+
+        // Entity type flags
+        is_player: Some(false),
+        is_ai: Some(true),
+
+        // AI behavior - aggressive and hostile
+        ai_behavior_type: Some(Hostile),
+
+        // Spawning properties
+        spawn_weight: Some(0.5), // Rarer than regular enemies
+        level_range: Some((3, 8)), // Higher level enemy
+    ),
+)

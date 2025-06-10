@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use big_brain::prelude::*;
 use echos_assets::entities::AIBehaviorType;
 
-use crate::core::{actions::SwipePattern, components::Position};
+use crate::core::components::Position;
 
 // ============================================================================
 // BIG-BRAIN SCORERS (How the AI evaluates what to do)
@@ -88,52 +88,6 @@ pub struct IdleAction;
 
 #[derive(Component, Debug, Clone, ActionBuilder, Default)]
 pub struct AttackAction;
-
-/// Component for AI entities that can perform swipe attacks
-#[derive(Component, Clone, Debug)]
-pub struct SwipeAttacker {
-    /// The swipe pattern this entity uses
-    pub pattern: SwipePattern,
-    /// Chance to use swipe attack instead of regular attack (0.0 to 1.0)
-    pub swipe_chance: f32,
-    /// Minimum number of targets required to trigger swipe attack
-    pub min_targets_for_swipe: usize,
-}
-
-impl SwipeAttacker {
-    pub fn new(pattern: SwipePattern, swipe_chance: f32, min_targets_for_swipe: usize) -> Self {
-        Self {
-            pattern,
-            swipe_chance: swipe_chance.clamp(0.0, 1.0),
-            min_targets_for_swipe: min_targets_for_swipe.max(1),
-        }
-    }
-
-    /// Create a horizontal swiper (good for hallway combat)
-    pub fn horizontal_swiper() -> Self { Self::new(SwipePattern::Horizontal, 0.3, 1) }
-
-    /// Create an arc swiper (good for crowd control)
-    pub fn arc_swiper() -> Self { Self::new(SwipePattern::Arc, 0.4, 2) }
-
-    /// Create a berserker that attacks everything adjacent
-    pub fn berserker() -> Self { Self::new(SwipePattern::AllAdjacent, 0.6, 2) }
-
-    /// Create a diagonal fighter (prefers diagonal attacks)
-    pub fn diagonal_fighter() -> Self { Self::new(SwipePattern::Diagonal, 0.5, 1) }
-}
-
-/// Action for AI entities that can swipe attack
-#[derive(Component, Clone, Debug, ActionBuilder)]
-pub struct SwipeAttackPlayerAction {
-    /// The swipe pattern to use
-    pub pattern: SwipePattern,
-    /// Whether this action has been initialized
-    pub initialized: bool,
-}
-
-impl SwipeAttackPlayerAction {
-    pub fn new(pattern: SwipePattern) -> Self { Self { pattern, initialized: false } }
-}
 
 // ============================================================================
 // HELPER COMPONENTS

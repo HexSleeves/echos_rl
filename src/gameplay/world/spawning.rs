@@ -104,6 +104,7 @@ fn spawn_ai_entity(
 
     // Add common components
     add_common_components(&mut entity_commands, definition, &config);
+
     // Add big-brain AI components based on behavior type
     add_big_brain_components(&mut entity_commands, behavior_type);
 
@@ -216,9 +217,6 @@ fn finalize_entity_spawn(
 fn add_big_brain_components(entity_commands: &mut EntityCommands, behavior_type: AIBehaviorType) {
     match behavior_type {
         AIBehaviorType::Hostile => {
-            // Hostile enemies are aggressive and prioritize chasing
-            // Higher threshold (0.7) means they need strong conviction to act
-            // They will chase when they see the player, otherwise wander to search
             let thinker = Thinker::build()
                 .label("Hostile")
                 .picker(FirstToScore { threshold: 0.7 })

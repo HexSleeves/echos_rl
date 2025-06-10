@@ -1,14 +1,12 @@
 pub mod attack;
-pub use attack::*;
-
 pub mod chase;
-pub use chase::*;
-
 pub mod flee;
-pub use flee::*;
-
 pub mod idle;
-pub use idle::*;
-
 pub mod wander;
+
+// Re-export all the systems for easy access
+pub use attack::*;
+pub use chase::*;
+pub use flee::*;
+pub use idle::*;
 pub use wander::*;
