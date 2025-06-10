@@ -9,6 +9,21 @@ use crate::core::{
 // VISIBILITY SYSTEMS
 // ============================================================================
 
+/// Apply lighting to a sprite with minimum visibility threshold
+fn apply_lighting_to_sprite(sprite: &mut Sprite, light_map: &LightMap, position: &Position) {
+    let light_color = light_map.get_light((position.x, position.y));
+    let light_linear = light_color.to_linear();
+
+    let min_light = 0.3;
+    let lit_color = Color::linear_rgb(
+        (light_linear.red + min_light).min(1.0),
+        (light_linear.green + min_light).min(1.0),
+        (light_linear.blue + min_light).min(1.0),
+    );
+
+    sprite.color = lit_color;
+}
+
 /// System that updates sprite visibility based on the FOV map and lighting
 ///
 /// This system runs after FOV computation and updates the visibility of sprites/entities
@@ -39,18 +54,7 @@ pub fn update_sprite_visibility(
             *visibility = Visibility::Visible;
 
             // Apply lighting to the sprite
-            let light_color = light_map.get_light((position.x, position.y));
-            let light_linear = light_color.to_linear();
-
-            // Ensure minimum visibility for gameplay
-            let min_light = 0.3;
-            let lit_color = Color::linear_rgb(
-                (light_linear.red + min_light).min(1.0),
-                (light_linear.green + min_light).min(1.0),
-                (light_linear.blue + min_light).min(1.0),
-            );
-
-            sprite.color = lit_color;
+            apply_lighting_to_sprite(&mut sprite, &light_map, position);
         }
         // else if fov_map.is_revealed(*position) {
         //     *visibility = Visibility::Visible;
@@ -92,17 +96,7 @@ pub fn update_typed_visibility(
             *visibility = Visibility::Visible;
 
             // Apply lighting to living entities
-            let light_color = light_map.get_light((position.x, position.y));
-            let light_linear = light_color.to_linear();
-
-            let min_light = 0.3;
-            let lit_color = Color::linear_rgb(
-                (light_linear.red + min_light).min(1.0),
-                (light_linear.green + min_light).min(1.0),
-                (light_linear.blue + min_light).min(1.0),
-            );
-
-            sprite.color = lit_color;
+            apply_lighting_to_sprite(&mut sprite, &light_map, position);
         } else {
             *visibility = Visibility::Hidden;
         }
@@ -114,17 +108,7 @@ pub fn update_typed_visibility(
             *visibility = Visibility::Visible;
 
             // Apply full lighting to visible static entities
-            let light_color = light_map.get_light((position.x, position.y));
-            let light_linear = light_color.to_linear();
-
-            let min_light = 0.3;
-            let lit_color = Color::linear_rgb(
-                (light_linear.red + min_light).min(1.0),
-                (light_linear.green + min_light).min(1.0),
-                (light_linear.blue + min_light).min(1.0),
-            );
-
-            sprite.color = lit_color;
+            apply_lighting_to_sprite(&mut sprite, &light_map, position);
         } else if fov_map.is_revealed(*position) {
             *visibility = Visibility::Visible;
             // Revealed static entities are dimmed (fog of war effect)

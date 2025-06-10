@@ -34,7 +34,7 @@ pub fn calculate_light_map(
         for visible_pos in visibility_map.get_all_visible() {
             let visible_position = Position::new(visible_pos.0, visible_pos.1);
             let distance = light_pos.distance(&visible_position);
-            let intensity = 1.0 - (distance / light.range as f32).powf(light.falloff);
+            let intensity = (1.0 - (distance / light.range as f32).powf(light.falloff)).max(0.0);
 
             // Convert color to linear RGB for calculations
             let light_linear = light.color.to_linear();

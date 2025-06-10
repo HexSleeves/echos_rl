@@ -17,7 +17,7 @@ fn test_light_map_integration() {
     app.insert_resource(FovMap::new(50, 50)).insert_resource(LightMap::new());
 
     // Create a test entity with a light source
-    let light_entity = app
+    let _light_entity = app
         .world_mut()
         .spawn((
             Position::new(10, 10),
@@ -68,7 +68,19 @@ fn test_light_map_integration() {
 
     // The colors should have some orange tint from the light
     let sprite_linear = sprite.color.to_linear();
-    assert!(sprite_linear.red > sprite_linear.blue); // Should be more red than blue due to orange light
+    // Orange light (1.0, 0.5, 0.2) should result in red > green > blue
+    assert!(
+        sprite_linear.red > sprite_linear.green,
+        "Expected red > green due to orange light, got red: {}, green: {}",
+        sprite_linear.red,
+        sprite_linear.green
+    );
+    assert!(
+        sprite_linear.green > sprite_linear.blue,
+        "Expected green > blue due to orange light, got green: {}, blue: {}",
+        sprite_linear.green,
+        sprite_linear.blue
+    );
 }
 
 #[test]
