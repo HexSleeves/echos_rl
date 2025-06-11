@@ -5,6 +5,7 @@ target/
 dist/
 
 .aider*
+<<<<<<< Updated upstream
 
 # Added by Task Master AI
 # Logs
@@ -32,3 +33,10 @@ tasks.json
 tasks/
 
 .cursor/mcp.json
+||||||| Stash base
+=======
+
+.opencode/
+
+opencode
+>>>>>>> Stashed changes
